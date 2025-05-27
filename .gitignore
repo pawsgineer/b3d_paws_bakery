@@ -172,3 +172,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Addon & Blender Specific
+
+*.blend[0-9]*
+/textures/

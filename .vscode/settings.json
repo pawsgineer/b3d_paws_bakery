@@ -1,0 +1,17 @@
+{
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "mypy-type-checker.args": [
+    // "--show-column-numbers",
+    // "--no-pretty",
+    "--strict"
+  ],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportInvalidTypeForm": "none"
+  }
+  // "python.testing.pytestArgs": ["--no-cov"]
+}

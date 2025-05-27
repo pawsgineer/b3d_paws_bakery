@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+id = "paws_bakery"
+name = "PAWS: Bakery"
+version = "0.1.0"
+maintainer = "Steve Paws <Pawsgineer>"
+type = "add-on"
+
+license = ["SPDX:GPL-3.0-or-later"]
+website = "https://github.com/pawsgineer/b3d_paws_bakery"
+copyright = [
+    "2025 Steve Paws <Pawsgineer>",
+]
+tagline = "Streamlined Texture Baking tools for game-ready pipeline by Pawsgineer"
+
+tags = ["Bake", "Pipeline", "Material"]
+blender_version_min = "4.2.0"
