@@ -34,7 +34,6 @@ class SimpleBakeSpecialsMenu(b_t.Menu):
             text="Cleanup Materials",
             icon="NODE_MATERIAL",
         )
-        props.settings_id = SIMPLE_BAKE_SETTINGS_ID
 
 
 @register_and_duplicate_to_node_editor

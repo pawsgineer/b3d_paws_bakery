@@ -18,16 +18,21 @@ from .material_setup import MaterialNodeNames
 
 class _BakeHelper:
     @staticmethod
-    def bake(settings: BakeSettings, use_clear=False) -> set[BlenderOperatorReturnType]:
+    def bake(
+        context: b_t.Context,
+        settings: BakeSettings,
+        use_clear=False,
+    ) -> set[BlenderOperatorReturnType]:
         """Bake helper."""
-        bpy.context.scene.render.bake.use_pass_direct = False
-        bpy.context.scene.render.bake.use_pass_indirect = False
-        bpy.context.scene.render.bake.use_pass_color = True
+        context.scene.render.engine = "CYCLES"
+        context.scene.render.bake.use_pass_direct = False
+        context.scene.render.bake.use_pass_indirect = False
+        context.scene.render.bake.use_pass_color = True
         # TODO: parametrize use_clear?
-        # bpy.context.scene.render.bake.use_clear = False
+        # context.scene.render.bake.use_clear = False
 
-        bpy.context.scene.cycles.samples = settings.samples
-        bpy.context.scene.cycles.use_denoising = settings.use_denoising
+        context.scene.cycles.samples = settings.samples
+        context.scene.cycles.use_denoising = settings.use_denoising
 
         return bpy.ops.object.bake(  # type: ignore[no-any-return]
             "INVOKE_DEFAULT",  # type: ignore[arg-type]
@@ -87,6 +92,7 @@ class Bake(b_t.Operator):
     __is_running = False
     __lock = Lock()
 
+    __og_render_engine: str
     __og_cycles_samples: int
     __og_cycles_use_denoising: bool
 
@@ -101,10 +107,12 @@ class Bake(b_t.Operator):
         return cls.__is_running
 
     def _save_user_settings(self, context: b_t.Context) -> None:
+        self.__og_render_engine = context.scene.render.engine
         self.__og_cycles_samples = context.scene.cycles.samples
         self.__og_cycles_use_denoising = context.scene.cycles.use_denoising
 
     def _restore_user_settings(self, context: b_t.Context) -> None:
+        context.scene.render.engine = self.__og_render_engine
         context.scene.cycles.samples = self.__og_cycles_samples
         context.scene.cycles.use_denoising = self.__og_cycles_use_denoising
 
@@ -181,13 +189,18 @@ class Bake(b_t.Operator):
             return {BlenderOperatorReturnType.PASS_THROUGH}
 
         try:
-            if not bpy.app.is_job_running("OBJECT_BAKE") and all(
-                img.is_dirty for img in [self._image]
-            ):
+            if bpy.app.is_job_running("OBJECT_BAKE"):
+                return {BlenderOperatorReturnType.PASS_THROUGH}
+
+            if all(img.is_dirty for img in [self._image]):
                 self._finish(context)
                 return {BlenderOperatorReturnType.FINISHED}
 
-            return {BlenderOperatorReturnType.PASS_THROUGH}
+            log("Bake job not running but images appear to be unchanged")
+            self.report({"ERROR"}, "Baking probably went wrong")
+            self._cancel(context)
+            return {BlenderOperatorReturnType.CANCELLED}
+
         finally:
             self.__class__.__lock.release()  # pylint: disable=protected-access
 
@@ -316,7 +329,7 @@ class Bake(b_t.Operator):
             bake_texture_node.select = True
             tree.nodes.active = bake_texture_node
 
-        bake_result = _BakeHelper.bake(cfg, self.clear_image)
+        bake_result = _BakeHelper.bake(context, cfg, self.clear_image)
 
         if bake_result != {"RUNNING_MODAL"}:
             log("Failed to start baking:", bake_result)
