@@ -10,7 +10,7 @@ website = "https://github.com/pawsgineer/b3d_paws_bakery"
 copyright = [
     "2025 Steve Paws <Pawsgineer>",
 ]
-tagline = "Streamlined Texture Baking tools for game-ready pipeline by Pawsgineer"
+tagline = "Texture Baking tools for Game-Ready pipeline by Pawsgineer"
 
 tags = ["Bake", "Pipeline", "Material"]
 blender_version_min = "4.2.0"
