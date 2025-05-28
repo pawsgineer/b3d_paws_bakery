@@ -27,9 +27,9 @@ class TextureSetTextureAdd(b_t.Operator):
         settings_store = pawsbkr.bake_settings_store
 
         texture = textures.add()
-        texture.name = str(uuid4())
+        texture.name = ""
         settings = settings_store.add()
-        settings.name = texture.name
+        settings.name = texture.prop_id
 
         return {BlenderOperatorReturnType.FINISHED}
 
@@ -49,15 +49,15 @@ class TextureSetTextureRemove(b_t.Operator):
         texture_set = pawsbkr.active_texture_set
         texture = texture_set.active_texture
 
-        settings_store.remove(settings_store.find(texture.name))
+        settings_store.remove(settings_store.find(texture.prop_id))
         texture_set.textures.remove(texture_set.textures_active_index)
 
         return {BlenderOperatorReturnType.FINISHED}
 
 
-def _get_materials(context: b_t.Context, texture_set_name: str) -> set[b_t.Material]:
+def _get_materials(context: b_t.Context, texture_set_id: str) -> set[b_t.Material]:
     pawsbkr = context.scene.pawsbkr
-    texture_set = pawsbkr.texture_sets[texture_set_name]
+    texture_set = pawsbkr.texture_sets[texture_set_id]
     meshes = texture_set.meshes
 
     materials: set[b_t.Material] = set()
@@ -78,22 +78,22 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
     bl_label = "Setup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    texture_set_name: b_p.StringProperty(name="Target texture set name", default="")
-    texture_name: b_p.StringProperty(name="Target texture name", default="")
+    texture_set_id: b_p.StringProperty(name="Target texture set name", default="")
+    texture_id: b_p.StringProperty(name="Target texture name", default="")
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
-        if not self.texture_set_name:
-            raise NotImplementedError("Baking without texture_set_name not implemented")
-        if not self.texture_name:
-            raise NotImplementedError("Baking without texture_name not implemented")
+        if not self.texture_set_id:
+            raise NotImplementedError("Baking without texture_set_id not implemented")
+        if not self.texture_id:
+            raise NotImplementedError("Baking without texture_id not implemented")
 
         pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.texture_set_name]
+        texture_set = pawsbkr.texture_sets[self.texture_set_id]
         textures = texture_set.textures
-        texture = textures[self.texture_name]
+        texture = textures[self.texture_id]
 
-        materials = _get_materials(context, self.texture_set_name)
+        materials = _get_materials(context, self.texture_set_id)
 
         if not materials:
             raise AddonException("No materials found for specified objects")
@@ -106,7 +106,7 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
                 target_material_name=mat.name,
                 mat_id_color=colors[list(materials).index(mat)],
                 texture_type=texture.get_bake_settings().type,
-                settings_id=self.texture_name,
+                settings_id=self.texture_id,
             )
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -120,14 +120,14 @@ class TextureSetTextureCleanupMaterial(b_t.Operator):
     bl_label = "Cleanup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    texture_set_name: b_p.StringProperty(name="Target texture set name", default="")
+    texture_set_id: b_p.StringProperty(name="Target texture set name", default="")
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
-        if not self.texture_set_name:
-            raise NotImplementedError("Baking without texture_set_name not implemented")
+        if not self.texture_set_id:
+            raise NotImplementedError("Baking without texture_set_id not implemented")
 
-        materials = _get_materials(context, self.texture_set_name)
+        materials = _get_materials(context, self.texture_set_id)
 
         if not materials:
             raise AddonException("No materials found for specified meshes")

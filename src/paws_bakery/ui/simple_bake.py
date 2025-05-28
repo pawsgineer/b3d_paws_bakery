@@ -67,7 +67,7 @@ class SimpleBake(SidePanelMixin):
             icon="RENDER_STILL",
         )
         props.settings_id = SIMPLE_BAKE_SETTINGS_ID
-        props.texture_set_name = SIMPLE_BAKE_SETTINGS_ID
+        props.texture_set_id = SIMPLE_BAKE_SETTINGS_ID
 
         row.menu(SimpleBakeSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 

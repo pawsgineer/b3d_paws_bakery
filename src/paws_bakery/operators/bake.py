@@ -10,7 +10,7 @@ from bpy import types as b_t
 from .._helpers import log
 from ..enums import BlenderOperatorReturnType
 from ..preferences import get_preferences
-from ..props import BakeSettings, BakeTextureType
+from ..props import SIMPLE_BAKE_SETTINGS_ID, BakeSettings, BakeTextureType
 from ..props_enums import BakeState
 from ..utils import Registry, TimerManager
 from ._utils import generate_color_set, get_selected_materials
@@ -66,11 +66,11 @@ class Bake(b_t.Operator):
     bl_idname = "pawsbkr.bake"
     bl_label = "Bake Map"
 
-    texture_set_name: b_p.StringProperty(
+    texture_set_id: b_p.StringProperty(
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
     texture_set_object_suffix: b_p.StringProperty()
-    texture_name: b_p.StringProperty(
+    texture_id: b_p.StringProperty(
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
     clear_image: b_p.BoolProperty(
@@ -145,9 +145,9 @@ class Bake(b_t.Operator):
     def _cancel(self, context: b_t.Context) -> None:
         TimerManager.release()
 
-        if self.texture_set_name and self.texture_name:
-            context.scene.pawsbkr.texture_sets[self.texture_set_name].textures[
-                self.texture_name
+        if self.texture_set_id and self.texture_id:
+            context.scene.pawsbkr.texture_sets[self.texture_set_id].textures[
+                self.texture_id
             ].state = BakeState.CANCELLED.name
 
         log("PAWSBKR: Baking cancelled")
@@ -174,10 +174,10 @@ class Bake(b_t.Operator):
 
         self._cleanup()
 
-        if self.texture_set_name and self.texture_name:
-            texture = context.scene.pawsbkr.texture_sets[
-                self.texture_set_name
-            ].textures[self.texture_name]
+        if self.texture_set_id and self.texture_id:
+            texture = context.scene.pawsbkr.texture_sets[self.texture_set_id].textures[
+                self.texture_id
+            ]
             texture.state = BakeState.FINISHED.name
 
         self._restore_user_settings(context)
@@ -244,14 +244,22 @@ class Bake(b_t.Operator):
 
         self._cleanup()
 
-        image_name_parts = [self.texture_set_name]
+        t_set_display_name = (
+            SIMPLE_BAKE_SETTINGS_ID
+            if self.texture_set_id == SIMPLE_BAKE_SETTINGS_ID
+            else context.scene.pawsbkr.texture_sets[self.texture_set_id].display_name
+        )
+        image_name_parts = [t_set_display_name]
         if self.texture_set_object_suffix:
             image_name_parts.append(self.texture_set_object_suffix)
 
         image_name = cfg.get_name("_".join(image_name_parts)) + ".png"
-
-        filepath = (
-            f"{get_preferences().output_directory}/{self.texture_set_name}/{image_name}"
+        filepath = "/".join(
+            [
+                get_preferences().output_directory,
+                t_set_display_name,
+                image_name,
+            ]
         )
 
         img = bpy.data.images.get(image_name)

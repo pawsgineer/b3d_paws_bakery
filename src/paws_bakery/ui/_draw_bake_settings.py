@@ -6,7 +6,9 @@ from ..props import BakeSettings, BakeTextureType
 
 
 def draw_bake_settings(
-    layout: b_t.UILayout, settings: BakeSettings, texture_set_name: str = ""
+    layout: b_t.UILayout,
+    settings: BakeSettings,
+    texture_set_display_name: str = "",
 ) -> None:
     """Draws a bake settings layout."""
     assert isinstance(settings, BakeSettings)
@@ -18,7 +20,7 @@ def draw_bake_settings(
     row.prop(settings, "name_template")
     row = layout.row()
     row.label(text="Compiled Name:")
-    row.label(text=settings.get_name(texture_set_name))
+    row.label(text=settings.get_name(texture_set_display_name))
 
     row = layout.row()
     row.prop(settings, "type")

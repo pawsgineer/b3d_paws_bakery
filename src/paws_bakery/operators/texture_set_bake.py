@@ -100,10 +100,18 @@ class TextureSetBake(b_t.Operator):
             else:
                 texture.state = BakeState.RUNNING.name
                 # TODO: handle op return
-                bpy.ops.pawsbkr.texture_set_texture_bake(
-                    texture_set_name=texture_set.name,
-                    texture_name=texture.name,
+                op_return = bpy.ops.pawsbkr.texture_set_texture_bake(
+                    texture_set_id=texture_set.prop_id,
+                    texture_id=texture.prop_id,
                 )
+
+                if op_return != {"RUNNING_MODAL"}:
+                    log(
+                        "Failed to start baking. texture_set_texture_bake return",
+                        op_return,
+                    )
+                    self._cancel(context)
+                    return {BlenderOperatorReturnType.CANCELLED}
 
         return {BlenderOperatorReturnType.PASS_THROUGH}
 

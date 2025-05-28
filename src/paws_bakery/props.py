@@ -28,15 +28,8 @@ def _set_force_uuid_name(self, _value) -> None:
 class BakeSettings(b_t.PropertyGroup):
     """Bake settings."""
 
-    name: b_p.StringProperty(get=_get_name, set=_set_force_uuid_name)
-
-    @property
-    def prop_id(self) -> str:
-        """Unique identifier for this item, used for lookups.
-
-        NOTE: Avoid using `name` directly - it's error prone.
-        """
-        return self.name
+    # NOTE: BakeSettings has the same id as Texture for matching
+    # name: b_p.StringProperty(get=_get_name, set=_set_force_uuid_name)
 
     type: BakeTextureType.get_blender_enum_property()
 
@@ -190,6 +183,8 @@ class MeshProps(b_t.PropertyGroup):
 class TextureProps(b_t.PropertyGroup):
     """Texture properties."""
 
+    name: b_p.StringProperty(get=_get_name, set=_set_force_uuid_name)
+
     is_enabled: b_p.BoolProperty(name="Bake enabled", default=True)
     state: BakeState.get_blender_enum_property()
     last_bake_time: b_p.StringProperty(
@@ -197,6 +192,14 @@ class TextureProps(b_t.PropertyGroup):
         description="Time spent on the last bake",
         default="-",
     )
+
+    @property
+    def prop_id(self) -> str:
+        """Unique identifier for this item, used for lookups.
+
+        NOTE: Avoid using `name` directly - it's error prone.
+        """
+        return self.name
 
     def get_bake_settings(self) -> BakeSettings:
         """Returns reference to texture bake settings."""

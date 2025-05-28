@@ -28,8 +28,8 @@ class TextureSetTextureBake(b_t.Operator):
     bl_idname = "pawsbkr.texture_set_texture_bake"
     bl_label = "Bake texture set texture"
 
-    texture_set_name: b_p.StringProperty(name="Target texture set name", default="")
-    texture_name: b_p.StringProperty(name="Target texture name", default="")
+    texture_set_id: b_p.StringProperty(name="Target texture set ID", default="")
+    texture_id: b_p.StringProperty(name="Target texture ID", default="")
 
     _bake_collection: b_t.Collection = None
     _meshes_active: dict[MeshProps, list[MeshProps]] = defaultdict(list[MeshProps])
@@ -91,8 +91,8 @@ class TextureSetTextureBake(b_t.Operator):
         TimerManager.release()
 
         pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.texture_set_name]
-        texture = texture_set.textures[self.texture_name]
+        texture_set = pawsbkr.texture_sets[self.texture_set_id]
+        texture = texture_set.textures[self.texture_id]
 
         texture.state = BakeState.CANCELLED.name
         for active, selected in self._meshes_active.items():
@@ -108,8 +108,8 @@ class TextureSetTextureBake(b_t.Operator):
         TimerManager.release()
 
         pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.texture_set_name]
-        texture = texture_set.textures[self.texture_name]
+        texture_set = pawsbkr.texture_sets[self.texture_set_id]
+        texture = texture_set.textures[self.texture_id]
 
         delta: datetime.timedelta = datetime.datetime.now() - self._time_start
         hours, seconds = divmod(delta.seconds, 3600)
@@ -152,8 +152,8 @@ class TextureSetTextureBake(b_t.Operator):
             return {BlenderOperatorReturnType.PASS_THROUGH}
 
         pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.texture_set_name]
-        texture = texture_set.textures[self.texture_name]
+        texture_set = pawsbkr.texture_sets[self.texture_set_id]
+        texture = texture_set.textures[self.texture_id]
 
         active, selected = list(self._meshes_active.items())[0]
 
@@ -218,24 +218,28 @@ class TextureSetTextureBake(b_t.Operator):
             else:
                 texture_set_object_suffix = active.name
 
-            # TODO: handle operator return
-            bpy.ops.pawsbkr.bake(
-                texture_set_name=texture_set.name,
+            op_return = bpy.ops.pawsbkr.bake(
+                texture_set_id=texture_set.prop_id,
                 texture_set_object_suffix=texture_set_object_suffix,
-                texture_name=self.texture_name,
+                texture_id=self.texture_id,
                 clear_image=self._clear_image,
                 scale_image=len(self._meshes_active) < 2,
-                settings_id=self.texture_name,
+                settings_id=self.texture_id,
             )
+
+            if op_return != {"RUNNING_MODAL"}:
+                log("Failed to start baking. bake return", op_return)
+                self._cancel(context)
+                return {BlenderOperatorReturnType.CANCELLED}
 
         return {BlenderOperatorReturnType.PASS_THROUGH}
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
-        if not self.texture_set_name:
-            raise NotImplementedError("Baking without texture_set_name not implemented")
-        if not self.texture_name:
-            raise NotImplementedError("Baking without texture_name not implemented")
+        if not self.texture_set_id:
+            raise NotImplementedError("Baking without texture_set_id not implemented")
+        if not self.texture_id:
+            raise NotImplementedError("Baking without texture_id not implemented")
 
         # TODO: Do I need a lock? Maybe execute() is thread-safe?
         # pylint: disable-next=protected-access
@@ -252,8 +256,8 @@ class TextureSetTextureBake(b_t.Operator):
         context.scene.collection.children.link(self._bake_collection)
 
         pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.texture_set_name]
-        texture = texture_set.textures[self.texture_name]
+        texture_set = pawsbkr.texture_sets[self.texture_set_id]
+        texture = texture_set.textures[self.texture_id]
         meshes: Sequence[MeshProps] = texture_set.meshes
         bake_settings = texture.get_bake_settings()
         mode = BakeMode[texture_set.mode]

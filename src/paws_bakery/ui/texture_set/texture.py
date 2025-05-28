@@ -38,8 +38,8 @@ class TextureSpecialsMenu(b_t.Menu):
             icon="MATERIAL",
             text="Setup Materials",
         )
-        props.texture_set_name = texture_set.name
-        props.texture_name = texture.name
+        props.texture_set_id = texture_set.prop_id
+        props.texture_id = texture.prop_id
 
         subl.alert = True
         props = subl.operator(
@@ -47,7 +47,7 @@ class TextureSpecialsMenu(b_t.Menu):
             icon="NODE_MATERIAL",
             text="Cleanup Materials",
         )
-        props.texture_set_name = texture_set.name
+        props.texture_set_id = texture_set.prop_id
 
 
 @register_and_duplicate_to_node_editor
@@ -82,7 +82,7 @@ class TextureUIList(b_t.UIList):
         row.prop(item, "is_enabled", text="")
 
         row = row.split(factor=0.6)
-        row.label(text=f"{bake_settings.get_name(texture_set.name)}")
+        row.label(text=f"{bake_settings.get_name(texture_set.display_name)}")
         row = row.split(factor=0.6)
         row.label(text=f"{bake_settings.type}")
         row.label(text=f"{item.last_bake_time}")
@@ -129,7 +129,9 @@ class Texture(SidePanelMixin):
         if texture is not None:
             col = flow.column()
             row = col.row()
-            draw_bake_settings(col, texture.get_bake_settings(), texture_set.name)
+            draw_bake_settings(
+                col, texture.get_bake_settings(), texture_set.display_name
+            )
 
         col = flow.column()
 
@@ -157,8 +159,8 @@ class Texture(SidePanelMixin):
         props = col.operator(
             TextureSetTextureBake.bl_idname, icon="RENDER_STILL", text=""
         )
-        props.texture_set_name = texture_set.name
-        props.texture_name = texture.name
+        props.texture_set_id = texture_set.prop_id
+        props.texture_id = texture.prop_id
 
         col.separator()
 

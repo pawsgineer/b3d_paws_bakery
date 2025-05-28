@@ -108,6 +108,7 @@ class Debug(SidePanelMixin):
                 subl = col.column()
                 subl.label(text=texture_set.name)
                 subl.label(text=texture_set.prop_id)
+                subl.label(text=texture_set.display_name)
                 subl.label(text=f"{texture_set.meshes.items()}")
                 subl.label(text=f"{texture_set.textures.items()}")
 
