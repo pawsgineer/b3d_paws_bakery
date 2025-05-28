@@ -11,6 +11,8 @@ PAWS Bakery is Blender add-on that provides tools to improve your Texture Baking
   - [I'm not a developer](#im-not-a-developer)
   - [I'm a developer](#im-a-developer)
 
+![UI showcase with high poly and baked low poly meshes comparison](/pawsbkr_sh.webp?raw=true)
+
 ## Features
 
 - Automatic Material Setup for Baking
