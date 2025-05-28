@@ -41,8 +41,8 @@ def draw_bake_settings(
         row.prop(settings, "matid_use_object_color")
 
     row = layout.row()
-    row.prop(settings, "match_active_by_suffix")
     row.prop(settings, "use_selected_to_active")
+    row.prop(settings, "match_active_by_suffix")
     row = layout.row()
     row.prop(settings, "use_cage")
     row.prop(settings, "cage_extrusion")

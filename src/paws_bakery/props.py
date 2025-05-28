@@ -53,7 +53,7 @@ class BakeSettings(b_t.PropertyGroup):
             ("4096", "4096", ""),
             ("8192", "8192", ""),
         ),
-        default="2048",
+        default="512",
     )
     sampling: b_p.EnumProperty(
         name="AA",
@@ -69,7 +69,7 @@ class BakeSettings(b_t.PropertyGroup):
     samples: b_p.IntProperty(
         name="Samples",
         description="Number of samples. Global value if 0",
-        default=48,
+        default=24,
         min=0,
     )
     use_denoising: b_p.BoolProperty(
@@ -80,7 +80,7 @@ class BakeSettings(b_t.PropertyGroup):
     margin: b_p.IntProperty(
         name="Margin",
         description="Margin",
-        default=24,
+        default=4,
     )
     margin_type: b_p.EnumProperty(
         name="MarginType",

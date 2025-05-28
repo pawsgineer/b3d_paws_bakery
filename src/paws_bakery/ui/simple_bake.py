@@ -45,11 +45,6 @@ class SimpleBake(SidePanelMixin):
     bl_order = 1
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
-    @classmethod
-    def poll(cls, context: b_t.Context) -> bool:
-        """poll() override."""
-        return context.object is not None
-
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
         layout = self.layout

@@ -143,13 +143,12 @@ class BakeTextureType(BlenderPropertyEnum):
 
     value: BakeTextureTypeInfo
 
-    # FIXME: how to keep existing textures in blend when add or changing order?
-    EMIT = DEFAULT = BakeTextureTypeInfo(
+    EMIT = BakeTextureTypeInfo(
         ui_name="Emit",
         description="Bake current material output in emit mode",
         short_name="emit",
     )
-    EMIT_COLOR = BakeTextureTypeInfo(
+    EMIT_COLOR = DEFAULT = BakeTextureTypeInfo(
         ui_name="Color(Emit)",
         description="Bake color value as emit output",
         short_name="color",
