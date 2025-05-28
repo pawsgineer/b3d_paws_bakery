@@ -176,4 +176,4 @@ cython_debug/
 # Addon & Blender Specific
 
 *.blend[0-9]*
-/textures/
+/pawsbkr_textures/

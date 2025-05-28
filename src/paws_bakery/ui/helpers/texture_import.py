@@ -6,6 +6,7 @@ import bpy
 from bpy import types as b_t
 
 from ... import operators as ops
+from ...preferences import get_preferences
 from ...props_enums import TextureTypeAlias
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
@@ -109,7 +110,7 @@ class TextureImport(SidePanelMixin):
                     )
                 )
             else:
-                props.filepath = "//textures/"
+                props.filepath = f"{get_preferences().output_directory}/"
 
             for node_type, node in tex_nodes.items():
                 col = flow.column(align=True)

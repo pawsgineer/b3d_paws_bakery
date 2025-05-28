@@ -71,7 +71,11 @@ class TextureSetBake(b_t.Operator):
             self.__class__.__lock.release()  # pylint: disable=protected-access
 
     def __modal_lock_me(self, context: b_t.Context, _event: b_t.Event) -> set[str]:
-        if TextureSetTextureBake.is_running() or TextureSetTextureBake.is_locked():
+        if (
+            bpy.app.is_job_running("OBJECT_BAKE")
+            or TextureSetTextureBake.is_running()
+            or TextureSetTextureBake.is_locked()
+        ):
             return {BlenderOperatorReturnType.PASS_THROUGH}
         pawsbkr = context.scene.pawsbkr
         texture_set = pawsbkr.texture_sets[self.target_name]

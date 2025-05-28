@@ -27,7 +27,7 @@ class Registry:
     def register() -> None:
         """Register classes in Blender."""
         for class_ in Registry.CLASSES:
-            log(f"Registering: {class_.__name__}.")
+            # log(f"Registering: {class_.__name__}.")
             try:
                 bpy.utils.register_class(class_)
             except BaseException:
@@ -39,7 +39,7 @@ class Registry:
     def unregister() -> None:
         """Unregister classes from Blender."""
         for class_ in reversed(Registry.CLASSES):
-            log(f"Unregistering: {class_.__name__}")
+            # log(f"Unregistering: {class_.__name__}")
             try:
                 bpy.utils.unregister_class(class_)
             # pylint: disable-next=broad-exception-caught

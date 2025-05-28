@@ -9,6 +9,7 @@ from bpy import types as b_t
 
 from .._helpers import log
 from ..enums import BlenderOperatorReturnType
+from ..preferences import get_preferences
 from ..props import BakeSettings, BakeTextureType
 from ..props_enums import BakeState
 from ..utils import Registry, TimerManager
@@ -24,6 +25,7 @@ class _BakeHelper:
         use_clear=False,
     ) -> set[BlenderOperatorReturnType]:
         """Bake helper."""
+        context.scene.render.use_lock_interface = True
         context.scene.render.engine = "CYCLES"
         context.scene.render.bake.use_pass_direct = False
         context.scene.render.bake.use_pass_indirect = False
@@ -31,6 +33,7 @@ class _BakeHelper:
         # TODO: parametrize use_clear?
         # context.scene.render.bake.use_clear = False
 
+        context.scene.cycles.device = "GPU"
         context.scene.cycles.samples = settings.samples
         context.scene.cycles.use_denoising = settings.use_denoising
 
@@ -92,7 +95,9 @@ class Bake(b_t.Operator):
     __is_running = False
     __lock = Lock()
 
+    __og_render_use_lock_interface: bool
     __og_render_engine: str
+    __og_cycles_device: str
     __og_cycles_samples: int
     __og_cycles_use_denoising: bool
 
@@ -107,12 +112,16 @@ class Bake(b_t.Operator):
         return cls.__is_running
 
     def _save_user_settings(self, context: b_t.Context) -> None:
+        self.__og_render_use_lock_interface = context.scene.render.use_lock_interface
         self.__og_render_engine = context.scene.render.engine
+        self.__og_cycles_device = context.scene.cycles.device
         self.__og_cycles_samples = context.scene.cycles.samples
         self.__og_cycles_use_denoising = context.scene.cycles.use_denoising
 
     def _restore_user_settings(self, context: b_t.Context) -> None:
+        context.scene.render.use_lock_interface = self.__og_render_use_lock_interface
         context.scene.render.engine = self.__og_render_engine
+        context.scene.cycles.device = self.__og_cycles_device
         context.scene.cycles.samples = self.__og_cycles_samples
         context.scene.cycles.use_denoising = self.__og_cycles_use_denoising
 
@@ -240,7 +249,9 @@ class Bake(b_t.Operator):
 
         image_name = cfg.get_name("_".join(image_name_parts)) + ".png"
 
-        filepath = f"//textures/{self.texture_set_name}/{image_name}"
+        filepath = (
+            f"{get_preferences().output_directory}/{self.texture_set_name}/{image_name}"
+        )
 
         img = bpy.data.images.get(image_name)
         real_size = int(cfg.size) * int(cfg.sampling)

@@ -143,7 +143,11 @@ class TextureSetTextureBake(b_t.Operator):
             self.__class__.__lock.release()  # pylint: disable=protected-access
 
     def __modal_lock_me(self, context: b_t.Context, _event: b_t.Event) -> set[str]:
-        if Bake.is_running() or Bake.is_locked():
+        if (
+            bpy.app.is_job_running("OBJECT_BAKE")
+            or Bake.is_running()
+            or Bake.is_locked()
+        ):
             # log(f"{type(self).__name__}: Skipping modal(): Bake running")
             return {BlenderOperatorReturnType.PASS_THROUGH}
 
