@@ -58,7 +58,7 @@ class TimerManager:
     def __remove_timer(cls) -> None:
         if cls.__timer is None:
             return
-        log(f"{cls.__name__}: Removing timer")
+        # log(f"{cls.__name__}: Removing timer")
         bpy.context.window_manager.event_timer_remove(cls.__timer)
         cls.__timer = None
 
@@ -66,11 +66,11 @@ class TimerManager:
     def acquire(cls) -> bpy.types.Timer:
         """Creates the timer if it doesn't exist."""
         with cls.__lock:
-            log(f"{cls.__name__}| counter: {cls.__ref_count}, timer: {cls.__timer}")
+            # log(f"{cls.__name__}| counter: {cls.__ref_count}, timer: {cls.__timer}")
             cls.__ref_count += 1
 
             if cls.__timer is None:
-                log(f"{cls.__name__}: Creating timer")
+                # log(f"{cls.__name__}: Creating timer")
                 wm = bpy.context.window_manager
                 cls.__timer = wm.event_timer_add(1.0, window=bpy.context.window)
 

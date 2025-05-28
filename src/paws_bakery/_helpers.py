@@ -30,3 +30,13 @@ def log(msg: str, *args: Any, msg_color: str = TermColors.OKCYAN) -> None:
     time_str = datetime.now().strftime("%H:%M:%S") + " "
     compiled_msg = f"{time_str}{msg_color}{LOG_ADDON_NAME}{TermColors.ENDC}: {msg}"
     print(compiled_msg, *args, flush=True)
+
+
+def log_line_number() -> None:
+    """Prints a log message with a line number."""
+    import inspect  # pylint: disable=import-outside-toplevel
+
+    caller = inspect.stack()[1]
+    module = inspect.getmodule(caller.frame)
+    module_name = module.__name__
+    log(f"{module_name}: {caller.lineno}")
