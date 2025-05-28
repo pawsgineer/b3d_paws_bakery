@@ -113,14 +113,15 @@ class Bake(b_t.Operator):
 
     def _save_user_settings(self, context: b_t.Context) -> None:
         self.__og_render_use_lock_interface = context.scene.render.use_lock_interface
-        self.__og_render_engine = context.scene.render.engine
+        # self.__og_render_engine = context.scene.render.engine
         self.__og_cycles_device = context.scene.cycles.device
         self.__og_cycles_samples = context.scene.cycles.samples
         self.__og_cycles_use_denoising = context.scene.cycles.use_denoising
 
     def _restore_user_settings(self, context: b_t.Context) -> None:
         context.scene.render.use_lock_interface = self.__og_render_use_lock_interface
-        context.scene.render.engine = self.__og_render_engine
+        # NOTE: Setting render.engine here may lead to hardlock
+        # context.scene.render.engine = self.__og_render_engine
         context.scene.cycles.device = self.__og_cycles_device
         context.scene.cycles.samples = self.__og_cycles_samples
         context.scene.cycles.use_denoising = self.__og_cycles_use_denoising
