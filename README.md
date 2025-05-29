@@ -43,8 +43,8 @@ Here are a few ways you can show your support and help me to continue improving 
 
 - 💌 **Support me** on my [Patreon](https://www.patreon.com/c/Pawsgineer) or
 [itch.io](https://pawsgineer.itch.io/)
-<!-- - ⬆️ **Leave a review** for add-on on [Blender Extensions](https://extensions.blender.org/), [itch.io](https://pawsgineer.itch.io/) and ⭐ **Star** the repo on GitHub -->
-- ⬆️ **Star** the repo on GitHub
+<!-- - ⬆️ **Leave a review** for add-on on [Blender Extensions](https://extensions.blender.org/), [itch.io](https://pawsgineer.itch.io/paws-bakery) and ⭐ **Star** the repo on GitHub -->
+- ⬆️ **Leave a review** for add-on on [itch.io](https://pawsgineer.itch.io/paws-bakery) and ⭐ **Star** the repo on GitHub
 - 📢 **Spread the word** on socials:
 
   - Share a link or add-on name with your fellow artists
