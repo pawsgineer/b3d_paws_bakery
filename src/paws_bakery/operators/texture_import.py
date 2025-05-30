@@ -8,14 +8,13 @@ from bpy import props as b_p
 from bpy import types as b_t
 from bpy_extras.io_utils import ImportHelper
 
-from .._helpers import ASSETS_DIR, log
+from .._helpers import UTIL_MATS_PATH, log
 from ..enums import BlenderOperatorReturnType, Colorspace
 from ..props_enums import TextureTypeAlias
 from ..utils import AddonException, Registry
 from ._utils import get_selected_materials
 
 UTIL_MATS_IMPORT_SAMPLE_NAME = "pawsbkr_texture_import_sample"
-UTIL_MATS_PATH = ASSETS_DIR.joinpath("materials.blend")
 
 
 @Registry.add
