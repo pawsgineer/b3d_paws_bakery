@@ -8,6 +8,8 @@ LOG_ADDON_NAME: str = __package__.rsplit(".", 1)[-1]
 ADDON_DIR = Path(__file__).parent.resolve()
 ASSETS_DIR = ADDON_DIR.joinpath("assets")
 
+UTIL_MATS_PATH = ASSETS_DIR.joinpath("materials.blend")
+
 
 class TermColors:
     """Blender terminal colorize helper."""
