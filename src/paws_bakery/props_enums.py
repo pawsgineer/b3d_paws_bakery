@@ -7,6 +7,7 @@ from typing import TypeVar
 
 from bpy import props as b_p
 
+from . import icons
 from .enums import Colorspace, CyclesBakeType
 
 AnyTextureTypeAlias = TypeVar("AnyTextureTypeAlias", bound="TextureTypeAlias")
@@ -266,18 +267,18 @@ class BakeState(BlenderPropertyEnum):
     value: EnumItemInfo
 
     CANCELLED = DEFAULT = EnumItemInfo(
-        ui_name="STRIP_COLOR_01",
+        ui_name=icons.STRIP_COLOR_01,
         description="Bake cancelled or was not started yet",
     )
     QUEUED = EnumItemInfo(
-        ui_name="STRIP_COLOR_02",
+        ui_name=icons.STRIP_COLOR_02,
         description="Bake queued",
     )
     RUNNING = EnumItemInfo(
-        ui_name="STRIP_COLOR_03",
+        ui_name=icons.STRIP_COLOR_03,
         description="Bake running",
     )
     FINISHED = EnumItemInfo(
-        ui_name="STRIP_COLOR_04",
+        ui_name=icons.STRIP_COLOR_04,
         description="Bake finished",
     )
