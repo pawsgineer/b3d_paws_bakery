@@ -1,27 +1,21 @@
-from enum import Enum, auto
+"""A collection of different Enums."""
+
+import enum
+from enum import auto
+from typing import Any
 
 
-class StrEnum(str, Enum):
-    """StrEnum implementation."""
+class CaseSensitiveStrEnum(enum.StrEnum):
+    """Case-sensitive StrEnum implementation."""
 
-    def __str__(self) -> str:
-        return str(self.value)
-
-    # pylint: disable-next=no-self-argument
-    def _generate_next_value_(  # type: ignore[no-untyped-def]
-        name, _start, _count, _last_values  # noqa: B902
-    ):
+    @staticmethod
+    def _generate_next_value_(
+        name: str, _start: int, _count: int, _last_values: list[Any]
+    ) -> Any:
         return name
 
 
-class NameStrEnum(StrEnum):
-    """NameStrEnum implementation."""
-
-    def __str__(self) -> str:
-        return str(self.name)
-
-
-class BlenderOperatorReturnType(StrEnum):
+class BlenderOperatorReturnType(CaseSensitiveStrEnum):
     """Blender operator return types.
 
     List may not be complete and contain only used types.
@@ -34,7 +28,28 @@ class BlenderOperatorReturnType(StrEnum):
     INTERFACE = auto()
 
 
-class CyclesBakeType(StrEnum):
+class BlenderEventType(CaseSensitiveStrEnum):
+    """Blender WindowManager event types.
+
+    List may not be complete and contain only used types.
+    """
+
+    ESC = auto()
+    TIMER = auto()
+
+
+class BlenderJobType(CaseSensitiveStrEnum):
+    """Blender Job types.
+
+    bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE)
+
+    List may not be complete and contain only used types.
+    """
+
+    OBJECT_BAKE = auto()
+
+
+class CyclesBakeType(CaseSensitiveStrEnum):
     """Blender cycles bake type names used in addon.
 
     List may not be complete and contain only used types.
@@ -46,7 +61,7 @@ class CyclesBakeType(StrEnum):
     NORMAL = auto()
 
 
-class Colorspace(StrEnum):
+class Colorspace(CaseSensitiveStrEnum):
     """Blender colorspace names.
 
     List may not be complete and contain only used types.

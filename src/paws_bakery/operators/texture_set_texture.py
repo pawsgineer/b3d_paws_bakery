@@ -1,14 +1,14 @@
 """Texture set texture controls."""
 
-from uuid import uuid4
-
 import bpy
 from bpy import props as b_p
 from bpy import types as b_t
 
 from ..enums import BlenderOperatorReturnType
+from ..props import get_bake_settings, get_props
 from ..utils import AddonException, Registry
 from ._utils import generate_color_set
+from .material_setup import material_cleanup, material_setup
 
 
 @Registry.add
@@ -21,7 +21,7 @@ class TextureSetTextureAdd(b_t.Operator):
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         textures = texture_set.textures
         settings_store = pawsbkr.bake_settings_store
@@ -44,7 +44,7 @@ class TextureSetTextureRemove(b_t.Operator):
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         settings_store = pawsbkr.bake_settings_store
         texture_set = pawsbkr.active_texture_set
         texture = texture_set.active_texture
@@ -56,7 +56,7 @@ class TextureSetTextureRemove(b_t.Operator):
 
 
 def _get_materials(context: b_t.Context, texture_set_id: str) -> set[b_t.Material]:
-    pawsbkr = context.scene.pawsbkr
+    pawsbkr = get_props(context)
     texture_set = pawsbkr.texture_sets[texture_set_id]
     meshes = texture_set.meshes
 
@@ -88,7 +88,7 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
         if not self.texture_id:
             raise NotImplementedError("Baking without texture_id not implemented")
 
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.texture_sets[self.texture_set_id]
         textures = texture_set.textures
         texture = textures[self.texture_id]
@@ -98,15 +98,16 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
         if not materials:
             raise AddonException("No materials found for specified objects")
 
+        cfg = get_bake_settings(context, texture.prop_id)
         colors = generate_color_set(len(materials))
         for mat in materials:
             self.report({"INFO"}, f"Initializing material {mat.name!r}")
-            bpy.ops.pawsbkr.material_setup(target_material_name=mat.name, cleanup=True)
-            bpy.ops.pawsbkr.material_setup(
-                target_material_name=mat.name,
+            material_cleanup(mat)
+            material_setup(
+                mat,
+                bake_settings=cfg,
+                image_name="",
                 mat_id_color=colors[list(materials).index(mat)],
-                texture_type=texture.get_bake_settings().type,
-                settings_id=self.texture_id,
             )
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -133,6 +134,6 @@ class TextureSetTextureCleanupMaterial(b_t.Operator):
             raise AddonException("No materials found for specified meshes")
 
         for mat in materials:
-            bpy.ops.pawsbkr.material_setup(target_material_name=mat.name, cleanup=True)
+            material_cleanup(mat)
 
         return {BlenderOperatorReturnType.FINISHED}

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 import bpy
 from bpy import props as b_p
@@ -11,7 +11,7 @@ from mathutils import Vector
 
 from .._helpers import UTIL_MATS_PATH, log
 from ..enums import BlenderOperatorReturnType
-from ..props import BakeSettings, BakeTextureType
+from ..props import BakeSettings, BakeTextureType, get_bake_settings
 from ..utils import AddonException, Registry
 from ._utils import generate_color_set, get_selected_materials
 
@@ -115,7 +115,6 @@ def material_setup(
     mat: b_t.Material,
     *,
     bake_settings: BakeSettings,
-    texture_type: BakeTextureType,
     image_name: str,
     mat_id_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> None:
@@ -125,6 +124,18 @@ def material_setup(
 
     tree = mat.node_tree
     links = tree.links
+
+    output_node = tree.get_output_node("CYCLES")
+
+    # TODO: we shouldn't care about existing material outputs when baking matid?
+    if output_node is None:
+        # TODO: only modify node group once
+        # node_groups: list[b_t.ShaderNodeGroup] = []
+        # for node in tree.nodes:
+        #     if isinstance(node, b_t.ShaderNodeGroup):
+        #         node_groups.append(node)
+
+        raise AddonException("Can't bake material without material outputs")
 
     frame_name = MaterialNodeNames.FRAME
     frame = tree.nodes.get(frame_name)
@@ -171,7 +182,7 @@ def material_setup(
     # bake_texture_node.select = True
     # tree.nodes.active = bake_texture_node
 
-    if texture_type not in [
+    if bake_settings.type not in [
         BakeTextureType.DIFFUSE.name,
         BakeTextureType.EMIT.name,
         BakeTextureType.NORMAL.name,
@@ -213,7 +224,7 @@ def material_setup(
     if not isinstance(from_node, b_t.ShaderNodeBsdfPrincipled):
         raise AddonException("Can't bake material with current shader type")
 
-    if texture_type == BakeTextureType.AO.name:
+    if bake_settings.type == BakeTextureType.AO.name:
         links.new(ng_aorm.outputs["ao"], out_node.inputs["Surface"])
 
         target_input = from_node.inputs["Normal"]
@@ -221,7 +232,7 @@ def material_setup(
             target_socket = target_input.links[0].from_socket
             links.new(target_socket, ng_aorm.inputs["normal"])
 
-    if texture_type == BakeTextureType.AORM.name:
+    if bake_settings.type == BakeTextureType.AORM.name:
         links.new(ng_aorm.outputs["aorm"], out_node.inputs["Surface"])
 
         target_input = from_node.inputs["Normal"]
@@ -243,7 +254,7 @@ def material_setup(
         else:
             ng_aorm.inputs["metalness"].default_value = target_input.default_value
 
-    if texture_type == BakeTextureType.EMIT_COLOR.name:
+    if bake_settings.type == BakeTextureType.EMIT_COLOR.name:
         target_input = from_node.inputs["Base Color"]
         if target_input.is_linked:
             target_socket = target_input.links[0].from_socket
@@ -252,7 +263,7 @@ def material_setup(
             ng_color.inputs["color"].default_value = target_input.default_value
             links.new(ng_color.outputs["color"], out_node.inputs["Surface"])
 
-    if texture_type == BakeTextureType.EMIT_ROUGHNESS.name:
+    if bake_settings.type == BakeTextureType.EMIT_ROUGHNESS.name:
         target_input = from_node.inputs["Roughness"]
         if target_input.is_linked:
             target_socket = target_input.links[0].from_socket
@@ -261,7 +272,7 @@ def material_setup(
             ng_aorm.outputs["roughness"].default_value = target_input.default_value
             links.new(ng_aorm.outputs["roughness"], out_node.inputs["Surface"])
 
-    if texture_type == BakeTextureType.EMIT_METALNESS.name:
+    if bake_settings.type == BakeTextureType.EMIT_METALNESS.name:
         target_input = from_node.inputs["Metallic"]
         if target_input.is_linked:
             target_socket = target_input.links[0].from_socket
@@ -271,17 +282,17 @@ def material_setup(
             ng_aorm.outputs["metalness"].default_value = target_input.default_value
             links.new(ng_aorm.outputs["metalness"], out_node.inputs["Surface"])
 
-    if texture_type == BakeTextureType.EMIT_OPACITY.name:
+    if bake_settings.type == BakeTextureType.EMIT_OPACITY.name:
         ng_aorm.outputs["metalness"].default_value = 1.0
         links.new(ng_aorm.outputs["metalness"], out_node.inputs["Surface"])
 
-    if texture_type == BakeTextureType.MATERIAL_ID.name:
+    if bake_settings.type == BakeTextureType.MATERIAL_ID.name:
         if bake_settings.matid_use_object_color:
             links.new(ng_color.outputs["object_color"], out_node.inputs["Surface"])
         else:
             links.new(ng_color.outputs["color"], out_node.inputs["Surface"])
 
-    if texture_type in [
+    if bake_settings.type in [
         BakeTextureType.UTILS_GRID_COLOR.name,
         BakeTextureType.UTILS_GRID_UV.name,
     ]:
@@ -290,9 +301,9 @@ def material_setup(
             width=int(bake_settings.size), height=int(bake_settings.size)
         )
         _init_uv_maps(texture_size)
-        if texture_type == BakeTextureType.UTILS_GRID_COLOR.name:
+        if bake_settings.type == BakeTextureType.UTILS_GRID_COLOR.name:
             grid_img_name = _get_color_grid_map_name(texture_size)
-        elif texture_type == BakeTextureType.UTILS_GRID_UV.name:
+        elif bake_settings.type == BakeTextureType.UTILS_GRID_UV.name:
             grid_img_name = _get_uv_grid_map_name(texture_size)
 
         texture_node = add_node(b_t.ShaderNodeTexImage, MaterialNodeNames.UV_TEXTURE)
@@ -345,7 +356,7 @@ class MaterialCleanupSelected(b_t.Operator):
         """execute() override."""
         selected_mats = get_selected_materials()
         for mat in selected_mats.values():
-            bpy.ops.pawsbkr.material_setup(target_material_name=mat.name, cleanup=True)
+            material_cleanup(mat)
 
         return {BlenderOperatorReturnType.FINISHED}
 
@@ -366,20 +377,18 @@ class MaterialSetupSelected(b_t.Operator):
         """execute() override."""
         if len(self.settings_id) < 1:
             raise ValueError("settings_id not set")
-        cfg = context.scene.pawsbkr.get_bake_settings(self.settings_id)
+        cfg = get_bake_settings(context, self.settings_id)
 
         selected_mats = get_selected_materials()
         colors = generate_color_set(len(selected_mats))
         for mat in selected_mats.values():
-            bpy.ops.pawsbkr.material_setup(target_material_name=mat.name, cleanup=True)
-            bpy.ops.pawsbkr.material_setup(
-                target_material_name=mat.name,
-                cleanup=False,
+            material_cleanup(mat)
+        for mat in selected_mats.values():
+            material_setup(
+                mat,
+                bake_settings=cfg,
+                image_name="",
                 mat_id_color=colors[list(selected_mats.values()).index(mat)],
-                texture_type=cfg.type,
-                texture_width=int(cfg.size),
-                texture_height=int(cfg.size),
-                settings_id=self.settings_id,
             )
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -408,15 +417,12 @@ class MaterialSetup(b_t.Operator):
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
     mat_id_color: b_p.FloatVectorProperty()
-    texture_type: BakeTextureType.get_blender_enum_property()
-    texture_width: b_p.IntProperty()
-    texture_height: b_p.IntProperty()
 
     settings_id: b_p.StringProperty(
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    def _cleanup(self, _context: b_t.Context):
+    def _cleanup(self, _context: b_t.Context) -> None:
         mat = bpy.data.materials[self.target_material_name]
         material_cleanup(mat)
 
@@ -429,13 +435,12 @@ class MaterialSetup(b_t.Operator):
 
         if len(self.settings_id) < 1:
             raise ValueError("settings_id not set")
-        cfg = context.scene.pawsbkr.get_bake_settings(self.settings_id)
+        cfg = get_bake_settings(context, self.settings_id)
 
         mat = bpy.data.materials[self.target_material_name]
         material_setup(
             mat,
             bake_settings=cfg,
-            texture_type=self.texture_type,
             image_name=self.target_image_name,
             mat_id_color=self.mat_id_color,
         )

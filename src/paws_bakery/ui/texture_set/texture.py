@@ -2,15 +2,18 @@
 
 from typing import Any
 
+import bpy
 from bpy import types as b_t
 
+from ...enums import BlenderJobType
 from ...operators import (
+    TextureSetBake,
     TextureSetTextureAdd,
-    TextureSetTextureBake,
     TextureSetTextureCleanupMaterial,
     TextureSetTextureRemove,
     TextureSetTextureSetupMaterial,
 )
+from ...props import get_bake_settings, get_props
 from .._draw_bake_settings import draw_bake_settings
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
@@ -23,9 +26,9 @@ class TextureSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_texture_set_textures_specials"
     bl_label = "Texture Specials"
 
-    def draw(self, context: b_t.Context) -> None:
+    def draw(self, context: b_t.Context | None) -> None:
         """draw() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         texture = texture_set.active_texture
 
@@ -64,14 +67,14 @@ class TextureUIList(b_t.UIList):
         item: Any | None,
         _icon: int | None,
         _active_data: Any,
-        _active_property: str,
+        _active_property: str | None,
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
         """draw() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
-        bake_settings = item.get_bake_settings()
+        bake_settings = get_bake_settings(context, item.prop_id)
 
         row = layout.split(factor=0.05)
         row.label(
@@ -99,47 +102,41 @@ class Texture(SidePanelMixin):
     @classmethod
     def poll(cls, context: b_t.Context) -> bool:
         """poll() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
-    def draw_header(self, context):
+    def draw_header(self, context: b_t.Context) -> None:
         """draw_header() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         if len(pawsbkr.active_texture_set.textures) < 1:
             self.layout.alert = True
             self.layout.label(text="", icon="ERROR")
 
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         texture = texture_set.active_texture
 
-        layout = self.layout
+        lyt = self.layout
 
-        flow = layout.grid_flow(
-            row_major=False,
-            columns=0,
-            even_columns=True,
-            even_rows=False,
-            align=True,
-        )
+        is_bake_running = bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE)
+        lyt.enabled = not is_bake_running
 
-        if texture is not None:
-            col = flow.column()
-            row = col.row()
-            draw_bake_settings(
-                col, texture.get_bake_settings(), texture_set.display_name
-            )
-
-        col = flow.column()
-
-        if len(texture_set.textures) < 1:
+        if not texture_set.textures:
+            col = lyt.column()
             col.alert = True
             col.label(text="No Textures added to Texture Set", icon="ERROR")
 
-        row = col.row()
+        if texture is not None:
+            draw_bake_settings(
+                lyt,
+                get_bake_settings(context, texture.prop_id),
+                texture_set.display_name,
+            )
+
+        row = lyt.row()
         row.template_list(
             TextureUIList.bl_idname,
             "pawsbkr_texture_set_textures",
@@ -156,9 +153,7 @@ class Texture(SidePanelMixin):
         if texture is None:
             return
 
-        props = col.operator(
-            TextureSetTextureBake.bl_idname, icon="RENDER_STILL", text=""
-        )
+        props = col.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text="")
         props.texture_set_id = texture_set.prop_id
         props.texture_id = texture.prop_id
 

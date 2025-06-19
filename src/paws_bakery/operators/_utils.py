@@ -5,6 +5,8 @@ import colorsys
 import bpy
 from bpy import types as b_t
 
+from ..props import get_props
+
 
 def generate_color_set(number_of_colors: int) -> list[tuple[float, float, float]]:
     """Returns a list of visually distinct RGB colors."""
@@ -15,13 +17,24 @@ def generate_color_set(number_of_colors: int) -> list[tuple[float, float, float]
     return list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_colors))
 
 
-def get_selected_materials() -> dict[str, b_t.Material]:
+def get_selected_materials(ctx: b_t.Context = None) -> dict[str, b_t.Material]:
     """Returns all unique materials used by the selected objects."""
     materials: dict[str, b_t.Material] = {}
+    if ctx is None:
+        ctx = bpy.context
 
-    for obj in bpy.context.selected_objects:
+    for obj in ctx.selected_objects:
         for slot in obj.material_slots:
             if slot.material is not None:
                 materials[slot.material.name] = slot.material
 
     return materials
+
+
+def show_image_in_editor(context: b_t.Context, image: b_t.Image) -> None:
+    """Show Image in Image Editor area."""
+    if get_props(context).utils_settings.show_image_in_editor:
+        for area in context.screen.areas:
+            if area.type == "IMAGE_EDITOR":
+                area.spaces.active.image = image
+                break

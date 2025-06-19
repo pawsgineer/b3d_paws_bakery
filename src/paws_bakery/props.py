@@ -1,7 +1,8 @@
 # flake8: noqa: F821
 """Addon Blender properties."""
 
-from typing import Mapping
+from collections.abc import Mapping
+from typing import cast
 from uuid import uuid4
 
 import bpy
@@ -199,11 +200,7 @@ class TextureProps(b_t.PropertyGroup):
 
         NOTE: Avoid using `name` directly - it's error prone.
         """
-        return self.name
-
-    def get_bake_settings(self) -> BakeSettings:
-        """Returns reference to texture bake settings."""
-        return bpy.context.scene.pawsbkr.get_bake_settings(self.name)
+        return cast(str, self.name)
 
 
 @Registry.add
@@ -273,9 +270,46 @@ class SceneProps(b_t.PropertyGroup):
         except IndexError:
             return None
 
-    def get_bake_settings(self, settings_id: str) -> BakeSettings:
-        """Get bake settings."""
-        if settings_id == SIMPLE_BAKE_SETTINGS_ID:
-            return self.bake_settings_simple
 
-        return bpy.context.scene.pawsbkr.bake_settings_store.get(settings_id)
+@Registry.add
+class WMProps(b_t.PropertyGroup):
+    """Addon Window Manager properties."""
+
+    __slots__ = ()
+
+    _settings_scene: b_t.Scene | None = None
+
+    @property
+    def settings_scene(self) -> b_t.Scene | None:
+        """Reference to the active scene where the settings are stored."""
+        return type(self)._settings_scene
+
+    @settings_scene.setter
+    def settings_scene(self, scene: b_t.Scene | None) -> None:
+        type(self)._settings_scene = scene
+
+
+def get_bake_settings(ctx: b_t.Context, settings_id: str) -> BakeSettings:
+    """Return bake settings."""
+    if settings_id == SIMPLE_BAKE_SETTINGS_ID:
+        return cast(BakeSettings, get_props(ctx).bake_settings_simple)
+
+    return cast(BakeSettings, get_props(ctx).bake_settings_store.get(settings_id))
+
+
+def get_props(ctx: b_t.Context) -> SceneProps:
+    """Return addon specific Scene properties for current context."""
+    props_wm = get_props_wm(ctx)
+    return get_props_scene(
+        props_wm.settings_scene if props_wm.settings_scene else ctx.scene
+    )
+
+
+def get_props_scene(scene: b_t.Scene) -> SceneProps:
+    """Return addon specific Scene properties."""
+    return cast(SceneProps, scene.pawsbkr)  # type: ignore[attr-defined]
+
+
+def get_props_wm(ctx: b_t.Context) -> WMProps:
+    """Return addon specific WindowManager properties."""
+    return cast(WMProps, ctx.window_manager.pawsbkr)  # type: ignore[attr-defined]
