@@ -1,0 +1,105 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Pylint: lint whole folder",
+      "options": { "cwd": "${workspaceFolder}" },
+      "type": "shell",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pylint", "--rcfile=setup.cfg", "./src"],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: extension build",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PAWS_SRC_DIR": "${workspaceFolder}/src",
+          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
+        }
+      },
+      "type": "shell",
+      "command": "\"${config:paws_blender_path}\" --factory-startup --command extension build --source-dir ./src/paws_bakery 2>&1 | python ./.vscode/replace_path.py",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: open test1.blend",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PAWS_SRC_DIR": "${workspaceFolder}/src",
+          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
+        }
+      },
+      "type": "shell",
+      "command": "\"${config:paws_blender_path}\" --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: open test1.blend --factory-startup",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PAWS_SRC_DIR": "${workspaceFolder}/src",
+          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
+        }
+      },
+      "type": "shell",
+      "command": "\"${config:paws_blender_path}\" --factory-startup --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: debug-all open test1.blend",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PAWS_SRC_DIR": "${workspaceFolder}/src",
+          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
+        }
+      },
+      "type": "shell",
+      "command": "\"${config:paws_blender_path}\" --debug-all --debug-cycles --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    }
+  ]
+}
