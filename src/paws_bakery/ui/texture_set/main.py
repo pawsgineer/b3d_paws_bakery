@@ -24,10 +24,10 @@ class SetUIList(b_t.UIList):
         _context: b_t.Context | None,
         layout: b_t.UILayout,
         _data: Any | None,
-        item: Any | None,
+        item: TextureSetProps | None,
         _icon: int | None,
         _active_data: Any,
-        _active_property: str,
+        _active_property: str | None,
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:

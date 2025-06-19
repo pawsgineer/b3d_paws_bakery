@@ -18,7 +18,7 @@ __all__ = [
 
 
 def register() -> None:
-    "Register addon."
+    """Register addon."""
     Registry.register()
 
     bpy.types.Scene.pawsbkr = PointerProperty(type=SceneProps)
@@ -26,7 +26,7 @@ def register() -> None:
 
 
 def unregister() -> None:
-    "Unregister addon."
+    """Unregister addon."""
     Registry.unregister()
 
     del bpy.types.Scene.pawsbkr

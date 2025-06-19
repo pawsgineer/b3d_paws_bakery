@@ -20,7 +20,7 @@ class _TextureTypeDescription:
 
 
 class TextureTypeAlias(Enum):
-    "Aliases for texture names."
+    """Aliases for texture names."""
 
     ALBEDO = _TextureTypeDescription(
         aliases=["albedo", "color", "base"],
@@ -65,12 +65,11 @@ class TextureTypeAlias(Enum):
 
     @property
     def node_name(self) -> str:
-        "Return node name."
-
+        """Return node name."""
         return self.value.node_name
 
     def check_aliases(self, filename: str) -> bool:
-        "Check if filename contains one of aliases."
+        """Check if filename contains one of aliases."""
         gen = (
             re.search(f"_{alias}" + r"[._\-\s]", filename.lower())
             for alias in self.value.aliases
@@ -80,7 +79,7 @@ class TextureTypeAlias(Enum):
 
     @staticmethod
     def check_type(filename: str) -> AnyTextureTypeAlias | None:
-        "Returns texture type or None."
+        """Returns texture type or None."""
         for texture_type in TextureTypeAlias:
             if texture_type.check_aliases(filename):
                 return texture_type
@@ -90,7 +89,7 @@ class TextureTypeAlias(Enum):
 
 @dataclass(kw_only=True)
 class EnumItemInfo:
-    "Common Blender enum item info."
+    """Common Blender enum item info."""
 
     ui_name: str
     description: str
@@ -98,7 +97,7 @@ class EnumItemInfo:
 
 # NOTE: We're not using inheretance from dataclass because linting doesn't work
 class BlenderPropertyEnum(Enum):
-    "Aliases for texture names."
+    """Aliases for texture names."""
 
     __bl_prop__: type[b_p.EnumProperty] | None = None
     __bl_prop_name__: str
@@ -113,7 +112,7 @@ class BlenderPropertyEnum(Enum):
 
     @classmethod
     def get_blender_enum_property(cls) -> type[b_p.EnumProperty]:
-        "Generates EnumProperty to use in blender props definition."
+        """Generates EnumProperty to use in blender props definition."""
         if cls.__bl_prop__ is None:
             items = tuple((i.name, i.value.ui_name, i.value.description) for i in cls)
             cls.__bl_prop__ = b_p.EnumProperty(
@@ -128,7 +127,7 @@ class BlenderPropertyEnum(Enum):
 
 @dataclass(kw_only=True)
 class BakeTextureTypeInfo(EnumItemInfo):
-    "Texture type additional info."
+    """Texture type additional info."""
 
     short_name: str
     cycles_type: str = CyclesBakeType.EMIT
@@ -137,7 +136,7 @@ class BakeTextureTypeInfo(EnumItemInfo):
 
 
 class BakeTextureType(BlenderPropertyEnum):
-    "Aliases for texture names."
+    """Aliases for texture names."""
 
     __bl_prop_name__ = "Type"
     __bl_prop_description__ = "Texture Type"
@@ -230,7 +229,7 @@ class BakeTextureType(BlenderPropertyEnum):
 
 
 class BakeMode(BlenderPropertyEnum):
-    "Aliases for texture names."
+    """Aliases for texture names."""
 
     __bl_prop_name__ = "Bake mode"
 
@@ -259,7 +258,7 @@ class BakeMode(BlenderPropertyEnum):
 
 
 class BakeState(BlenderPropertyEnum):
-    "Aliases for texture names."
+    """Aliases for texture names."""
 
     __bl_prop_name__ = "Render State"
     __bl_prop_description__ = "Render State"

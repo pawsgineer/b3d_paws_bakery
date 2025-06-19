@@ -15,11 +15,11 @@ from .utils import Registry
 SIMPLE_BAKE_SETTINGS_ID = "pawsbkr_simple"
 
 
-def _get_name(self) -> str:
-    return self["name"]
+def _get_name(self: b_t.ID) -> str:
+    return cast(str, self["name"])
 
 
-def _set_force_uuid_name(self, _value) -> None:
+def _set_force_uuid_name(self: b_t.ID, _value: str) -> None:
     prev_name = self.get("name")
     if not prev_name:
         self["name"] = str(uuid4())
@@ -32,16 +32,16 @@ class BakeSettings(b_t.PropertyGroup):
     # NOTE: BakeSettings has the same id as Texture for matching
     # name: b_p.StringProperty(get=_get_name, set=_set_force_uuid_name)
 
-    type: BakeTextureType.get_blender_enum_property()
+    type: BakeTextureType.get_blender_enum_property()  # type: ignore[valid-type]
 
-    name_template: b_p.StringProperty(
+    name_template: b_p.StringProperty(  # type: ignore[valid-type]
         name="Name Template",
         description="Template of texture filename",
         default="{set_name}_{size}_{type_short}",
     )
 
     # TODO: use int vector?
-    size: b_p.EnumProperty(
+    size: b_p.EnumProperty(  # type: ignore[valid-type]
         name="Size",
         description="Texture size",
         items=(
@@ -56,7 +56,7 @@ class BakeSettings(b_t.PropertyGroup):
         ),
         default="512",
     )
-    sampling: b_p.EnumProperty(
+    sampling: b_p.EnumProperty(  # type: ignore[valid-type]
         name="AA",
         description="Anti Aliasing",
         items=(
@@ -67,23 +67,23 @@ class BakeSettings(b_t.PropertyGroup):
         ),
         default="1",
     )
-    samples: b_p.IntProperty(
+    samples: b_p.IntProperty(  # type: ignore[valid-type]
         name="Samples",
         description="Number of samples. Global value if 0",
         default=24,
         min=0,
     )
-    use_denoising: b_p.BoolProperty(
+    use_denoising: b_p.BoolProperty(  # type: ignore[valid-type]
         name="Denoise",
         description="Use denoising",
         default=False,
     )
-    margin: b_p.IntProperty(
+    margin: b_p.IntProperty(  # type: ignore[valid-type]
         name="Margin",
         description="Margin",
         default=4,
     )
-    margin_type: b_p.EnumProperty(
+    margin_type: b_p.EnumProperty(  # type: ignore[valid-type]
         name="MarginType",
         description="Margin Type",
         items=(
@@ -94,36 +94,36 @@ class BakeSettings(b_t.PropertyGroup):
     )
 
     # MATID
-    matid_use_object_color: b_p.BoolProperty(
-        name="Use object color",
+    matid_use_object_color: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Use Object Color",
         description="Use object color instead of material color for matid map",
         default=False,
     )
 
     # NORMAL
-    match_active_by_suffix: b_p.BoolProperty(
-        name="Match active by suffix",
+    match_active_by_suffix: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Match Active by Suffix",
         description="Mark mesh with '_low' suffix as active",
         default=True,
     )
-    use_selected_to_active: b_p.BoolProperty(
-        name="Selected to active",
+    use_selected_to_active: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Selected To Active",
         description="Selected to active",
         default=False,
     )
-    use_cage: b_p.BoolProperty(
+    use_cage: b_p.BoolProperty(  # type: ignore[valid-type]
         name="Cage",
         description="Cage",
         default=False,
     )
-    cage_extrusion: b_p.FloatProperty(
+    cage_extrusion: b_p.FloatProperty(  # type: ignore[valid-type]
         name="Cage Extrusion",
         description="Cage Extrusion",
         default=0.0,
         soft_max=100,
         soft_min=0,
     )
-    max_ray_distance: b_p.FloatProperty(
+    max_ray_distance: b_p.FloatProperty(  # type: ignore[valid-type]
         name="Ray Distance",
         description="Ray Distance",
         default=0.0,
@@ -149,27 +149,34 @@ class BakeSettings(b_t.PropertyGroup):
 class UtilsSettings(b_t.PropertyGroup):
     """Addon bake settings."""
 
-    unlink_baked_image: b_p.BoolProperty(
-        name="Unlink baked image",
+    unlink_baked_image: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Unlink Baked Image",
         description="Unlink the baked image from the current .blend file",
         default=False,
     )
-    show_image_in_editor: b_p.BoolProperty(
-        name="Show baked image in editor",
+    show_image_in_editor: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Show Baked Image In Editor",
         description="Load the image to the active editor view",
         default=True,
     )
 
-    debug_pause: b_p.BoolProperty(name="Debug pause", default=False)
-    debug_pause_continue: b_p.BoolProperty(name="Continue", default=False)
+    debug_pause: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Debug pause", default=False
+    )
+    debug_pause_continue: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Continue",
+        default=False,
+    )
 
 
 @Registry.add
 class MeshProps(b_t.PropertyGroup):
     """Mesh properties."""
 
-    is_enabled: b_p.BoolProperty(name="Bake enabled", default=True)
-    state: BakeState.get_blender_enum_property()
+    is_enabled: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Bake enabled", default=True
+    )
+    state: BakeState.get_blender_enum_property()  # type: ignore[valid-type]
 
     def get_ref(self) -> b_t.Object | None:
         """Get a reference to the mesh."""
@@ -184,11 +191,15 @@ class MeshProps(b_t.PropertyGroup):
 class TextureProps(b_t.PropertyGroup):
     """Texture properties."""
 
-    name: b_p.StringProperty(get=_get_name, set=_set_force_uuid_name)
+    name: b_p.StringProperty(  # type: ignore[valid-type]
+        get=_get_name, set=_set_force_uuid_name
+    )
 
-    is_enabled: b_p.BoolProperty(name="Bake enabled", default=True)
-    state: BakeState.get_blender_enum_property()
-    last_bake_time: b_p.StringProperty(
+    is_enabled: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Bake enabled", default=True
+    )
+    state: BakeState.get_blender_enum_property()  # type: ignore[valid-type]
+    last_bake_time: b_p.StringProperty(  # type: ignore[valid-type]
         name="Last Bake Time",
         description="Time spent on the last bake",
         default="-",
@@ -207,19 +218,25 @@ class TextureProps(b_t.PropertyGroup):
 class TextureSetProps(b_t.PropertyGroup):
     """Texture set properties."""
 
-    name: b_p.StringProperty(get=_get_name, set=_set_force_uuid_name)
+    name: b_p.StringProperty(  # type: ignore[valid-type]
+        get=_get_name, set=_set_force_uuid_name
+    )
 
     # TODO: add check for conflicts with texture types in name(rough, normal, etc)
-    display_name: b_p.StringProperty(name="Texture Name", default="new_texture_set")
-    is_enabled: b_p.BoolProperty(name="Bake Enabled", default=True)
+    display_name: b_p.StringProperty(  # type: ignore[valid-type]
+        name="Texture Name", default="new_texture_set"
+    )
+    is_enabled: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Bake Enabled", default=True
+    )
 
-    meshes: b_p.CollectionProperty(type=MeshProps)
-    meshes_active_index: b_p.IntProperty()
+    meshes: b_p.CollectionProperty(type=MeshProps)  # type: ignore[valid-type]
+    meshes_active_index: b_p.IntProperty()  # type: ignore[valid-type]
 
-    textures: b_p.CollectionProperty(type=TextureProps)
-    textures_active_index: b_p.IntProperty()
+    textures: b_p.CollectionProperty(type=TextureProps)  # type: ignore[valid-type]
+    textures_active_index: b_p.IntProperty()  # type: ignore[valid-type]
 
-    mode: BakeMode.get_blender_enum_property()
+    mode: BakeMode.get_blender_enum_property()  # type: ignore[valid-type]
 
     @property
     def prop_id(self) -> str:
@@ -227,7 +244,7 @@ class TextureSetProps(b_t.PropertyGroup):
 
         NOTE: Avoid using `name` directly - it's error prone.
         """
-        return self.name
+        return cast(str, self.name)
 
     @property
     def active_mesh(self) -> MeshProps | None:
@@ -250,17 +267,19 @@ class TextureSetProps(b_t.PropertyGroup):
 class SceneProps(b_t.PropertyGroup):
     """Addon scene properties."""
 
-    utils_settings: b_p.PointerProperty(type=UtilsSettings)
+    utils_settings: b_p.PointerProperty(type=UtilsSettings)  # type: ignore[valid-type]
 
-    bake_settings_simple: b_p.PointerProperty(
+    bake_settings_simple: b_p.PointerProperty(  # type: ignore[valid-type]
         type=BakeSettings, description="Settings for simple mode"
     )
-    bake_settings_store: b_p.CollectionProperty(
+    bake_settings_store: b_p.CollectionProperty(  # type: ignore[valid-type]
         type=BakeSettings, description="Settings for texture sets"
     )
 
-    texture_sets: b_p.CollectionProperty(type=TextureSetProps)
-    texture_sets_active_index: b_p.IntProperty()
+    texture_sets: b_p.CollectionProperty(  # type: ignore[valid-type]
+        type=TextureSetProps
+    )
+    texture_sets_active_index: b_p.IntProperty()  # type: ignore[valid-type]
 
     @property
     def active_texture_set(self) -> TextureSetProps | None:

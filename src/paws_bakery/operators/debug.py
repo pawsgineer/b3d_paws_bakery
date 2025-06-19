@@ -8,7 +8,7 @@ from ..utils import Registry, TimerManager
 
 @Registry.add
 class DebugResetState(b_t.Operator):
-    r"""Tries to reset addon state. Expect the unexpected ¯\_(ツ)_/¯"""
+    r"""Tries to reset addon state. Expect the unexpected ¯\_(ツ)_/¯."""
 
     bl_idname = "pawsbkr.debug_reset_state"
     bl_label = "Reset Addon State"
