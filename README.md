@@ -16,7 +16,8 @@ PAWS Bakery is Blender add-on that provides tools to improve your Texture Baking
 ## Features
 
 - Automatic Material Setup for Baking
-- Batch Baking of High to Low Poly to Atlas Texture
+- Baking of multiple High poly meshes to a single Low poly mesh
+- Batch Baking of High to Low poly to Atlas Texture
 - Color, Roughness, Metalness, Normal, Ambient Oclussion, AORM, Material ID and
   other maps
 - Workflow Helpers
@@ -29,7 +30,6 @@ PAWS Bakery is Blender add-on that provides tools to improve your Texture Baking
 Here is a sneak peek, but most features will be prioritized based on interest
 through the [Voting process](#i-want-to-request-a-feature)
 
-- [ ] Baking of multiple high poly meshes to a single low poly mesh
 - [ ] UV Layer selection
 - [ ] Compatibility with more Shader types
 - [ ] Handling Shaders inside of Node Groups
