@@ -30,10 +30,10 @@ UTIL_NODE_GROUPS = [
 class MaterialNodeNames(str, Enum):
     """Managed material node names."""
 
-    # pylint: disable-next=no-self-argument
-    def _generate_next_value_(  # type: ignore[no-untyped-def]
-        name, _start, _count, _last_values  # noqa: B902
-    ):
+    @staticmethod
+    def _generate_next_value_(
+        name: str, _start: int, _count: int, _last_values: list[Any]
+    ) -> Any:
         return NODE_PREFIX + name
 
     AO = auto()
@@ -118,7 +118,7 @@ def material_setup(
     image_name: str,
     mat_id_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> None:
-    """Setup utils in the material."""
+    """Set up utils in the material."""
 
     _load_node_groups_from_lib()
 

@@ -17,7 +17,7 @@ class SimpleBakeSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_simple_bake_specials"
     bl_label = "Simple Bake Specials"
 
-    def draw(self, _context: b_t.Context) -> None:
+    def draw(self, _context: b_t.Context | None) -> None:
         """draw() override."""
         layout = self.layout
 

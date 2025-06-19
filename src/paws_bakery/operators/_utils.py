@@ -9,16 +9,16 @@ from ..props import get_props
 
 
 def generate_color_set(number_of_colors: int) -> list[tuple[float, float, float]]:
-    """Returns a list of visually distinct RGB colors."""
+    """Return a list of visually distinct RGB colors."""
     hsv_colors = [
         (x / number_of_colors, 0.9, 1.0 - 0.25 * (x % 4))
         for x in range(number_of_colors)
     ]
-    return list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_colors))
+    return [colorsys.hsv_to_rgb(*color) for color in hsv_colors]
 
 
 def get_selected_materials(ctx: b_t.Context = None) -> dict[str, b_t.Material]:
-    """Returns all unique materials used by the selected objects."""
+    """Return all unique materials used by the selected objects."""
     materials: dict[str, b_t.Material] = {}
     if ctx is None:
         ctx = bpy.context
