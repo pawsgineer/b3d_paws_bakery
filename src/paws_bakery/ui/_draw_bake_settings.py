@@ -1,5 +1,7 @@
 """Draw bake settings function."""
 
+from typing import cast
+
 from bpy import types as b_t
 
 from ..props import BakeSettings, BakeTextureType
@@ -40,10 +42,18 @@ def draw_bake_settings(
         row = layout.row()
         row.prop(settings, "matid_use_object_color")
 
-    row = layout.row()
-    row.prop(settings, "use_selected_to_active")
-    row.prop(settings, "match_active_by_suffix")
-    row = layout.row()
-    row.prop(settings, "use_cage")
-    row.prop(settings, "cage_extrusion")
-    row.prop(settings, "max_ray_distance")
+    header, panel = cast(
+        tuple[b_t.UILayout, b_t.UILayout | None],
+        layout.panel("use_selected_to_active", default_closed=True),
+    )
+    header.prop(settings, "use_selected_to_active", text="")
+    header.label(text="Selected To Active")
+    if panel:
+        panel.active = settings.use_selected_to_active
+        panel.prop(settings, "match_active_by_suffix")
+
+        row = panel.row()
+        row.prop(settings, "use_cage")
+        row = panel.row()
+        row.prop(settings, "cage_extrusion")
+        row.prop(settings, "max_ray_distance")

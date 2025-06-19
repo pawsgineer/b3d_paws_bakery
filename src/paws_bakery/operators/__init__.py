@@ -1,6 +1,6 @@
 """Addon operators."""
 
-from .bake import Bake
+from .bake_selected import BakeSelected
 from .debug import DebugResetState
 from .material_setup import (
     MaterialCleanupSelected,
@@ -22,10 +22,9 @@ from .texture_set_texture import (
     TextureSetTextureRemove,
     TextureSetTextureSetupMaterial,
 )
-from .texture_set_texture_bake import TextureSetTextureBake
 
 __all__ = [
-    "Bake",
+    "BakeSelected",
     "DebugResetState",
     "MaterialCleanupSelected",
     "MaterialSetup",
@@ -40,7 +39,6 @@ __all__ = [
     "TextureSetMeshRemove",
     "TextureSetRemove",
     "TextureSetTextureAdd",
-    "TextureSetTextureBake",
     "TextureSetTextureCleanupMaterial",
     "TextureSetTextureRemove",
     "TextureSetTextureSetupMaterial",

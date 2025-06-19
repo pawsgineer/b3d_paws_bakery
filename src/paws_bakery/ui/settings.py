@@ -2,6 +2,7 @@
 
 from bpy import types as b_t
 
+from ..props import get_props
 from ._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
 
@@ -16,7 +17,7 @@ class Settings(SidePanelMixin):
 
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         layout = self.layout
 
         subl = layout.column(align=True)

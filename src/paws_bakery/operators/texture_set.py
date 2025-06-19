@@ -3,6 +3,7 @@
 from bpy import types as b_t
 
 from ..enums import BlenderOperatorReturnType
+from ..props import get_props
 from ..utils import Registry
 
 
@@ -16,7 +17,7 @@ class TextureSetAdd(b_t.Operator):
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override"""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_sets = pawsbkr.texture_sets
         t_set = texture_sets.add()
         t_set.name = ""
@@ -34,7 +35,7 @@ class TextureSetRemove(b_t.Operator):
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override"""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_sets = pawsbkr.texture_sets
         texture_sets.remove(pawsbkr.texture_sets_active_index)
 

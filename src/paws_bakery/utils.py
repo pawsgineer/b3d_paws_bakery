@@ -1,7 +1,5 @@
 """Various addon utils."""
 
-from threading import Lock
-
 import bpy
 
 from ._helpers import log
@@ -51,7 +49,6 @@ class TimerManager:
     """Manager of Blender timers."""
 
     __timer = None
-    __lock = Lock()
     __ref_count = 0
 
     @classmethod
@@ -64,24 +61,21 @@ class TimerManager:
 
     @classmethod
     def acquire(cls) -> bpy.types.Timer:
-        """Creates the timer if it doesn't exist."""
-        with cls.__lock:
-            # log(f"{cls.__name__}| counter: {cls.__ref_count}, timer: {cls.__timer}")
-            cls.__ref_count += 1
+        """Create the timer if it doesn't exist."""
+        cls.__ref_count += 1
 
-            if cls.__timer is None:
-                # log(f"{cls.__name__}: Creating timer")
-                wm = bpy.context.window_manager
-                cls.__timer = wm.event_timer_add(1.0, window=bpy.context.window)
+        if cls.__timer is None:
+            # log(f"{cls.__name__}: Creating timer")
+            wm = bpy.context.window_manager
+            cls.__timer = wm.event_timer_add(1.0, window=bpy.context.window)
 
         return cls.__timer
 
     @classmethod
     def release(cls) -> None:
-        """Removes the timer if there are no more users."""
-        with cls.__lock:
-            if cls.__ref_count > 0:
-                cls.__ref_count -= 1
+        """Remove the timer if there are no more users."""
+        if cls.__ref_count > 0:
+            cls.__ref_count -= 1
 
-            if cls.__ref_count == 0:
-                cls.__remove_timer()
+        if cls.__ref_count == 0:
+            cls.__remove_timer()

@@ -1,10 +1,11 @@
 """UI Panel - Simple Bake."""
 
+import bpy
 from bpy import types as b_t
 
-from ..operators import Bake, MaterialSetupSelected
-from ..operators.material_setup import MaterialCleanupSelected
-from ..props import SIMPLE_BAKE_SETTINGS_ID
+from ..enums import BlenderJobType
+from ..operators import BakeSelected, MaterialCleanupSelected, MaterialSetupSelected
+from ..props import SIMPLE_BAKE_SETTINGS_ID, get_bake_settings
 from ._draw_bake_settings import draw_bake_settings
 from ._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
@@ -47,27 +48,36 @@ class SimpleBake(SidePanelMixin):
 
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
-        layout = self.layout
+        lyt = self.layout
 
         if not context.selected_objects:
-            layout.alert = True
-            layout.label(text="No objects selected", icon="ERROR")
+            lyt.alert = True
+            lyt.label(text="No objects selected", icon="ERROR")
             return
 
-        row = layout.row()
+        if context.space_data.local_view:
+            col = lyt.column()
+            col.alert = True
+            col.label(text="Local View is active!", icon="VIS_SEL_01")
+            col.label(text="The result may not be what you expect.")
+
+        is_bake_running = bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE)
+        lyt.enabled = not is_bake_running
+
+        row = lyt.row()
+        row.alert = is_bake_running
         row.scale_y = 2
-        props = row.operator(
-            Bake.bl_idname,
-            text="BAKE SELECTED",
+        row.enabled = not is_bake_running
+        row.operator(
+            BakeSelected.bl_idname,
+            text="BAKING IN PROGRESS" if is_bake_running else "BAKE SELECTED",
             icon="RENDER_STILL",
         )
-        props.settings_id = SIMPLE_BAKE_SETTINGS_ID
-        props.texture_set_id = SIMPLE_BAKE_SETTINGS_ID
 
         row.menu(SimpleBakeSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 
         draw_bake_settings(
-            layout,
-            context.scene.pawsbkr.get_bake_settings(SIMPLE_BAKE_SETTINGS_ID),
+            lyt,
+            get_bake_settings(context, SIMPLE_BAKE_SETTINGS_ID),
             SIMPLE_BAKE_SETTINGS_ID,
         )

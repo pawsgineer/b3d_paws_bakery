@@ -1,157 +1,268 @@
 """Bake texture set."""
 
-from threading import Lock
+import datetime
+from itertools import chain
 
 import bpy
 from bpy import props as b_p
 from bpy import types as b_t
 
 from .._helpers import log
-from ..enums import BlenderOperatorReturnType
-from ..operators.texture_set_texture_bake import TextureSetTextureBake
-from ..props import TextureProps
-from ..props_enums import BakeState
+from ..enums import BlenderEventType, BlenderJobType, BlenderOperatorReturnType
+from ..props import (
+    MeshProps,
+    TextureProps,
+    TextureSetProps,
+    get_bake_settings,
+    get_props,
+)
+from ..props_enums import BakeMode, BakeState
 from ..utils import Registry, TimerManager
+from .bake_common import BakeObjects, generate_image_name_and_path, match_low_to_high
+from .bake_job import BakeJob, BakeJobState
+from .bake_manager import BakeManager
+
+
+def _get_mesh_ref(mesh_props: MeshProps) -> b_t.Object:
+    mesh_ref: b_t.Object | None = mesh_props.get_ref()
+    if mesh_ref is None:
+        raise ValueError(f"Can not find Object with name {mesh_props.name!r}")
+    return mesh_ref
 
 
 @Registry.add
 class TextureSetBake(b_t.Operator):
-    """Bake texture set."""
+    """Bake texture set textures."""
 
     bl_idname = "pawsbkr.texture_set_bake"
-    bl_label = "Bake Texture Set"
+    bl_label = "Bake texture set textures"
 
-    target_name: b_p.StringProperty(name="Target texture set name", default="")
+    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+    )
+    texture_id: b_p.StringProperty(  # type: ignore[valid-type]
+        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+    )
 
-    _textures: list[TextureProps] = []
+    _clear_image: bool = True
 
-    __is_running = False
-    __lock = Lock()
+    _time_start: datetime.datetime
 
-    @classmethod
-    def is_locked(cls) -> bool:
-        """Returns whether the class lock is currently held."""
-        return cls.__lock.locked()
+    _texture_set: TextureSetProps
+    _bake_textures: list[TextureProps]
+    _bake_objects_list: list[BakeObjects]
 
-    @classmethod
-    def is_running(cls) -> bool:
-        """Returns whether the instance of class is already active."""
-        return cls.__is_running
+    __bake_job: BakeJob | None = None
 
-    def _cancel(self, _context: b_t.Context) -> None:
-        TimerManager.release()
-
-        for texture in self._textures:
-            texture.state = BakeState.CANCELLED.name
-
-        self.__class__.__is_running = False  # pylint: disable=protected-access
-
-    def _finish(self, _context: b_t.Context) -> None:
-        TimerManager.release()
-
-        self.__class__.__is_running = False  # pylint: disable=protected-access
-
-    def modal(self, context: b_t.Context, event: b_t.Event) -> set[str]:
-        """modal() override."""
-        if event.type in {"ESC"}:
-            self._cancel(context)
-            return {BlenderOperatorReturnType.CANCELLED}
-
-        if event.type != "TIMER":
-            return {BlenderOperatorReturnType.PASS_THROUGH}
-
-        # pylint: disable-next=protected-access
-        if not self.__class__.__lock.acquire(False):
-            log(f"{type(self).__name__}: Skipping modal(): Already locked")
-            return {BlenderOperatorReturnType.PASS_THROUGH}
-
-        try:
-            return self.__modal_lock_me(context, event)
-        finally:
-            self.__class__.__lock.release()  # pylint: disable=protected-access
-
-    def __modal_lock_me(self, context: b_t.Context, _event: b_t.Event) -> set[str]:
-        if (
-            bpy.app.is_job_running("OBJECT_BAKE")
-            or TextureSetTextureBake.is_running()
-            or TextureSetTextureBake.is_locked()
-        ):
-            return {BlenderOperatorReturnType.PASS_THROUGH}
-        pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.target_name]
-
-        texture = self._textures[0]
-
-        if texture.state == BakeState.CANCELLED.name:
-            self._cancel(context)
-            return {BlenderOperatorReturnType.CANCELLED}
-
-        if texture.state == BakeState.FINISHED.name:
-            self._textures.remove(texture)
-            if self._textures:
-                texture = self._textures[0]
-            else:
-                self._finish(context)
-                return {BlenderOperatorReturnType.FINISHED}
-
-        if texture.state == BakeState.QUEUED.name:
-            if bpy.app.is_job_running("OBJECT_BAKE"):
-                log("OBJECT_BAKE job is already running. Waiting")
-            else:
-                texture.state = BakeState.RUNNING.name
-                # TODO: handle op return
-                op_return = bpy.ops.pawsbkr.texture_set_texture_bake(
-                    texture_set_id=texture_set.prop_id,
-                    texture_id=texture.prop_id,
-                )
-
-                if op_return != {"RUNNING_MODAL"}:
-                    log(
-                        "Failed to start baking. texture_set_texture_bake return",
-                        op_return,
-                    )
-                    self._cancel(context)
-                    return {BlenderOperatorReturnType.CANCELLED}
-
-        return {BlenderOperatorReturnType.PASS_THROUGH}
-
-    def execute(self, context: b_t.Context) -> set[str]:
+    def execute(self, context: b_t.Context) -> set[BlenderOperatorReturnType]:
         """execute() override."""
-        if not self.target_name:
-            raise NotImplementedError("baking without target_name not implemented")
-
-        # TODO: Do I need a lock? Maybe execute() is thread-safe?
-        # pylint: disable-next=protected-access
-        if self.__class__.__is_running or not self.__class__.__lock.acquire(False):
-            log(f"Cannot execute(): {self.bl_idname}. Already running")
+        can_run, msg = self.__can_run()
+        if not can_run:
+            log(msg)
             return {BlenderOperatorReturnType.CANCELLED}
 
-        self.__class__.__is_running = True  # pylint: disable=protected-access
-        self.__class__.__lock.release()  # pylint: disable=protected-access
+        self._texture_set = get_props(context).texture_sets[self.texture_set_id]
 
-        pawsbkr = context.scene.pawsbkr
-        texture_set = pawsbkr.texture_sets[self.target_name]
+        self._bake_textures = []
+        if self.texture_id:
+            texture = self._texture_set.textures[self.texture_id]
+            self._bake_textures.append(texture)
+        else:
+            for texture in self._texture_set.textures:
+                if not texture.is_enabled:
+                    continue
+                self._bake_textures.append(texture)
 
-        if not texture_set.textures:
-            self.report({"WARNING"}, "PAWSBKR: Texture set has no specified textures")
-            self.__class__.__is_running = False  # pylint: disable=protected-access
-            return {BlenderOperatorReturnType.CANCELLED}
-
-        for texture in texture_set.textures:
-            if not texture.is_enabled:
-                continue
+        for texture in self._bake_textures:
             texture.state = BakeState.QUEUED.name
-            self._textures.append(texture)
+
+        self.__prepare_bake_objects(context, self._bake_textures[0])
+
+        self._time_start = datetime.datetime.now()
 
         TimerManager.acquire()
         context.window_manager.modal_handler_add(self)
 
         return {BlenderOperatorReturnType.RUNNING_MODAL}
 
-    def invoke(self, context, _event):
-        """invoke() override."""
-        # log(
-        #     "invoke() called:",
-        #     self.bl_idname,
-        # )
-        return self.execute(context)
+    def modal(
+        self, context: b_t.Context, event: b_t.Event
+    ) -> set[BlenderOperatorReturnType]:
+        """modal() override."""
+        if event.type in {BlenderEventType.ESC}:
+            self._cancel(context)
+            return {BlenderOperatorReturnType.CANCELLED}
+
+        if event.type != BlenderEventType.TIMER or bpy.app.is_job_running(
+            BlenderJobType.OBJECT_BAKE
+        ):
+            return {BlenderOperatorReturnType.PASS_THROUGH}
+
+        bake_job = self.__ensure_bake_job(context)
+        job_state = bake_job.on_modal()
+
+        return self.__handle_job_state(context, job_state)
+
+    def __can_run(self) -> tuple[bool, str]:
+        msg: str = ""
+        if not self.texture_set_id:
+            raise NotImplementedError("Baking without texture_set_id not implemented")
+        if not self.texture_id:
+            log("texture_id not set. Baking all Textures in Texture Set")
+            # raise NotImplementedError("Baking without texture_id not implemented")
+
+        if BakeManager.is_running():
+            msg = f"{self.bl_idname}: execute() failed: Already running"
+        elif bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE):
+            msg = "OBJECT_BAKE job is already running"
+            self.report({"ERROR"}, "PAWSBKR: Baking already running")
+            # TODO: wait instead of canceling?
+        else:
+            return True, msg
+
+        return False, msg
+
+    def __prepare_bake_objects(
+        self, context: b_t.Context, texture: TextureProps
+    ) -> None:
+        bake_settings = get_bake_settings(context, texture.prop_id)
+
+        meshes_enabled = [m for m in self._texture_set.meshes if m.is_enabled]
+
+        self._bake_objects_list = []
+
+        if (
+            bake_settings.use_selected_to_active
+            and bake_settings.match_active_by_suffix
+        ):
+            matching_names = match_low_to_high([m.name for m in meshes_enabled])
+            for low_high_map in matching_names:
+                active = _get_mesh_ref(self._texture_set.meshes[low_high_map.low])
+                self._bake_objects_list.append(
+                    BakeObjects(
+                        active=active,
+                        selected=[
+                            active,
+                            *(
+                                _get_mesh_ref(self._texture_set.meshes[name])
+                                for name in low_high_map.high
+                            ),
+                        ],
+                    )
+                )
+        else:
+            for mesh in meshes_enabled:
+                mesh_ref = _get_mesh_ref(mesh)
+                self._bake_objects_list.append(
+                    BakeObjects(active=mesh_ref, selected=[mesh_ref])
+                )
+
+        for mesh in meshes_enabled:
+            mesh.state = BakeState.QUEUED.name
+
+    def __ensure_bake_job(self, context: b_t.Context) -> BakeJob:
+        return self.__bake_job or self.__bake_next(context)
+
+    def __handle_job_state(
+        self, context: b_t.Context, state: BakeJobState
+    ) -> set[BlenderOperatorReturnType]:
+        if state is BakeJobState.RUNNING:
+            return {BlenderOperatorReturnType.PASS_THROUGH}
+
+        if state is BakeJobState.CANCELED:
+            log("Canceling: reason BakeJobState.CANCELED")
+            self._cancel(context)
+            return {BlenderOperatorReturnType.CANCELLED}
+
+        if state is BakeJobState.FINISHED:
+            return self.__handle_job_state_finished(context)
+
+        self.report({"ERROR"}, "Baking went wrong")
+        self._cancel(context)
+        return {BlenderOperatorReturnType.CANCELLED}
+
+    def __handle_job_state_finished(
+        self, context: b_t.Context
+    ) -> set[BlenderOperatorReturnType]:
+        pawsbkr = get_props(context)
+
+        bake_objects = self._bake_objects_list[0]
+        for mesh in chain([bake_objects.active], bake_objects.selected):
+            self._texture_set.meshes[mesh.name].state = BakeState.FINISHED.name
+
+        if pawsbkr.utils_settings.debug_pause:
+            if pawsbkr.utils_settings.debug_pause_continue:
+                pawsbkr.utils_settings.debug_pause_continue = False
+            else:
+                log("debug_pause is active. skipping next bake...")
+                return {BlenderOperatorReturnType.PASS_THROUGH}
+
+        if BakeMode[self._texture_set.mode] is BakeMode.SINGLE:
+            self._clear_image = False
+
+        del self._bake_objects_list[0]
+        if not self._bake_objects_list:
+            self._finish_texture(context)
+            if not self._bake_textures:
+                self._finish(context)
+                return {BlenderOperatorReturnType.FINISHED}
+
+            self.__prepare_bake_objects(context, self._bake_textures[0])
+
+        self.__bake_next(context)
+
+        return {BlenderOperatorReturnType.PASS_THROUGH}
+
+    def __bake_next(self, context: b_t.Context) -> BakeJob:
+        self._bake_textures[0].state = BakeState.RUNNING.name
+        img_name, img_path = generate_image_name_and_path(
+            context=context,
+            settings_id=self._bake_textures[0].prop_id,
+            texture_set_name=self._texture_set.display_name,
+        )
+
+        bake_objects = self._bake_objects_list[0]
+        for mesh in chain([bake_objects.active], bake_objects.selected):
+            self._texture_set.meshes[mesh.name].state = BakeState.RUNNING.name
+
+        self.__bake_job = BakeJob(
+            context=context,
+            objects=bake_objects,
+            settings=get_bake_settings(context, self._bake_textures[0].prop_id),
+            clear_image=self._clear_image,
+            scale_image=len(self._bake_objects_list) < 2,
+            image_name=img_name,
+            image_path=img_path,
+        )
+        self.__bake_job.on_execute()
+        return self.__bake_job
+
+    def _cancel(self, _context: b_t.Context) -> None:
+        TimerManager.release()
+
+        if self.__bake_job is not None:
+            self.__bake_job.cancel()
+
+        for texture in self._bake_textures:
+            texture.state = BakeState.CANCELLED.name
+
+        for bake_objects in self._bake_objects_list:
+            for mesh in chain([bake_objects.active], bake_objects.selected):
+                self._texture_set.meshes[mesh.name].state = BakeState.CANCELLED.name
+
+    def _finish_texture(self, _context: b_t.Context) -> None:
+        delta: datetime.timedelta = datetime.datetime.now() - self._time_start
+        hours, seconds = divmod(delta.seconds, 3600)
+        minutes, seconds = divmod(seconds, 60)
+
+        self._bake_textures[0].last_bake_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+        self._bake_textures[0].state = BakeState.FINISHED.name
+        del self._bake_textures[0]
+
+        self._clear_image = True
+        self._time_start = datetime.datetime.now()
+
+    def _finish(self, _context: b_t.Context) -> None:
+        TimerManager.release()
+
+        # self._texture_set.state = BakeState.FINISHED.name

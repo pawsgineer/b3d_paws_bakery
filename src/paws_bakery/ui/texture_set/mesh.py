@@ -2,9 +2,12 @@
 
 from typing import Any
 
+import bpy
 from bpy import types as b_t
 
+from ...enums import BlenderJobType
 from ...operators import TextureSetMeshAdd, TextureSetMeshClear, TextureSetMeshRemove
+from ...props import get_props
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
 
@@ -88,13 +91,13 @@ class Meshes(SidePanelMixin):
     @classmethod
     def poll(cls, context: b_t.Context) -> bool:
         """poll() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
-    def draw_header(self, context):
+    def draw_header(self, context: b_t.Context) -> None:
         """draw_header() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         if len(texture_set.meshes) < 1:
             self.layout.alert = True
@@ -102,10 +105,13 @@ class Meshes(SidePanelMixin):
 
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
         layout = self.layout
+
+        is_bake_running = bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE)
+        layout.enabled = not is_bake_running
 
         row = layout.row()
         if len(texture_set.meshes) < 1:

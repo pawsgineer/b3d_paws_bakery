@@ -2,10 +2,14 @@
 
 from typing import Any
 
+import bpy
 from bpy import types as b_t
 
-from ...operators import TextureSetAdd, TextureSetBake, TextureSetRemove
+from ...enums import BlenderJobType
+from ...operators import TextureSetAdd, TextureSetRemove
+from ...operators.texture_set_bake import TextureSetBake
 from ...preferences import get_preferences
+from ...props import TextureSetProps, get_props
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
 
@@ -47,7 +51,7 @@ class SetUIList(b_t.UIList):
         split.label(text=item.display_name)
 
         props = split.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text="")
-        props.target_name = item.prop_id
+        props.texture_set_id = item.prop_id
 
 
 @register_and_duplicate_to_node_editor
@@ -60,10 +64,20 @@ class Main(SidePanelMixin):
 
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
-        pawsbkr = context.scene.pawsbkr
+        pawsbkr = get_props(context)
         active_set = pawsbkr.active_texture_set
 
         layout = self.layout
+
+        if bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE):
+            row = layout.row(align=True)
+            row.alignment = "CENTER"
+            row.alert = True
+            row.scale_y = 2
+            row.label(text="BAKING IN PROGRESS")
+
+            layout.enabled = False
+            layout.active = False
 
         if active_set is not None:
             row = layout.row(align=True)
