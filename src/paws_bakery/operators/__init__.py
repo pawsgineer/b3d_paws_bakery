@@ -22,6 +22,7 @@ from .texture_set_texture import (
     TextureSetTextureRemove,
     TextureSetTextureSetupMaterial,
 )
+from .texture_set_material_create import TextureSetMaterialCreate
 
 __all__ = [
     "BakeSelected",
@@ -42,4 +43,5 @@ __all__ = [
     "TextureSetTextureCleanupMaterial",
     "TextureSetTextureRemove",
     "TextureSetTextureSetupMaterial",
+    "TextureSetMaterialCreate",
 ]

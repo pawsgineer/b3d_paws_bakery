@@ -44,6 +44,18 @@ class TextureSpecialsMenu(b_t.Menu):
         props.texture_set_id = texture_set.prop_id
         props.texture_id = texture.prop_id
 
+        subl.separator()
+
+        # Add material creation operator
+        props = subl.operator(
+            "pawsbkr.texture_set_material_create",
+            icon="MATERIAL_DATA",
+            text="Create Materials from Textures",
+        )
+        props.texture_set_id = texture_set.prop_id
+
+        subl.separator()
+
         subl.alert = True
         props = subl.operator(
             TextureSetTextureCleanupMaterial.bl_idname,
@@ -160,3 +172,24 @@ class Texture(SidePanelMixin):
         col.separator()
 
         col.menu(TextureSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
+
+        # Add a section for material creation after baking
+        if texture_set.textures:
+            # Check if any textures have been baked
+            has_baked_textures = any(
+                texture.last_bake_time for texture in texture_set.textures if texture.is_enabled
+            )
+            
+            if has_baked_textures:
+                lyt.separator()
+                
+                box = lyt.box()
+                box.label(text="Material Creation", icon="MATERIAL_DATA")
+                
+                row = box.row(align=True)
+                props = row.operator(
+                    "pawsbkr.texture_set_material_create",
+                    text="Create Materials",
+                    icon="MATERIAL_DATA"
+                )
+                props.texture_set_id = texture_set.prop_id

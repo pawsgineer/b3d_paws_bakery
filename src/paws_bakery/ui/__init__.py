@@ -30,4 +30,5 @@ __all__ = [
     "TextureImport",
     "TextureImportSpecialsMenu",
     "TextureUIList",
+    "TextureSpecialsMenu",
 ]
