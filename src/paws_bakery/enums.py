@@ -59,6 +59,7 @@ class CyclesBakeType(CaseSensitiveStrEnum):
     DIFFUSE = auto()
     ROUGHNESS = auto()
     NORMAL = auto()
+    
 
 
 class Colorspace(CaseSensitiveStrEnum):

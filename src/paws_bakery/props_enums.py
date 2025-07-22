@@ -219,6 +219,7 @@ class BakeTextureType(BlenderPropertyEnum):
         description="Bake uv grid map",
         short_name="grid_uv",
     )
+    
 
     def __init__(self, info: BakeTextureTypeInfo) -> None:
         self.short_name = info.short_name
