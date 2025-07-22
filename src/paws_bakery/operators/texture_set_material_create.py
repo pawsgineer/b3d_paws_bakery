@@ -23,13 +23,13 @@ def _get_texture_type_socket_info(texture_type: str) -> dict[str, str] | None:
             "colorspace": "sRGB",
             "priority": 1  # Highest priority for base color
         },
-        # BakeTextureType.GLOSSY.name: {
-        #     "socket": "Base Color",  # Changed: Glossy should contribute to base color
-        #     "output": "Color",
-        #     "colorspace": "sRGB",
-        #     "priority": 2,
-        #     "mix_with_base": True  # Added: Should be mixed with existing base color
-        # },
+        BakeTextureType.GLOSSY.name: {
+            "socket": "Base Color",  # Changed: Glossy should contribute to base color
+            "output": "Color",
+            "colorspace": "sRGB",
+            "priority": 2,
+            "mix_with_base": True  # Added: Should be mixed with existing base color
+        },
         BakeTextureType.NORMAL.name: {
             "socket": "Normal",
             "output": "Color",
@@ -56,25 +56,25 @@ def _get_texture_type_socket_info(texture_type: str) -> dict[str, str] | None:
             "mix_with_base": True,
             "priority": 4
         },
-        # BakeTextureType.SHADOW.name: {
-        #     "socket": "Base Color",
-        #     "output": "Color", 
-        #     "colorspace": "Non-Color",
-        #     "mix_with_base": True,
-        #     "priority": 5
-        # },
-        # BakeTextureType.COMBINED.name: {
-        #     "socket": "Base Color",
-        #     "output": "Color",
-        #     "colorspace": "sRGB",
-        #     "priority": 1
-        # },
-        # BakeTextureType.ENVIRONMENT.name: {
-        #     "socket": "Base Color",
-        #     "output": "Color",
-        #     "colorspace": "sRGB",
-        #     "priority": 2
-        # },
+        BakeTextureType.SHADOW.name: {
+            "socket": "Base Color",
+            "output": "Color", 
+            "colorspace": "Non-Color",
+            "mix_with_base": True,
+            "priority": 5
+        },
+        BakeTextureType.COMBINED.name: {
+            "socket": "Base Color",
+            "output": "Color",
+            "colorspace": "sRGB",
+            "priority": 1
+        },
+        BakeTextureType.ENVIRONMENT.name: {
+            "socket": "Base Color",
+            "output": "Color",
+            "colorspace": "sRGB",
+            "priority": 2
+        },
         # Handle additional texture types from material_setup.py
         BakeTextureType.AORM.name: {
             "socket": "Base Color",  # AORM is a combined texture
@@ -114,8 +114,8 @@ def _get_texture_type_socket_info(texture_type: str) -> dict[str, str] | None:
             "priority": 1
         },
         # These types typically aren't directly connected
-        # BakeTextureType.POSITION.name: None,
-        # BakeTextureType.UV.name: None,
+        BakeTextureType.POSITION.name: None,
+        BakeTextureType.UV.name: None,
         BakeTextureType.UTILS_GRID_COLOR.name: None,
         BakeTextureType.UTILS_GRID_UV.name: None,
     }

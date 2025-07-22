@@ -110,6 +110,94 @@ def _load_node_groups_from_lib() -> None:
         ng = bpy.data.node_groups.get(ng_name)
         ng.use_fake_user = False
 
+def _setup_position_bake(tree, out_node, frame, start_location):
+    """Setup nodes for position baking."""
+    # Geometry node for position
+    geometry_node = tree.nodes.new('ShaderNodeNewGeometry')
+    geometry_node.name = f"{NODE_PREFIX}geometry"
+    geometry_node.parent = frame
+    geometry_node.location = start_location
+    
+    # Vector mapping to normalize position
+    mapping_node = tree.nodes.new('ShaderNodeMapping')
+    mapping_node.name = f"{NODE_PREFIX}mapping"
+    mapping_node.parent = frame
+    mapping_node.location = (start_location.x + 200, start_location.y)
+    
+    # Connect geometry position to mapping
+    tree.links.new(geometry_node.outputs['Position'], mapping_node.inputs['Vector'])
+    tree.links.new(mapping_node.outputs['Vector'], out_node.inputs['Surface'])
+
+def _setup_uv_bake(tree, out_node, frame, start_location):
+    """Setup nodes for UV coordinate baking."""
+    # UV Map node
+    uv_node = tree.nodes.new('ShaderNodeUVMap')
+    uv_node.name = f"{NODE_PREFIX}uv_map"
+    uv_node.parent = frame
+    uv_node.location = start_location
+    
+    # Separate XYZ to get UV as RGB
+    separate_node = tree.nodes.new('ShaderNodeSeparateXYZ')
+    separate_node.name = f"{NODE_PREFIX}separate_uv"
+    separate_node.parent = frame
+    separate_node.location = (start_location.x + 200, start_location.y)
+    
+    # Combine XYZ to create color output
+    combine_node = tree.nodes.new('ShaderNodeCombineXYZ')
+    combine_node.name = f"{NODE_PREFIX}combine_uv"
+    combine_node.parent = frame
+    combine_node.location = (start_location.x + 400, start_location.y)
+    
+    # Connect UV -> Separate -> Combine -> Output
+    tree.links.new(uv_node.outputs['UV'], separate_node.inputs['Vector'])
+    tree.links.new(separate_node.outputs['X'], combine_node.inputs['X'])
+    tree.links.new(separate_node.outputs['Y'], combine_node.inputs['Y'])
+    # Set Z to 0 for UV coordinates
+    combine_node.inputs['Z'].default_value = 0.0
+    
+    tree.links.new(combine_node.outputs['Vector'], out_node.inputs['Surface'])
+
+def _setup_shadow_bake(tree, out_node, frame, start_location):
+    """Setup nodes for shadow baking."""
+    # Light Path node to detect shadow rays
+    light_path_node = tree.nodes.new('ShaderNodeLightPath')
+    light_path_node.name = f"{NODE_PREFIX}light_path"
+    light_path_node.parent = frame
+    light_path_node.location = start_location
+    
+    # Math node to invert shadow (1.0 - shadow)
+    math_node = tree.nodes.new('ShaderNodeMath')
+    math_node.name = f"{NODE_PREFIX}shadow_invert"
+    math_node.parent = frame
+    math_node.location = (start_location.x + 200, start_location.y)
+    math_node.operation = 'SUBTRACT'
+    math_node.inputs[0].default_value = 1.0
+    
+    tree.links.new(light_path_node.outputs['Is Shadow Ray'], math_node.inputs[1])
+    tree.links.new(math_node.outputs['Value'], out_node.inputs['Surface'])
+
+def _setup_environment_bake(tree, out_node, frame, start_location):
+    """Setup nodes for environment baking."""
+    # World output - this captures environment lighting
+    world_output_node = tree.nodes.new('ShaderNodeOutputWorld')
+    world_output_node.name = f"{NODE_PREFIX}world_output"
+    world_output_node.parent = frame
+    world_output_node.location = start_location
+    
+    # Background shader for environment
+    background_node = tree.nodes.new('ShaderNodeBackground')
+    background_node.name = f"{NODE_PREFIX}background"
+    background_node.parent = frame
+    background_node.location = (start_location.x - 200, start_location.y)
+    
+    # Environment texture
+    env_texture_node = tree.nodes.new('ShaderNodeTexEnvironment')
+    env_texture_node.name = f"{NODE_PREFIX}env_texture"
+    env_texture_node.parent = frame
+    env_texture_node.location = (start_location.x - 400, start_location.y)
+    
+    tree.links.new(env_texture_node.outputs['Color'], background_node.inputs['Color'])
+    tree.links.new(background_node.outputs['Background'], out_node.inputs['Surface'])
 
 def material_setup(
     mat: b_t.Material,
@@ -291,6 +379,60 @@ def material_setup(
             links.new(ng_color.outputs["object_color"], out_node.inputs["Surface"])
         else:
             links.new(ng_color.outputs["color"], out_node.inputs["Surface"])
+
+    if bake_settings.type == BakeTextureType.POSITION.name:
+        _setup_position_bake(tree, out_node, frame, start_location)
+    
+    if bake_settings.type == BakeTextureType.UV.name:
+        _setup_uv_bake(tree, out_node, frame, start_location)
+    
+    if bake_settings.type == BakeTextureType.SHADOW.name:
+        _setup_shadow_bake(tree, out_node, frame, start_location)
+    
+    if bake_settings.type == BakeTextureType.ENVIRONMENT.name:
+        _setup_environment_bake(tree, out_node, frame, start_location)
+    
+    if bake_settings.type == BakeTextureType.GLOSSY.name:
+        # For glossy, we use the material's existing glossy component
+        if isinstance(from_node, b_t.ShaderNodeBsdfPrincipled):
+            # Create a glossy BSDF node
+            glossy_node = tree.nodes.new('ShaderNodeBsdfGlossy')
+            glossy_node.name = f"{NODE_PREFIX}glossy_bsdf"
+            glossy_node.parent = frame
+            glossy_node.location = start_location
+            
+            # Copy roughness from principled BSDF
+            target_input = from_node.inputs["Roughness"]
+            if target_input.is_linked:
+                target_socket = target_input.links[0].from_socket
+                links.new(target_socket, glossy_node.inputs["Roughness"])
+            else:
+                glossy_node.inputs["Roughness"].default_value = target_input.default_value
+            
+            links.new(glossy_node.outputs["BSDF"], out_node.inputs["Surface"])
+    
+    if bake_settings.type == BakeTextureType.TRANSMISSION.name:
+        # For transmission baking
+        if isinstance(from_node, b_t.ShaderNodeBsdfPrincipled):
+            # Use transmission component of principled BSDF
+            target_input = from_node.inputs.get("Transmission")
+            if target_input:
+                if target_input.is_linked:
+                    target_socket = target_input.links[0].from_socket
+                    links.new(target_socket, out_node.inputs["Surface"])
+                else:
+                    # Create emission node with transmission value
+                    emission_node = tree.nodes.new('ShaderNodeEmission')
+                    emission_node.name = f"{NODE_PREFIX}transmission_emit"
+                    emission_node.parent = frame
+                    emission_node.location = start_location
+                    emission_node.inputs["Color"].default_value = (
+                        target_input.default_value,
+                        target_input.default_value, 
+                        target_input.default_value,
+                        1.0
+                    )
+                    links.new(emission_node.outputs["Emission"], out_node.inputs["Surface"])
 
     if bake_settings.type in [
         BakeTextureType.UTILS_GRID_COLOR.name,

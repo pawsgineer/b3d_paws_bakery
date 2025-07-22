@@ -201,6 +201,7 @@ class BakeTextureType(BlenderPropertyEnum):
         ui_name="AO",
         description="Bake AO map",
         short_name="ao",
+        cycles_type=CyclesBakeType.AO,
         colorspace=Colorspace.NON_COLOR,
     )
     AORM = BakeTextureTypeInfo(
@@ -219,7 +220,53 @@ class BakeTextureType(BlenderPropertyEnum):
         description="Bake uv grid map",
         short_name="grid_uv",
     )
-    
+    SHADOW = BakeTextureTypeInfo(
+        ui_name="Shadow",
+        description="Bake shadow information",
+        short_name="shadow",
+        cycles_type="SHADOW",
+        colorspace=Colorspace.NON_COLOR,
+    )
+    POSITION = BakeTextureTypeInfo(
+        ui_name="Position",
+        description="Bake world space position",
+        short_name="position",
+        cycles_type=CyclesBakeType.POSITION,
+        colorspace=Colorspace.NON_COLOR,
+        is_float=True,
+    )
+    UV = BakeTextureTypeInfo(
+        ui_name="UV",
+        description="Bake UV coordinates",
+        short_name="uv",
+        cycles_type=CyclesBakeType.UV,
+        colorspace=Colorspace.NON_COLOR,
+    )
+    ENVIRONMENT = BakeTextureTypeInfo(
+        ui_name="Environment",
+        description="Bake environment lighting",
+        short_name="env",
+        cycles_type=CyclesBakeType.ENVIRONMENT,
+    )
+    GLOSSY = BakeTextureTypeInfo(
+        ui_name="Glossy",
+        description="Bake glossy reflection",
+        short_name="glossy",
+        cycles_type=CyclesBakeType.GLOSSY,
+    )
+    TRANSMISSION = BakeTextureTypeInfo(
+        ui_name="Transmission",
+        description="Bake transmission",
+        short_name="transmission", 
+        cycles_type=CyclesBakeType.TRANSMISSION,
+    )
+    COMBINED = BakeTextureTypeInfo(
+        ui_name="Combined",
+        description="Bake combined lighting",
+        short_name="combined",
+        cycles_type=CyclesBakeType.COMBINED,
+    )
+
 
     def __init__(self, info: BakeTextureTypeInfo) -> None:
         self.short_name = info.short_name
