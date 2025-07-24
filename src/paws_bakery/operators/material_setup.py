@@ -392,25 +392,6 @@ def material_setup(
     if bake_settings.type == BakeTextureType.ENVIRONMENT.name:
         _setup_environment_bake(tree, out_node, frame, start_location)
     
-    if bake_settings.type == BakeTextureType.GLOSSY.name:
-        # For glossy, we use the material's existing glossy component
-        if isinstance(from_node, b_t.ShaderNodeBsdfPrincipled):
-            # Create a glossy BSDF node
-            glossy_node = tree.nodes.new('ShaderNodeBsdfGlossy')
-            glossy_node.name = f"{NODE_PREFIX}glossy_bsdf"
-            glossy_node.parent = frame
-            glossy_node.location = start_location
-            
-            # Copy roughness from principled BSDF
-            target_input = from_node.inputs["Roughness"]
-            if target_input.is_linked:
-                target_socket = target_input.links[0].from_socket
-                links.new(target_socket, glossy_node.inputs["Roughness"])
-            else:
-                glossy_node.inputs["Roughness"].default_value = target_input.default_value
-            
-            links.new(glossy_node.outputs["BSDF"], out_node.inputs["Surface"])
-    
     if bake_settings.type == BakeTextureType.TRANSMISSION.name:
         # For transmission baking
         if isinstance(from_node, b_t.ShaderNodeBsdfPrincipled):

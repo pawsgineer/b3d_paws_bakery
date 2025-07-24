@@ -36,6 +36,7 @@ class TextureSpecialsMenu(b_t.Menu):
 
         subl = layout.column(align=True)
 
+        # Original setup materials
         props = subl.operator(
             TextureSetTextureSetupMaterial.bl_idname,
             icon="MATERIAL",
@@ -46,13 +47,21 @@ class TextureSpecialsMenu(b_t.Menu):
 
         subl.separator()
 
-        # Add material creation operator
+        # Enhanced material creation with description
+        subl.label(text="Auto BSDF Creation:", icon="NODE_MATERIAL")
+
         props = subl.operator(
             "pawsbkr.texture_set_material_create",
             icon="MATERIAL_DATA",
-            text="Create Materials from Textures",
+            text="Create Principled BSDF Materials",
         )
         props.texture_set_id = texture_set.prop_id
+
+        # Add sub-text
+        sub_row = subl.row()
+        sub_row.scale_y = 0.7
+        sub_row.enabled = False
+        sub_row.label(text="(from baked textures)")
 
         subl.separator()
 
@@ -62,7 +71,6 @@ class TextureSpecialsMenu(b_t.Menu):
             icon="NODE_MATERIAL",
             text="Cleanup Materials",
         )
-        props.texture_set_id = texture_set.prop_id
 
 
 @register_and_duplicate_to_node_editor
@@ -180,16 +188,59 @@ class Texture(SidePanelMixin):
                 texture.last_bake_time for texture in texture_set.textures if texture.is_enabled
             )
             
-            if has_baked_textures:
-                lyt.separator()
-                
-                box = lyt.box()
-                box.label(text="Material Creation", icon="MATERIAL_DATA")
-                
-                row = box.row(align=True)
-                props = row.operator(
-                    "pawsbkr.texture_set_material_create",
-                    text="Create Materials",
-                    icon="MATERIAL_DATA"
-                )
-                props.texture_set_id = texture_set.prop_id
+        if has_baked_textures:
+           lyt.separator()
+           
+           box = lyt.box()
+           
+           # Header with specific description
+           header_row = box.row()
+           header_row.label(text="Auto BSDF Material Creation", icon="NODE_MATERIAL")
+           
+           # Description text
+           desc_col = box.column(align=True)
+           desc_col.scale_y = 0.8
+           desc_col.label(text="Creates Principled BSDF materials from baked textures", icon="INFO")
+           desc_col.label(text="Automatically connects diffuse, normal, roughness, etc.")
+           
+           box.separator(factor=0.5)
+           
+           # Main creation button
+           row = box.row(align=True)
+           row.scale_y = 1.2
+           props = row.operator(
+               "pawsbkr.texture_set_material_create",
+               text="Create BSDF Materials",
+               icon="NODE_MATERIAL"
+           )
+           props.texture_set_id = texture_set.prop_id
+           
+           # Settings button
+           settings_row = box.row(align=True)
+           settings_row.scale_y = 0.9
+           props_settings = settings_row.operator(
+               "pawsbkr.texture_set_material_create",
+               text="Material Settings...",
+               icon="PREFERENCES"
+           )
+           props_settings.texture_set_id = texture_set.prop_id     
+
+               # Show available texture types
+           status_col = box.column(align=True)
+           status_col.scale_y = 0.8
+    
+           # Get texture types that have been baked
+           baked_types = []
+           for texture_props in texture_set.textures:
+               if texture_props.is_enabled and texture_props.last_bake_time:
+                   bake_settings = get_bake_settings(context, texture_props.prop_id)
+                   baked_types.append(bake_settings.type)
+           
+           if baked_types:
+               status_col.label(text=f"Available types: {', '.join(baked_types[:3])}", icon="CHECKMARK")
+               if len(baked_types) > 3:
+                   status_col.label(text=f"... and {len(baked_types) - 3} more")
+           else:
+               status_col.label(text="No baked textures found", icon="ERROR")
+           
+           box.separator(factor=0.5)

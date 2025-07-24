@@ -64,7 +64,7 @@ class CyclesBakeType(CaseSensitiveStrEnum):
     POSITION = auto()             # World Position
     UV = auto()                   # UV Coordinates  
     ENVIRONMENT = auto()          # Environment
-    GLOSSY = auto()              # Glossy Reflection
+    # GLOSSY = auto()              # Glossy Reflection
     TRANSMISSION = auto()         # Transmission
     COMBINED = auto()            # Combined (all lighting)
 

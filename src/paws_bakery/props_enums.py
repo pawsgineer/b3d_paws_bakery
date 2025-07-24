@@ -248,12 +248,13 @@ class BakeTextureType(BlenderPropertyEnum):
         short_name="env",
         cycles_type=CyclesBakeType.ENVIRONMENT,
     )
-    GLOSSY = BakeTextureTypeInfo(
-        ui_name="Glossy",
-        description="Bake glossy reflection",
-        short_name="glossy",
-        cycles_type=CyclesBakeType.GLOSSY,
-    )
+    # would glossy be useful?
+    # GLOSSY = BakeTextureTypeInfo(
+    #     ui_name="Glossy",
+    #     description="Bake glossy reflection",
+    #     short_name="glossy",
+    #     cycles_type=CyclesBakeType.GLOSSY,
+    # )
     TRANSMISSION = BakeTextureTypeInfo(
         ui_name="Transmission",
         description="Bake transmission",

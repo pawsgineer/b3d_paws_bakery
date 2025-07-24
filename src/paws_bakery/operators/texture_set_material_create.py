@@ -23,13 +23,6 @@ def _get_texture_type_socket_info(texture_type: str) -> dict[str, str] | None:
             "colorspace": "sRGB",
             "priority": 1  # Highest priority for base color
         },
-        BakeTextureType.GLOSSY.name: {
-            "socket": "Base Color",  # Changed: Glossy should contribute to base color
-            "output": "Color",
-            "colorspace": "sRGB",
-            "priority": 2,
-            "mix_with_base": True  # Added: Should be mixed with existing base color
-        },
         BakeTextureType.NORMAL.name: {
             "socket": "Normal",
             "output": "Color",
@@ -229,50 +222,42 @@ def _create_material_from_textures(
     original_material: b_t.Material,
     texture_set_name: str,
     texture_images: dict[str, b_t.Image],
-    keep_original: bool = True
+    keep_original: bool = True, 
+    name_prefix: str = "",
+    name_suffix: str = "_baked"
 ) -> b_t.Material:
     """Create a new material with baked textures connected."""
     
-    print(f"DEBUG: _create_material_from_textures called")
-    print(f"DEBUG: original_material: {original_material.name}")
-    print(f"DEBUG: texture_set_name: {texture_set_name}")
-    print(f"DEBUG: texture_images keys: {list(texture_images.keys())}")
-    print(f"DEBUG: keep_original: {keep_original}")
-    
     try:
-        # Create new material name
-        suffix = "_baked"
-        new_name = f"{original_material.name}{suffix}"
-        print(f"DEBUG: Initial new_name: {new_name}")
+        # Create new material name with custom prefix/suffix
+        base_name = original_material.name
+        new_name = f"{name_prefix}{base_name}{name_suffix}"
         
         # Ensure unique name
         counter = 1
-        while new_name in bpy.data.materials:
-            new_name = f"{original_material.name}{suffix}_{counter:03d}"
+        final_name = new_name
+        while final_name in bpy.data.materials:
+            final_name = f"{new_name}_{counter:03d}"
             counter += 1
-            print(f"DEBUG: Trying new_name: {new_name}")
         
-        print(f"DEBUG: Final new_name: {new_name}")
+        print(f"DEBUG: Material name: {final_name}")
         
         if keep_original:
             # Copy the original material
             new_material = original_material.copy()
             new_material.name = new_name
-            print(f"DEBUG: Copied original material")
+
         else:
             # Create a basic material
             new_material = bpy.data.materials.new(name=new_name)
             new_material.use_nodes = True
-            print(f"DEBUG: Created new basic material")
-            
+      
             # Clear default nodes if creating from scratch
             new_material.node_tree.nodes.clear()
-            print(f"DEBUG: Cleared default nodes")
                 
             # Add basic nodes
             bsdf = new_material.node_tree.nodes.new(type='ShaderNodeBsdfPrincipled')
             output = new_material.node_tree.nodes.new(type='ShaderNodeOutputMaterial')
-            print(f"DEBUG: Added basic BSDF and output nodes")
             
             # Position nodes
             bsdf.location = (0, 0)
@@ -280,7 +265,6 @@ def _create_material_from_textures(
             
             # Connect BSDF to output
             new_material.node_tree.links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
-            print(f"DEBUG: Connected BSDF to output")
     
         # Find the Principled BSDF node
         principled_bsdf = _find_principled_bsdf(new_material)
@@ -333,7 +317,7 @@ def _create_material_from_textures(
             print(f"DEBUG: Creating texture node for {texture_type}")
             tex_node = node_tree.nodes.new(type='ShaderNodeTexImage')
             tex_node.image = image
-            tex_node.location = (-400, -len(texture_nodes) * 300)
+            tex_node.location = (-600, -len(texture_nodes) * 300)
             print(f"DEBUG: Created texture node at location {tex_node.location}")
             
             # Set appropriate colorspace
@@ -354,7 +338,7 @@ def _create_material_from_textures(
                 print(f"DEBUG: Handling as normal map")
                 # Add normal map node
                 normal_node = node_tree.nodes.new(type='ShaderNodeNormalMap')
-                normal_node.location = (-200, tex_node.location[1])
+                normal_node.location = (-400, tex_node.location[1])
                 print(f"DEBUG: Created normal map node")
                 
                 # Connect texture to normal map, then to BSDF
@@ -365,30 +349,16 @@ def _create_material_from_textures(
             # Special handling for textures that should mix with base color
             elif socket_info.get("mix_with_base", False):
                 print(f"DEBUG: Handling as mix_with_base texture")
-                # For AO, Shadow, and Glossy, we want to multiply/mix with base color
+                # For AO, Shadow, and we want to multiply/mix with base color
                 # Use ShaderNodeMixRGB for better compatibility
                 try:
                     mix_node = node_tree.nodes.new(type='ShaderNodeMixRGB')
-                    # Use different blend modes for different texture types
-                    if texture_type == BakeTextureType.GLOSSY.name:
-                        mix_node.blend_type = 'ADD'  # Additive for glossy highlights
-                        print(f"DEBUG: Created ShaderNodeMixRGB with ADD blend for glossy")
-                    else:
-                        mix_node.blend_type = 'MULTIPLY'  # Multiply for AO/Shadow
-                        print(f"DEBUG: Created ShaderNodeMixRGB with MULTIPLY blend")
+                    mix_node.blend_type = 'MULTIPLY'  # Multiply for AO/Shadow
+                    print(f"DEBUG: Created ShaderNodeMixRGB with MULTIPLY blend")
                 except Exception as e:
                     print(f"DEBUG: Failed to create ShaderNodeMixRGB: {e}")
-                    # Fallback for older Blender versions
-                    mix_node = node_tree.nodes.new(type='ShaderNodeMix')
-                    mix_node.data_type = 'RGBA'
-                    if texture_type == BakeTextureType.GLOSSY.name:
-                        mix_node.blend_type = 'ADD'
-                        print(f"DEBUG: Created ShaderNodeMix fallback with ADD blend for glossy")
-                    else:
-                        mix_node.blend_type = 'MULTIPLY'
-                        print(f"DEBUG: Created ShaderNodeMix fallback with MULTIPLY blend")
                 
-                mix_node.location = (-100, tex_node.location[1])
+                mix_node.location = (-200, tex_node.location[1])
                 
                 # Set mix factor to 1.0 for full effect
                 if 'Fac' in mix_node.inputs:
@@ -433,7 +403,7 @@ def _create_material_from_textures(
                     error_msg = f"DEBUG: Could not connect - missing socket. output_socket in outputs: {output_socket in tex_node.outputs}, socket_name in inputs: {socket_name in principled_bsdf.inputs}"
                     print(error_msg)
         
-        # Handle base color mixing for AO/Shadow/Glossy textures
+        # Handle base color mixing for AO/Shadow textures
         print(f"DEBUG: Processing base_color_mixers, count: {len(base_color_mixers)}")
         if base_color_mixers:
             # Find if we have a direct diffuse texture
@@ -532,6 +502,20 @@ class TextureSetMaterialCreate(b_t.Operator):
         name="Assign to Objects",
         description="Assign the new materials to objects in the texture set",
         default=True
+    )
+
+    material_output_suffix: b_p.StringProperty(
+        name="Material Name Suffix",
+        description="Suffix to add to the original material name for the new BSDF material",
+        default="_baked",
+        maxlen=64
+    )
+
+    material_name_prefix: b_p.StringProperty(
+        name="Material Name Prefix", 
+        description="Prefix to add to the original material name for the new BSDF material",
+        default="",
+        maxlen=64
     )
 
     def execute(self, context: b_t.Context) -> set[str]:
@@ -667,19 +651,18 @@ class TextureSetMaterialCreate(b_t.Operator):
                     original_material=original_material,
                     texture_set_name=texture_set.display_name,
                     texture_images=texture_images,
-                    keep_original=self.keep_original_materials
+                    keep_original=self.keep_original_materials,
+                    name_prefix=self.material_name_prefix,
+                    name_suffix=self.material_output_suffix
                 )
                 created_materials[original_material] = new_material
-                success_msg = f"Created material: {new_material.name}"
+                success_msg = f"Created BSDF material: {new_material.name}"
                 print(f"DEBUG: SUCCESS - {success_msg}")
                 self.report({"INFO"}, success_msg)
-                
+
             except Exception as e:
-                error_msg = f"Failed to create material for {original_material.name}: {str(e)}"
+                error_msg = f"Failed to create BSDF material for {original_material.name}: {str(e)}"
                 print(f"DEBUG: ERROR - {error_msg}")
-                print(f"DEBUG: Detailed error for {original_material.name}: {str(e)}")
-                import traceback
-                traceback.print_exc()
                 self.report({"ERROR"}, error_msg)
                 continue
         
@@ -724,3 +707,56 @@ class TextureSetMaterialCreate(b_t.Operator):
         """invoke() override - Show dialog for user options."""
         print(f"DEBUG: TextureSetMaterialCreate.invoke() called")
         return context.window_manager.invoke_props_dialog(self)
+    
+    def draw(self, context: b_t.Context) -> None:
+        """Draw the operator dialog with all customization options."""
+        layout = self.layout
+        
+        # Main description box
+        box = layout.box()
+        col = box.column(align=True)
+        col.label(text="Principled BSDF Material Creation", icon="NODE_MATERIAL")
+        col.separator(factor=0.3)
+        col.scale_y = 0.8
+        col.label(text="• Automatically connects baked textures to BSDF shader")
+        col.label(text="• Handles normal maps, roughness, diffuse, AO, etc.")
+        col.label(text="• Creates shader node networks for PBR materials")
+        
+        layout.separator()
+        
+        # Material naming options
+        naming_box = layout.box()
+        naming_box.label(text="Material Naming", icon="SORTALPHA")
+        
+        col = naming_box.column(align=True)
+        col.prop(self, "material_name_prefix")
+        col.prop(self, "material_output_suffix") 
+        
+        # Show preview of naming
+        preview_row = naming_box.row()
+        preview_row.scale_y = 0.7
+        preview_row.enabled = False
+        example_name = f"{self.material_name_prefix}MaterialName{self.material_output_suffix}"
+        preview_row.label(text=f"Preview: {example_name}", icon="INFO")
+        
+        layout.separator()
+        
+        # Material creation options
+        options_box = layout.box()
+        options_box.label(text="Creation Options", icon="SETTINGS")
+        
+        col = options_box.column(align=True)
+        col.prop(self, "keep_original_materials")
+        col.prop(self, "assign_to_objects")
+        
+        # Add helpful descriptions
+        if self.keep_original_materials:
+            desc_row = options_box.row()
+            desc_row.scale_y = 0.7
+            desc_row.enabled = False
+            desc_row.label(text="└ Copies existing material structure", icon="COPYDOWN")
+        else:
+            desc_row = options_box.row()
+            desc_row.scale_y = 0.7
+            desc_row.enabled = False
+            desc_row.label(text="└ Creates fresh Principled BSDF material", icon="ADD")
