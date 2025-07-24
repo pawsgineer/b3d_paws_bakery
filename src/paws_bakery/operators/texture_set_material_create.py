@@ -733,7 +733,7 @@ class TextureSetMaterialCreate(b_t.Operator):
         col.prop(self, "material_output_suffix") 
         
         # Show preview of naming
-        preview_row = naming_box.row()
+        preview_row = naming_box.row(align=True)
         preview_row.scale_y = 0.7
         preview_row.enabled = False
         example_name = f"{self.material_name_prefix}MaterialName{self.material_output_suffix}"
