@@ -258,7 +258,7 @@ class BakeTextureType(BlenderPropertyEnum):
     TRANSMISSION = BakeTextureTypeInfo(
         ui_name="Transmission",
         description="Bake transmission",
-        short_name="transmission", 
+        short_name="transmission",
         cycles_type=CyclesBakeType.TRANSMISSION,
     )
     COMBINED = BakeTextureTypeInfo(
@@ -267,7 +267,6 @@ class BakeTextureType(BlenderPropertyEnum):
         short_name="combined",
         cycles_type=CyclesBakeType.COMBINED,
     )
-
 
     def __init__(self, info: BakeTextureTypeInfo) -> None:
         self.short_name = info.short_name

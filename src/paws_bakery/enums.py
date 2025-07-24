@@ -59,14 +59,14 @@ class CyclesBakeType(CaseSensitiveStrEnum):
     DIFFUSE = auto()
     ROUGHNESS = auto()
     NORMAL = auto()
-    AO = auto()                    # Ambient Occlusion
-    SHADOW = auto()               # Shadow
-    POSITION = auto()             # World Position
-    UV = auto()                   # UV Coordinates  
-    ENVIRONMENT = auto()          # Environment
+    AO = auto()  # Ambient Occlusion
+    SHADOW = auto()  # Shadow
+    POSITION = auto()  # World Position
+    UV = auto()  # UV Coordinates
+    ENVIRONMENT = auto()  # Environment
     # GLOSSY = auto()              # Glossy Reflection
-    TRANSMISSION = auto()         # Transmission
-    COMBINED = auto()            # Combined (all lighting)
+    TRANSMISSION = auto()  # Transmission
+    COMBINED = auto()  # Combined (all lighting)
 
 
 class Colorspace(CaseSensitiveStrEnum):

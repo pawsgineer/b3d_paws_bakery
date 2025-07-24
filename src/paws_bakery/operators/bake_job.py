@@ -158,8 +158,10 @@ class BakeJob:
             # Convert both paths to absolute paths before comparison
             existing_path = bpy.path.abspath(img.filepath)
             expected_path = bpy.path.abspath(self.image_path)
-            
-            if bpy.path.native_pathsep(existing_path) != bpy.path.native_pathsep(expected_path):
+
+            if bpy.path.native_pathsep(existing_path) != bpy.path.native_pathsep(
+                expected_path
+            ):
                 raise AddonException(
                     "Existing image has different filepath.",
                     {
