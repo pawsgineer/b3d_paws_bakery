@@ -105,12 +105,19 @@ class TextureImport(b_t.Operator, ImportHelper):
         return {BlenderOperatorReturnType.FINISHED}
 
     def update_material(self, _context: b_t.Context, mat: b_t.Material):
-        """Update material textures."""
-        tex_nodes = {x: mat.node_tree.nodes.get(x.node_name) for x in TextureTypeAlias}
+        """Update material textures using node name prefix matching."""
+        # Build a mapping from TextureTypeAlias to all matching nodes (by prefix)
+        node_map = {}
+        for tex_type in TextureTypeAlias:
+            prefix = tex_type.node_name
+            node_map[tex_type] = [
+                node for node in mat.node_tree.nodes
+                if node.name.startswith(prefix)
+            ]
 
         if self.unlink_existing_textures:
-            for node in tex_nodes.values():
-                if node is not None:
+            for nodes in node_map.values():
+                for node in nodes:
                     node.image = None
 
         for file in self.files:
@@ -119,12 +126,12 @@ class TextureImport(b_t.Operator, ImportHelper):
                 log(f"Unrecognized texture type: {file.name!r}")
                 continue
 
-            node = mat.node_tree.nodes.get(image_tex_type.node_name)
-            if node is None:
-                log(f"Node for texture {image_tex_type!r} not found. Ignoring")
+            nodes = node_map.get(image_tex_type, [])
+            if not nodes:
+                log(f"No node found for texture type {image_tex_type!r}. Ignoring")
                 continue
 
-            log(f"Importing texture {file.name!r} to node {node!r}")
+            log(f"Importing texture {file.name!r} to nodes {[n.name for n in nodes]!r}")
 
             image = bpy.data.images.load(
                 bpy.path.relpath(str(Path(self.directory, file.name))),
@@ -136,9 +143,10 @@ class TextureImport(b_t.Operator, ImportHelper):
             ]:
                 image.colorspace_settings.name = Colorspace.NON_COLOR
 
-            node.image = image
+            for node in nodes:
+                node.image = image
 
-        for node in tex_nodes.values():
-            if node is None:
-                continue
-            node.mute = node.image is None
+        # Optionally mute nodes with no image
+        for nodes in node_map.values():
+            for node in nodes:
+                node.mute = node.image is None
