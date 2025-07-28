@@ -287,6 +287,9 @@ class BakeMode(BlenderPropertyEnum):
         ui_name="Single Texture",
         description="Bake all materials from all objects into a single texture",
     )
+
+    
+
     # PER_OBJECT = EnumItemInfo(
     #     ui_name="Per Object",
     #     description=(

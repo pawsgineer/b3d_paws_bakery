@@ -160,6 +160,24 @@ class UtilsSettings(b_t.PropertyGroup):
         default=True,
     )
 
+    material_name_prefix: b_p.StringProperty(
+        name="Material Name Prefix",
+        description="Prefix to add to the original material name for the new BSDF material",
+        default="",
+        maxlen=64,
+    )
+    material_output_suffix: b_p.StringProperty(
+        name="Material Name Suffix",
+        description="Suffix to add to the original material name for the new BSDF material",
+        default="_baked",
+        maxlen=64,
+    )
+    keep_original_materials: b_p.BoolProperty(
+        name="Keep Original Materials",
+        description="Keep original material structure and add baked textures to it",
+        default=True,
+    )
+
     debug_pause: b_p.BoolProperty(  # type: ignore[valid-type]
         name="Debug pause", default=False
     )

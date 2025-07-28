@@ -222,15 +222,6 @@ class Texture(SidePanelMixin):
             )
             props.texture_set_id = texture_set.prop_id
 
-            # Settings button
-            settings_row = box.row(align=True)
-            settings_row.scale_y = 0.9
-            props_settings = settings_row.operator(
-                "pawsbkr.texture_set_material_create",
-                text="Material Settings...",
-                icon="PREFERENCES",
-            )
-            props_settings.texture_set_id = texture_set.prop_id
 
             # Show available texture types
             status_col = box.column(align=True)

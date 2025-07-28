@@ -23,3 +23,18 @@ class Settings(SidePanelMixin):
         subl = layout.column(align=True)
         subl.prop(pawsbkr.utils_settings, "unlink_baked_image")
         subl.prop(pawsbkr.utils_settings, "show_image_in_editor")
+
+        # Material Creation Settings
+        box = layout.box()
+        box.label(text="Material Creation", icon="MATERIAL")
+        box.prop(pawsbkr.utils_settings, "material_name_prefix")
+        box.prop(pawsbkr.utils_settings, "material_output_suffix")
+        box.prop(pawsbkr.utils_settings, "keep_original_materials")
+
+        preview_row = box.row(align=True)
+        preview_row.scale_y = 0.7
+        preview_row.enabled = False
+        example_name = (
+            f"{pawsbkr.utils_settings.material_name_prefix}MaterialName{pawsbkr.utils_settings.material_output_suffix}"
+        )
+        preview_row.label(text=f"Preview: {example_name}", icon="INFO")

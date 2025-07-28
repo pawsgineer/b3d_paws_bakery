@@ -554,81 +554,67 @@ class TextureSetMaterialCreate(b_t.Operator):
         name="Target texture set name", default="", options={"HIDDEN", "SKIP_SAVE"}
     )
 
-    keep_original_materials: b_p.BoolProperty(
-        name="Keep Original Materials",
-        description="Keep original material structure and add baked textures to it",
-        default=True,
-    )
-
     assign_to_objects: b_p.BoolProperty(
         name="Assign to Objects",
         description="Assign the new materials to objects in the texture set",
         default=True,
     )
 
-    material_output_suffix: b_p.StringProperty(
-        name="Material Name Suffix",
-        description="Suffix to add to the original material name for the new BSDF material",
-        default="_baked",
-        maxlen=64,
-    )
-
-    material_name_prefix: b_p.StringProperty(
-        name="Material Name Prefix",
-        description="Prefix to add to the original material name for the new BSDF material",
-        default="",
-        maxlen=64,
-    )
-
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
         print(f"DEBUG: TextureSetMaterialCreate.execute() called")
         print(f"DEBUG: texture_set_id: '{self.texture_set_id}'")
-    
+
         if not self.texture_set_id:
             error_msg = "texture_set_id is required"
             print(f"DEBUG: ERROR - {error_msg}")
             raise AddonException(error_msg)
-    
+
         pawsbkr = get_props(context)
-        print(f"DEBUG: Got pawsbkr props")
-    
+        utils_settings = pawsbkr.utils_settings
+
+        # Use global settings instead of self
+        name_prefix = utils_settings.material_name_prefix
+        name_suffix = utils_settings.material_output_suffix
+        keep_original = utils_settings.keep_original_materials
+
+
         texture_set = pawsbkr.texture_sets[self.texture_set_id]
         print(f"DEBUG: Got texture_set: {texture_set.display_name}")
         print(f"DEBUG: texture_set.textures count: {len(texture_set.textures)}")
-    
+
         if not texture_set.textures:
             warning_msg = "No textures found in texture set"
             print(f"DEBUG: WARNING - {warning_msg}")
             self.report({"WARNING"}, warning_msg)
             return {BlenderOperatorReturnType.CANCELLED}
-    
+
         # Collect all baked images by texture type
         texture_images: dict[str, b_t.Image] = {}
         images_found = []
         images_missing = []
-    
+
         for i, texture_props in enumerate(texture_set.textures):
             print(
                 f"DEBUG: Processing texture {i+1}/{len(texture_set.textures)}: enabled={texture_props.is_enabled}, prop_id={texture_props.prop_id}"
             )
-    
+
             if not texture_props.is_enabled:
                 print(f"DEBUG: Skipping disabled texture")
                 continue
-            
+
             bake_settings = get_bake_settings(context, texture_props.prop_id)
             print(f"DEBUG: Got bake_settings: type={bake_settings.type}")
-    
+
             from .bake_common import generate_image_name_and_path
-    
+
             img_name, img_path = generate_image_name_and_path(
                 context=context,
                 settings_id=texture_props.prop_id,
                 texture_set_name=texture_set.display_name,
             )
             print(f"DEBUG: Expected image name: {img_name}")
-    
+
             image = bpy.data.images.get(img_name)
             if image:
                 texture_images[bake_settings.type] = image
@@ -637,33 +623,33 @@ class TextureSetMaterialCreate(b_t.Operator):
             else:
                 images_missing.append(f"{bake_settings.type}: {img_name}")
                 print(f"DEBUG: Missing image for type {bake_settings.type}")
-    
+
         print(
             f"DEBUG: Final texture_images mapping: {[(k, v.name) for k, v in texture_images.items()]}"
         )
-    
+
         if images_found:
             info_msg = (
                 f"Found {len(images_found)} baked images: {', '.join(images_found)}"
             )
             print(f"DEBUG: {info_msg}")
             self.report({"INFO"}, info_msg)
-    
+
         if images_missing:
             warning_msg = f"Missing {len(images_missing)} baked images: {', '.join(images_missing)}"
             print(f"DEBUG: {warning_msg}")
             self.report({"WARNING"}, warning_msg)
-    
+
         if not texture_images:
             error_msg = "No baked images found for texture set. Make sure to bake textures first."
             print(f"DEBUG: ERROR - {error_msg}")
             self.report({"ERROR"}, error_msg)
             return {BlenderOperatorReturnType.CANCELLED}
-    
+
         # Get all materials used by objects in the texture set
         materials_to_process: set[b_t.Material] = set()
         objects_materials: dict[str, list[b_t.Material]] = {}
-    
+
         print(
             f"DEBUG: Processing meshes in texture set, count: {len(texture_set.meshes)}"
         )
@@ -671,22 +657,22 @@ class TextureSetMaterialCreate(b_t.Operator):
             print(
                 f"DEBUG: Processing mesh {i+1}/{len(texture_set.meshes)}: {mesh_props.name}, enabled={mesh_props.is_enabled}"
             )
-    
+
             if not mesh_props.is_enabled:
                 print(f"DEBUG: Skipping disabled mesh")
                 continue
-            
+
             obj = mesh_props.get_ref()
             print(
                 f"DEBUG: Got object reference: {obj.name if obj else None}, type: {obj.type if obj else None}"
             )
-    
+
             if not obj or obj.type != "MESH":
                 warning_msg = f"Object {mesh_props.name} not found or not a mesh"
                 print(f"DEBUG: WARNING - {warning_msg}")
                 self.report({"WARNING"}, warning_msg)
                 continue
-            
+
             obj_materials = []
             print(f"DEBUG: Object has {len(obj.material_slots)} material slots")
             for j, slot in enumerate(obj.material_slots):
@@ -696,7 +682,7 @@ class TextureSetMaterialCreate(b_t.Operator):
                 if slot.material:
                     materials_to_process.add(slot.material)
                     obj_materials.append(slot.material)
-    
+
             if obj_materials:
                 objects_materials[obj.name] = obj_materials
                 print(
@@ -706,16 +692,16 @@ class TextureSetMaterialCreate(b_t.Operator):
                 warning_msg = f"Object {obj.name} has no materials"
                 print(f"DEBUG: WARNING - {warning_msg}")
                 self.report({"WARNING"}, warning_msg)
-    
+
         print(f"DEBUG: Total materials to process: {len(materials_to_process)}")
         print(f"DEBUG: Materials: {[mat.name for mat in materials_to_process]}")
-    
+
         if not materials_to_process:
             error_msg = "No materials found on objects in texture set"
             print(f"DEBUG: ERROR - {error_msg}")
             self.report({"ERROR"}, error_msg)
             return {BlenderOperatorReturnType.CANCELLED}
-    
+
         # Prepare files and directory for TextureImport operator
         # Assume all images are in the same directory as the first image's filepath
         first_img = next(iter(texture_images.values()))
@@ -724,14 +710,14 @@ class TextureSetMaterialCreate(b_t.Operator):
             import os
             directory = os.path.dirname(bpy.path.abspath(first_img.filepath))
         print(f"DEBUG: Using directory for TextureImport: {directory}")
-    
+
         files_list = []
         for img in texture_images.values():
             # Use the filename part only
             import os
             filename = os.path.basename(bpy.path.abspath(img.filepath))
             files_list.append({"name": filename})
-    
+
         # Call TextureImport for each material
         for i, mat in enumerate(materials_to_process):
             print(f"DEBUG: Running TextureImport for material {mat.name}")
@@ -743,7 +729,7 @@ class TextureSetMaterialCreate(b_t.Operator):
                 unlink_existing_textures=True,
             )
             print(f"DEBUG: TextureImport result: {result}")
-    
+
         final_msg = f"Assigned {len(files_list)} textures to {len(materials_to_process)} materials using TextureImport"
         print(f"DEBUG: FINAL SUCCESS - {final_msg}")
         self.report({"INFO"}, final_msg)
@@ -754,58 +740,6 @@ class TextureSetMaterialCreate(b_t.Operator):
         print(f"DEBUG: TextureSetMaterialCreate.invoke() called")
         return context.window_manager.invoke_props_dialog(self)
 
-    def draw(self, context: b_t.Context) -> None:
-        """Draw the operator dialog with all customization options."""
-        layout = self.layout
 
-        # Main description box
-        box = layout.box()
-        col = box.column(align=True)
-        col.label(text="Principled BSDF Material Creation", icon="NODE_MATERIAL")
-        col.separator(factor=0.3)
-        col.scale_y = 0.8
-        col.label(text="• Automatically connects baked textures to BSDF shader")
-        col.label(text="• Handles normal maps, roughness, diffuse, AO, etc.")
-        col.label(text="• Creates shader node networks for PBR materials")
 
-        layout.separator()
-
-        # Material naming options
-        naming_box = layout.box()
-        naming_box.label(text="Material Naming", icon="SORTALPHA")
-
-        col = naming_box.column(align=True)
-        col.prop(self, "material_name_prefix")
-        col.prop(self, "material_output_suffix")
-
-        # Show preview of naming
-        preview_row = naming_box.row(align=True)
-        preview_row.scale_y = 0.7
-        preview_row.enabled = False
-        example_name = (
-            f"{self.material_name_prefix}MaterialName{self.material_output_suffix}"
-        )
-        preview_row.label(text=f"Preview: {example_name}", icon="INFO")
-
-        layout.separator()
-
-        # Material creation options
-        options_box = layout.box()
-        options_box.label(text="Creation Options", icon="SETTINGS")
-
-        col = options_box.column(align=True)
-        col.prop(self, "keep_original_materials")
-        col.prop(self, "assign_to_objects")
-
-        # Add helpful descriptions
-        if self.keep_original_materials:
-            desc_row = options_box.row()
-            desc_row.scale_y = 0.7
-            desc_row.enabled = False
-            desc_row.label(text="└ Copies existing material structure", icon="COPYDOWN")
-        else:
-            desc_row = options_box.row()
-            desc_row.scale_y = 0.7
-            desc_row.enabled = False
-            desc_row.label(text="└ Creates fresh Principled BSDF material", icon="ADD")
             
