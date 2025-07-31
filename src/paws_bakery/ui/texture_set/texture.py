@@ -1,6 +1,6 @@
 """UI Panel - Texture Set Textures."""
 
-from typing import Any
+from typing import Any, cast
 
 import bpy
 from bpy import types as b_t
@@ -181,9 +181,9 @@ class Texture(SidePanelMixin):
 
         col.menu(TextureSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 
-        # Add a section for material creation after baking
+         # Check if any textures have been baked
+        has_baked_textures = False
         if texture_set.textures:
-            # Check if any textures have been baked
             has_baked_textures = any(
                 texture.last_bake_time
                 for texture in texture_set.textures
@@ -193,55 +193,56 @@ class Texture(SidePanelMixin):
         if has_baked_textures:
             lyt.separator()
 
-            box = lyt.box()
-
-            # Header with specific description
-            header_row = box.row()
-            header_row.label(text="Auto BSDF Material Creation", icon="NODE_MATERIAL")
-
-            # Description text
-            desc_col = box.column(align=True)
-            desc_col.scale_y = 0.8
-            desc_col.label(
-                text="Creates Principled BSDF materials from baked textures",
-                icon="INFO",
+            # Create collapsible panel for material creation
+            header, panel = cast(
+                tuple[b_t.UILayout, b_t.UILayout | None],
+                lyt.panel("material_creation", default_closed=False),
             )
-            desc_col.label(
-                text="Automatically connects diffuse, normal, roughness, etc."
-            )
-
-            box.separator(factor=0.5)
-
-            # Main creation button
-            row = box.row(align=True)
-            row.scale_y = 1.2
-            props = row.operator(
-                "pawsbkr.texture_set_material_create",
-                text="Create BSDF Materials",
-                icon="NODE_MATERIAL",
-            )
-            props.texture_set_id = texture_set.prop_id
-
-
-            # Show available texture types
-            status_col = box.column(align=True)
-            status_col.scale_y = 0.8
-
-            # Get texture types that have been baked
-            baked_types = []
-            for texture_props in texture_set.textures:
-                if texture_props.is_enabled and texture_props.last_bake_time:
-                    bake_settings = get_bake_settings(context, texture_props.prop_id)
-                    baked_types.append(bake_settings.type)
-
-            if baked_types:
-                status_col.label(
-                    text=f"Available types: {', '.join(baked_types[:3])}",
-                    icon="CHECKMARK",
+            header.label(text="Auto BSDF Material Creation", icon="NODE_MATERIAL")
+            
+            if panel:
+                # Description text
+                desc_col = panel.column(align=True)
+                desc_col.scale_y = 0.8
+                desc_col.label(
+                    text="Creates Principled BSDF materials from baked textures",
+                    icon="INFO",
                 )
-                if len(baked_types) > 3:
-                    status_col.label(text=f"... and {len(baked_types) - 3} more")
-            else:
-                status_col.label(text="No baked textures found", icon="ERROR")
+                desc_col.label(
+                    text="Automatically connects diffuse, normal, roughness, etc."
+                )
 
-            box.separator(factor=0.5)
+                panel.separator(factor=0.5)
+
+                # Main creation button
+                row = panel.row(align=True)
+                row.scale_y = 1.2
+                props = row.operator(
+                    "pawsbkr.texture_set_material_create",
+                    text="Create BSDF Materials",
+                    icon="NODE_MATERIAL",
+                )
+                props.texture_set_id = texture_set.prop_id
+
+                # Show available texture types
+                status_col = panel.column(align=True)
+                status_col.scale_y = 0.8
+
+                # Get texture types that have been baked
+                baked_types = []
+                for texture_props in texture_set.textures:
+                    if texture_props.is_enabled and texture_props.last_bake_time:
+                        bake_settings = get_bake_settings(context, texture_props.prop_id)
+                        baked_types.append(bake_settings.type)
+
+                if baked_types:
+                    status_col.label(
+                        text=f"Available types: {', '.join(baked_types[:3])}",
+                        icon="CHECKMARK",
+                    )
+                    if len(baked_types) > 3:
+                        status_col.label(text=f"... and {len(baked_types) - 3} more")
+                else:
+                    status_col.label(text="No baked textures found", icon="ERROR")
+
+                panel.separator(factor=0.5)
