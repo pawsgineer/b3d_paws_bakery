@@ -26,7 +26,8 @@ class Settings(SidePanelMixin):
 
         # Material Creation Settings
         box = layout.box()
-        box.label(text="Material Creation", icon="MATERIAL")
+        box.label(text="Auto Material Creation", icon="MATERIAL")
+        
         box.prop(pawsbkr.utils_settings, "material_name_prefix")
         box.prop(pawsbkr.utils_settings, "material_output_suffix")
         box.prop(pawsbkr.utils_settings, "keep_original_materials")

@@ -106,3 +106,4 @@ class Main(SidePanelMixin):
         col = row.column(align=True)
         col.operator(TextureSetAdd.bl_idname, icon="ADD", text="")
         col.operator(TextureSetRemove.bl_idname, icon="REMOVE", text="")
+

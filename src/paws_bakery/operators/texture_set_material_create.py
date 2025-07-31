@@ -276,7 +276,7 @@ class TextureSetMaterialCreate(b_t.Operator):
             (TEMPLATE_MATERIALS["stylized"], "Stylized", "For stylized/toon rendering"),
             (TEMPLATE_MATERIALS["user_custom"], "User Custom", "User customized template"),
         ],
-        default="",
+        default=TEMPLATE_MATERIALS["basic"],  # Changed from "" to basic template
     )
 
     def execute(self, context: b_t.Context) -> set[str]:
