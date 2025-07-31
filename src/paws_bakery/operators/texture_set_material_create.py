@@ -16,7 +16,6 @@ from ..utils import AddonException, Registry
 TEMPLATE_MATERIALS = {
     "basic": "pawsbkr_material_basic",
     "pbr_full": "pawsbkr_material_pbr_full", 
-    "stylized": "pawsbkr_material_stylized",
     "user_custom": "pawsbkr_material_custom_user",
 }
 def _map_bake_type_to_texture_alias(bake_type: str) -> Optional[TextureTypeAlias]:
@@ -273,7 +272,6 @@ class TextureSetMaterialCreate(b_t.Operator):
             ("", "Auto Select", "Automatically select template based on bake types"),
             (TEMPLATE_MATERIALS["basic"], "Basic", "Minimal PBR setup"),
             (TEMPLATE_MATERIALS["pbr_full"], "PBR Full", "Complete PBR with all features"),
-            (TEMPLATE_MATERIALS["stylized"], "Stylized", "For stylized/toon rendering"),
             (TEMPLATE_MATERIALS["user_custom"], "User Custom", "User customized template"),
         ],
         default=TEMPLATE_MATERIALS["basic"],  # Changed from "" to basic template
