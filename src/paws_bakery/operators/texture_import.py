@@ -111,8 +111,7 @@ class TextureImport(b_t.Operator, ImportHelper):
         for tex_type in TextureTypeAlias:
             prefix = tex_type.node_name
             node_map[tex_type] = [
-                node for node in mat.node_tree.nodes
-                if node.name.startswith(prefix)
+                node for node in mat.node_tree.nodes if node.name.startswith(prefix)
             ]
 
         if self.unlink_existing_textures:

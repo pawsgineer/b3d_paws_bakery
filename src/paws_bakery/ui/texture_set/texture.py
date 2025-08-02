@@ -83,6 +83,7 @@ class TextureSpecialsMenu(b_t.Menu):
             text="Cleanup Materials",
         )
 
+
 @register_and_duplicate_to_node_editor
 class TextureUIList(b_t.UIList):
     """UI List - Texture Set textures."""
@@ -191,7 +192,7 @@ class Texture(SidePanelMixin):
 
         col.menu(TextureSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 
-         # Check if any textures have been baked
+        # Check if any textures have been baked
         has_baked_textures = False
         if texture_set.textures:
             has_baked_textures = any(
@@ -209,7 +210,7 @@ class Texture(SidePanelMixin):
                 lyt.panel("material_creation", default_closed=False),
             )
             header.label(text="Auto BSDF Material Creation", icon="NODE_MATERIAL")
-            
+
             if panel:
                 # Description text
                 desc_col = panel.column(align=True)
@@ -225,7 +226,9 @@ class Texture(SidePanelMixin):
                 panel.separator(factor=0.5)
 
                 template_col = panel.column(align=True)
-                template_col.prop(texture_set, "base_material_template", text="Template")
+                template_col.prop(
+                    texture_set, "base_material_template", text="Template"
+                )
 
                 # Main creation button
                 row = panel.row(align=True)
@@ -245,7 +248,9 @@ class Texture(SidePanelMixin):
                 baked_types = []
                 for texture_props in texture_set.textures:
                     if texture_props.is_enabled and texture_props.last_bake_time:
-                        bake_settings = get_bake_settings(context, texture_props.prop_id)
+                        bake_settings = get_bake_settings(
+                            context, texture_props.prop_id
+                        )
                         baked_types.append(bake_settings.type)
 
                 if baked_types:

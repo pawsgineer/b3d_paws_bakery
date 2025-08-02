@@ -27,15 +27,13 @@ class Settings(SidePanelMixin):
         # Material Creation Settings
         box = layout.box()
         box.label(text="Auto Material Creation", icon="MATERIAL")
-        
+
         box.prop(pawsbkr.utils_settings, "material_name_prefix")
         box.prop(pawsbkr.utils_settings, "material_output_suffix")
         box.prop(pawsbkr.utils_settings, "keep_original_materials")
-        
+
         preview_row = box.row(align=True)
         preview_row.scale_y = 0.7
         preview_row.enabled = False
-        example_name = (
-            f"{pawsbkr.utils_settings.material_name_prefix}MaterialName{pawsbkr.utils_settings.material_output_suffix}"
-        )
+        example_name = f"{pawsbkr.utils_settings.material_name_prefix}MaterialName{pawsbkr.utils_settings.material_output_suffix}"
         preview_row.label(text=f"Preview: {example_name}", icon="INFO")

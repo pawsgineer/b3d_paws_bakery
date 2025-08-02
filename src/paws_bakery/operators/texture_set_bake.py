@@ -22,6 +22,7 @@ from .bake_common import BakeObjects, generate_image_name_and_path, match_low_to
 from .bake_job import BakeJob, BakeJobState
 from .bake_manager import BakeManager
 
+
 def _get_mesh_ref(mesh_props: MeshProps) -> b_t.Object:
     mesh_ref: b_t.Object | None = mesh_props.get_ref()
     if mesh_ref is None:
@@ -266,7 +267,6 @@ class TextureSetBake(b_t.Operator):
 
         # self._texture_set.state = BakeState.FINISHED.name
 
-         
         # Auto-create materials if enabled
         if self._texture_set.auto_create_materials:
             try:
@@ -276,6 +276,8 @@ class TextureSetBake(b_t.Operator):
                     base_template=self._texture_set.base_material_template,
                     assign_to_objects=True,
                 )
-                log(f"Auto-created materials for texture set: {self._texture_set.display_name}")
+                log(
+                    f"Auto-created materials for texture set: {self._texture_set.display_name}"
+                )
             except Exception as e:
                 log(f"Failed to auto-create materials: {e}")

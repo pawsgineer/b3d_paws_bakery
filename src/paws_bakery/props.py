@@ -274,7 +274,6 @@ class TextureSetProps(b_t.PropertyGroup):
 
     mode: BakeMode.get_blender_enum_property()  # type: ignore[valid-type]
 
-
     @property
     def prop_id(self) -> str:
         """Unique identifier for this item, used for lookups.

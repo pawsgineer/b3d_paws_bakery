@@ -89,21 +89,20 @@ class Main(SidePanelMixin):
                 row.label(text="bl name:")
                 row.label(text=active_set.prop_id)
 
-             # Bake Mode
+            # Bake Mode
             col = layout.column(align=True)
             col.prop(active_set, "mode")
-            
+
             # Auto Material Creation (similar to Selected To Active style)
             row = col.row(align=True)
             sub = row.row(align=True)
             sub.active = active_set.auto_create_materials
             sub.prop(active_set, "auto_create_materials", text="Auto Create Materials")
-            
+
             # Base template selector (only show if auto create is enabled)
             if active_set.auto_create_materials:
                 sub_col = col.column(align=True)
                 sub_col.prop(active_set, "base_material_template", text="Template")
-
 
         row = layout.row()
         row.template_list(
@@ -119,4 +118,3 @@ class Main(SidePanelMixin):
         col = row.column(align=True)
         col.operator(TextureSetAdd.bl_idname, icon="ADD", text="")
         col.operator(TextureSetRemove.bl_idname, icon="REMOVE", text="")
-
