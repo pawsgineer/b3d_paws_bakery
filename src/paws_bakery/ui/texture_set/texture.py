@@ -65,13 +65,23 @@ class TextureSpecialsMenu(b_t.Menu):
 
         subl.separator()
 
+        # Recreate materials button
+        props = subl.operator(
+            "pawsbkr.texture_set_material_create",
+            icon="FILE_REFRESH",
+            text="Recreate Materials",
+        )
+        props.texture_set_id = texture_set.prop_id
+        props.force_recreate = True
+
+        subl.separator()
+
         subl.alert = True
         props = subl.operator(
             TextureSetTextureCleanupMaterial.bl_idname,
             icon="NODE_MATERIAL",
             text="Cleanup Materials",
         )
-
 
 @register_and_duplicate_to_node_editor
 class TextureUIList(b_t.UIList):

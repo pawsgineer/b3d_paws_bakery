@@ -9,7 +9,7 @@ from ...enums import BlenderJobType
 from ...operators import TextureSetAdd, TextureSetRemove
 from ...operators.texture_set_bake import TextureSetBake
 from ...preferences import get_preferences
-from ...props import TextureSetProps, get_props
+from ...props import TextureSetProps, get_props, UtilsSettings
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
 
@@ -89,8 +89,21 @@ class Main(SidePanelMixin):
                 row.label(text="bl name:")
                 row.label(text=active_set.prop_id)
 
-            row = layout.row()
-            row.prop(active_set, "mode")
+             # Bake Mode
+            col = layout.column(align=True)
+            col.prop(active_set, "mode")
+            
+            # Auto Material Creation (similar to Selected To Active style)
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.active = active_set.auto_create_materials
+            sub.prop(active_set, "auto_create_materials", text="Auto Create Materials")
+            
+            # Base template selector (only show if auto create is enabled)
+            if active_set.auto_create_materials:
+                sub_col = col.column(align=True)
+                sub_col.prop(active_set, "base_material_template", text="Template")
+
 
         row = layout.row()
         row.template_list(

@@ -240,6 +240,24 @@ class TextureSetProps(b_t.PropertyGroup):
         get=_get_name, set=_set_force_uuid_name
     )
 
+    auto_create_materials: b_p.BoolProperty(
+        name="Auto Create Materials",
+        description="Automatically create materials from baked textures after baking",
+        default=False,
+    )
+
+    base_material_template: b_p.EnumProperty(
+        name="Base Template",
+        description="Base material template to use for auto-created materials",
+        items=[
+            ("", "Auto Select", "Automatically select template based on bake types"),
+            ("pawsbkr_material_basic", "Basic", "Minimal PBR setup"),
+            ("pawsbkr_material_pbr_full", "PBR Full", "Complete PBR with all features"),
+            ("pawsbkr_material_custom_user", "User Custom", "User customized template"),
+        ],
+        default="",
+    )
+
     # TODO: add check for conflicts with texture types in name(rough, normal, etc)
     display_name: b_p.StringProperty(  # type: ignore[valid-type]
         name="Texture Name", default="new_texture_set"
@@ -255,6 +273,7 @@ class TextureSetProps(b_t.PropertyGroup):
     textures_active_index: b_p.IntProperty()  # type: ignore[valid-type]
 
     mode: BakeMode.get_blender_enum_property()  # type: ignore[valid-type]
+
 
     @property
     def prop_id(self) -> str:

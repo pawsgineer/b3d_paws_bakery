@@ -18,6 +18,7 @@ TEMPLATE_MATERIALS = {
     "pbr_full": "pawsbkr_material_pbr_full", 
     "user_custom": "pawsbkr_material_custom_user",
 }
+
 def _map_bake_type_to_texture_alias(bake_type: str) -> Optional[TextureTypeAlias]:
     """Map BakeTextureType to TextureTypeAlias for node naming."""
     mapping = {
@@ -192,17 +193,32 @@ def _create_material_from_template(
     base_template: str = "",
     name_prefix: str = "",
     name_suffix: str = "_baked",
+    force_recreate: bool = False,
 ) -> b_t.Material:
-    """Create a new material from template with baked textures."""
+    """Create a new material from template or update existing material with baked textures."""
     
-    # Generate unique material name
+    # Generate expected material name
     base_name = original_material.name
-    new_name = f"{name_prefix}{base_name}{name_suffix}"
+    expected_name = f"{name_prefix}{base_name}{name_suffix}"
     
+    # Check if material already exists
+    existing_material = bpy.data.materials.get(expected_name)
+    
+    if existing_material and not force_recreate:
+        log(f"Material {expected_name} already exists, updating textures")
+        _assign_textures_to_nodes(existing_material, texture_images)
+        return existing_material
+    
+    # Need to create new material (or recreate existing)
+    if existing_material and force_recreate:
+        log(f"Recreating existing material: {expected_name}")
+        bpy.data.materials.remove(existing_material)
+    
+    # Generate unique name if needed
+    final_name = expected_name
     counter = 1
-    final_name = new_name
     while final_name in bpy.data.materials:
-        final_name = f"{new_name}_{counter:03d}"
+        final_name = f"{expected_name}_{counter:03d}"
         counter += 1
     
     log(f"Creating material: {final_name}")
@@ -210,23 +226,11 @@ def _create_material_from_template(
     try:
         # Determine which texture types we're working with
         used_bake_types = set(texture_images.keys())
-        used_texture_aliases = {
-            _map_bake_type_to_texture_alias(btype) 
-            for btype in used_bake_types
-        }
-        used_texture_aliases.discard(None)  # Remove None values
         
         # Select and load base template
         template_name = base_template or _select_base_template(used_bake_types)
         new_material = _load_material_template(template_name)
         new_material.name = final_name
-        
-        # Ensure required texture nodes exist
-        for tex_alias in used_texture_aliases:
-            _ensure_texture_node_exists(new_material, tex_alias)
-        
-        # Clean up unused texture nodes from template
-        _cleanup_unused_texture_nodes(new_material, used_texture_aliases)
         
         # Assign baked textures to nodes
         _assign_textures_to_nodes(new_material, texture_images)
@@ -275,6 +279,13 @@ class TextureSetMaterialCreate(b_t.Operator):
             (TEMPLATE_MATERIALS["user_custom"], "User Custom", "User customized template"),
         ],
         default=TEMPLATE_MATERIALS["basic"],  # Changed from "" to basic template
+    )
+
+    force_recreate: b_p.BoolProperty(
+        name="Force Recreate",
+        description="Force recreation of materials even if they already exist",
+        default=False,
+        options={"HIDDEN", "SKIP_SAVE"}
     )
 
     def execute(self, context: b_t.Context) -> set[str]:

@@ -31,7 +31,7 @@ class Settings(SidePanelMixin):
         box.prop(pawsbkr.utils_settings, "material_name_prefix")
         box.prop(pawsbkr.utils_settings, "material_output_suffix")
         box.prop(pawsbkr.utils_settings, "keep_original_materials")
-
+        
         preview_row = box.row(align=True)
         preview_row.scale_y = 0.7
         preview_row.enabled = False
