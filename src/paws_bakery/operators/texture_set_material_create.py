@@ -408,6 +408,7 @@ class TextureSetMaterialCreate(b_t.Operator):
                     base_template=self.base_template,
                     name_prefix=name_prefix,
                     name_suffix=name_suffix,
+                    force_recreate=self.force_recreate,
                 )
                 new_materials[original_mat.name] = new_material
 
