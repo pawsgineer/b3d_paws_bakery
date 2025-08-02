@@ -403,6 +403,6 @@ class TextureSetMaterialCreate(b_t.Operator):
         self.report({"INFO"}, success_msg)
         return {BlenderOperatorReturnType.FINISHED}
 
-    def invoke(self, context: b_t.Context, event: b_t.Event) -> set[str]:
-        """Show dialog for user options."""
-        return context.window_manager.invoke_props_dialog(self)
+    # def invoke(self, context: b_t.Context, event: b_t.Event) -> set[str]:
+    #     """Show dialog for user options."""
+    #     return context.window_manager.invoke_props_dialog(self)

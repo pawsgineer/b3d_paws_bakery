@@ -224,6 +224,9 @@ class Texture(SidePanelMixin):
 
                 panel.separator(factor=0.5)
 
+                template_col = panel.column(align=True)
+                template_col.prop(texture_set, "base_material_template", text="Template")
+
                 # Main creation button
                 row = panel.row(align=True)
                 row.scale_y = 1.2
