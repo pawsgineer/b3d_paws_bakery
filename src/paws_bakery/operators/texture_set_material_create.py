@@ -391,7 +391,7 @@ class TextureSetMaterialCreate(b_t.Operator):
         for original_mat in materials_to_process:
             log(f"Processing material: {original_mat.name}")
 
-            # Check if material with this name already exists
+            # Generate expected name and force removal if recreating
             expected_name = f"{name_prefix}{original_mat.name}{name_suffix}"
             existing_material = bpy.data.materials.get(expected_name)
 
@@ -399,6 +399,20 @@ class TextureSetMaterialCreate(b_t.Operator):
                 log(f"Material {expected_name} already exists, updating textures")
                 _assign_textures_to_nodes(existing_material, texture_images)
                 new_materials[original_mat.name] = existing_material
+
+            elif self.force_recreate:
+
+                new_material = _create_material_from_template(
+                    original_material=original_mat,
+                    texture_set_name=texture_set.display_name,
+                    texture_images=texture_images,
+                    base_template=self.base_template,
+                    name_prefix="",
+                    name_suffix="",
+                )
+                new_materials[original_mat.name] = new_material
+
+
             else:
                 # Create new material
                 new_material = _create_material_from_template(
@@ -408,9 +422,10 @@ class TextureSetMaterialCreate(b_t.Operator):
                     base_template=self.base_template,
                     name_prefix=name_prefix,
                     name_suffix=name_suffix,
-                    force_recreate=self.force_recreate,
                 )
                 new_materials[original_mat.name] = new_material
+
+            
 
         # Assign materials to objects if requested
         if self.assign_to_objects:
