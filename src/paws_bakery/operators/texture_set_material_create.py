@@ -412,7 +412,6 @@ class TextureSetMaterialCreate(b_t.Operator):
                 )
                 new_materials[original_mat.name] = new_material
 
-
             else:
                 # Create new material
                 new_material = _create_material_from_template(
@@ -424,8 +423,6 @@ class TextureSetMaterialCreate(b_t.Operator):
                     name_suffix=name_suffix,
                 )
                 new_materials[original_mat.name] = new_material
-
-            
 
         # Assign materials to objects if requested
         if self.assign_to_objects:
