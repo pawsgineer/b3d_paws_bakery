@@ -209,7 +209,6 @@ def _create_material_from_template(
     base_template: str = "",
     name_prefix: str = "",
     name_suffix: str = "_baked",
-    force_recreate: bool = False,
 ) -> b_t.Material:
     """Create a new material from template or update existing material with baked textures."""
 
@@ -220,15 +219,10 @@ def _create_material_from_template(
     # Check if material already exists
     existing_material = bpy.data.materials.get(expected_name)
 
-    if existing_material and not force_recreate:
+    if existing_material:
         log(f"Material {expected_name} already exists, updating textures")
         _assign_textures_to_nodes(existing_material, texture_images)
         return existing_material
-
-    # Need to create new material (or recreate existing)
-    if existing_material and force_recreate:
-        log(f"Recreating existing material: {expected_name}")
-        bpy.data.materials.remove(existing_material)
 
     # Generate unique name if needed
     final_name = expected_name
