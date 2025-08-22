@@ -47,6 +47,9 @@
           "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
         }
       },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
       "type": "shell",
       "command": "\"${config:paws_blender_path}\" --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
       "problemMatcher": [],
@@ -67,6 +70,9 @@
           "PAWS_SRC_DIR": "${workspaceFolder}/src",
           "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
         }
+      },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
       },
       "type": "shell",
       "command": "\"${config:paws_blender_path}\" --factory-startup --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
@@ -89,8 +95,35 @@
           "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
         }
       },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
       "type": "shell",
       "command": "\"${config:paws_blender_path}\" --debug-all --debug-cycles --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: open materials.blend --factory-startup",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PAWS_SRC_DIR": "${workspaceFolder}/src",
+          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
+        }
+      },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
+      "type": "shell",
+      "command": "\"${config:paws_blender_path}\" --factory-startup --python ./.vscode/enable_faulthandler.py ./src/paws_bakery/assets/materials.blend 2>&1 | python ./.vscode/replace_path.py",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
