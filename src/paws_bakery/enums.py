@@ -97,10 +97,18 @@ class CyclesBakeType(CaseSensitiveStrEnum):
     List may not be complete and contain only used types.
     """
 
-    EMIT = auto()
-    DIFFUSE = auto()
-    ROUGHNESS = auto()
+    COMBINED = auto()
+    AO = auto()
+    SHADOW = auto()
+    POSITION = auto()
     NORMAL = auto()
+    UV = auto()
+    ROUGHNESS = auto()
+    EMIT = auto()
+    ENVIRONMENT = auto()
+    DIFFUSE = auto()
+    GLOSSY = auto()
+    TRANSMISSION = auto()
 
 
 class Colorspace(CaseSensitiveStrEnum):
