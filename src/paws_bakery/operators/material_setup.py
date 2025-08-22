@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Type, TypeVar
+from typing import Any, Type, TypeVar, cast
 
 import bpy
 from bpy import props as b_p
@@ -122,7 +122,7 @@ def material_setup(
 
     _load_node_groups_from_lib()
 
-    tree = mat.node_tree
+    tree = cast(b_t.ShaderNodeTree, mat.node_tree)
     links = tree.links
 
     output_node = tree.get_output_node("CYCLES")
@@ -138,9 +138,9 @@ def material_setup(
         raise AddonException("Can't bake material without material outputs")
 
     frame_name = MaterialNodeNames.FRAME
-    frame = tree.nodes.get(frame_name)
+    frame: b_t.NodeFrame = tree.nodes.get(frame_name)
     if frame is None:
-        frame: b_t.NodeFrame = tree.nodes.new(b_t.NodeFrame.__name__)
+        frame = tree.nodes.new(b_t.NodeFrame.__name__)
         frame.name = frame_name
         frame.label = "PAWS: Bakery Utils"
         frame.use_custom_color = True
@@ -183,10 +183,17 @@ def material_setup(
     # tree.nodes.active = bake_texture_node
 
     if bake_settings.type not in [
+        BakeTextureType.COMBINED.name,
         BakeTextureType.DIFFUSE.name,
         BakeTextureType.EMIT.name,
+        BakeTextureType.ENVIRONMENT.name,
+        BakeTextureType.GLOSSY.name,
         BakeTextureType.NORMAL.name,
+        BakeTextureType.POSITION.name,
         BakeTextureType.ROUGHNESS.name,
+        BakeTextureType.SHADOW.name,
+        BakeTextureType.TRANSMISSION.name,
+        BakeTextureType.UV.name,
     ]:
         node_name = MaterialNodeNames.OUT
         out_node = tree.nodes.get(node_name)

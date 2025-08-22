@@ -79,7 +79,7 @@ class TextureTypeAlias(Enum):
 
     @staticmethod
     def check_type(filename: str) -> AnyTextureTypeAlias | None:
-        """Returns texture type or None."""
+        """Return texture type or None."""
         for texture_type in TextureTypeAlias:
             if texture_type.check_aliases(filename):
                 return texture_type
@@ -216,8 +216,54 @@ class BakeTextureType(BlenderPropertyEnum):
     )
     UTILS_GRID_UV = BakeTextureTypeInfo(
         ui_name="Utils: Grid UV",
-        description="Bake uv grid map",
+        description="Bake UV grid map",
         short_name="grid_uv",
+    )
+    COMBINED = BakeTextureTypeInfo(
+        ui_name="Combined",
+        description="Bake current material output in Combined mode",
+        short_name="combined",
+        cycles_type=CyclesBakeType.COMBINED,
+    )
+    SHADOW = BakeTextureTypeInfo(
+        ui_name="Shadow",
+        description="Bake current material output in Shadow mode",
+        short_name="shadow",
+        cycles_type=CyclesBakeType.SHADOW,
+        colorspace=Colorspace.NON_COLOR,
+    )
+    POSITION = BakeTextureTypeInfo(
+        ui_name="Position",
+        description="Bake current material output in Position mode",
+        short_name="position",
+        cycles_type=CyclesBakeType.POSITION,
+        colorspace=Colorspace.NON_COLOR,
+        is_float=True,
+    )
+    UV = BakeTextureTypeInfo(
+        ui_name="UV",
+        description="Bake current material output in UV mode",
+        short_name="uv",
+        cycles_type=CyclesBakeType.UV,
+        colorspace=Colorspace.NON_COLOR,
+    )
+    ENVIRONMENT = BakeTextureTypeInfo(
+        ui_name="Environment",
+        description="Bake current material output in Environment mode",
+        short_name="env",
+        cycles_type=CyclesBakeType.ENVIRONMENT,
+    )
+    GLOSSY = BakeTextureTypeInfo(
+        ui_name="Glossy",
+        description="Bake current material output in Glossy mode",
+        short_name="glossy",
+        cycles_type=CyclesBakeType.GLOSSY,
+    )
+    TRANSMISSION = BakeTextureTypeInfo(
+        ui_name="Transmission",
+        description="Bake current material output Transmission mode",
+        short_name="transmission",
+        cycles_type=CyclesBakeType.TRANSMISSION,
     )
 
     def __init__(self, info: BakeTextureTypeInfo) -> None:
@@ -239,6 +285,7 @@ class BakeMode(BlenderPropertyEnum):
         ui_name="Single Texture",
         description="Bake all materials from all objects into a single texture",
     )
+
     # PER_OBJECT = EnumItemInfo(
     #     ui_name="Per Object",
     #     description=(
