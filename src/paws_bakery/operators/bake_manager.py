@@ -8,7 +8,7 @@ from .._helpers import log
 from ..enums import BlenderJobType, BlenderOperatorReturnType
 from ..props import BakeSettings, BakeTextureType, get_props_wm
 from ..utils import AddonException
-from ._utils import generate_color_set, get_selected_materials
+from ._utils import generate_color_set, get_objects_materials
 from .bake_common import BakeObjects
 from .material_setup import MaterialNodeNames, material_cleanup, material_setup
 
@@ -83,6 +83,7 @@ class BakeManager:
 
     __running: bool = field(init=False, default=False)
     __og_scene: b_t.Scene = field(init=False)
+    __materials: Sequence[b_t.Material] = field(init=False)
 
     @classmethod
     def is_running(cls) -> bool:
@@ -123,9 +124,9 @@ class BakeManager:
         self.context.view_layer.depsgraph.update()  # type: ignore[no-untyped-call]
         self.context.view_layer.objects.active = self.objects.active
 
-        materials = get_selected_materials(self.context)
-        _materials_cleanup(tuple(materials.values()))
-        _materials_setup(tuple(materials.values()), self.settings, self.image)
+        self.__materials = tuple(get_objects_materials(self.objects.selected))
+        _materials_cleanup(self.__materials)
+        _materials_setup(self.__materials, self.settings, self.image)
 
         # TODO: implement uv_layer selection
         bake_result = call_bake_op(self.settings, use_clear=self.clear_image)
@@ -151,8 +152,7 @@ class BakeManager:
         """Clean up and restore user settings."""
         self._restore_user_settings()
 
-        materials = get_selected_materials(self.context)
-        _materials_cleanup(tuple(materials.values()))
+        _materials_cleanup(self.__materials)
 
         _BakingScene.cleanup(keep_scene=self.keep_scene)
 

@@ -1,6 +1,7 @@
 """Various operator helpers."""
 
 import colorsys
+from collections.abc import Sequence
 from itertools import chain
 from typing import cast
 
@@ -20,16 +21,23 @@ def generate_color_set(number_of_colors: int) -> list[tuple[float, float, float]
     return [colorsys.hsv_to_rgb(*color) for color in hsv_colors]
 
 
-def get_selected_materials(ctx: b_t.Context = None) -> dict[str, b_t.Material]:
-    """Return all unique materials used by the selected objects."""
-    materials: dict[str, b_t.Material] = {}
+def get_objects_materials(objects: Sequence[b_t.Object]) -> set[b_t.Material]:
+    """Return the set of unique materials assigned to objects."""
+    materials: set[b_t.Material] = set()
+    for obj in objects:
+        for slot in obj.material_slots:
+            if slot.material is not None:
+                materials.add(slot.material)
+
+    return materials
+
+
+def get_selected_materials(ctx: b_t.Context | None = None) -> set[b_t.Material]:
+    """Return the set of unique materials assigned to selected objects."""
     if ctx is None:
         ctx = bpy.context
 
-    for obj in ctx.selected_objects:
-        for slot in obj.material_slots:
-            if slot.material is not None:
-                materials[slot.material.name] = slot.material
+    materials = get_objects_materials(ctx.selected_objects)
 
     return materials
 
