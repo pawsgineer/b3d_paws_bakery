@@ -87,16 +87,16 @@ class TextureImport(b_t.Operator, ImportHelper):
         default=True,
     )
 
-    def execute(self, context: b_t.Context):
+    def execute(self, context: b_t.Context) -> set[BlenderOperatorReturnType]:
         """Update material textures."""
-        selected_mats = get_selected_materials()
+        selected_mats = tuple(get_selected_materials())
 
-        mats: Sequence[b_t.Material]
+        mats: Iterable[b_t.Material]
 
         if self.target_material_name:
             mats = [bpy.data.materials[self.target_material_name]]
         else:
-            mats = selected_mats.values()
+            mats = selected_mats
 
         for mat in mats:
             log(f"Updating material {mat.name}")

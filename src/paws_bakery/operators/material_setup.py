@@ -354,8 +354,8 @@ class MaterialCleanupSelected(b_t.Operator):
 
     def execute(self, _context: b_t.Context) -> set[str]:
         """execute() override."""
-        selected_mats = get_selected_materials()
-        for mat in selected_mats.values():
+        selected_mats = tuple(get_selected_materials())
+        for mat in selected_mats:
             material_cleanup(mat)
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -379,16 +379,15 @@ class MaterialSetupSelected(b_t.Operator):
             raise ValueError("settings_id not set")
         cfg = get_bake_settings(context, self.settings_id)
 
-        selected_mats = get_selected_materials()
+        selected_mats = tuple(get_selected_materials())
         colors = generate_color_set(len(selected_mats))
-        for mat in selected_mats.values():
+        for mat in selected_mats:
             material_cleanup(mat)
-        for mat in selected_mats.values():
             material_setup(
                 mat,
                 bake_settings=cfg,
                 image_name="",
-                mat_id_color=colors[list(selected_mats.values()).index(mat)],
+                mat_id_color=colors[selected_mats.index(mat)],
             )
 
         return {BlenderOperatorReturnType.FINISHED}
