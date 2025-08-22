@@ -100,17 +100,17 @@ class TextureImport(SidePanelMixin):
                 and tex_nodes[TextureTypeAlias.ALBEDO].image is not None
                 and tex_nodes[TextureTypeAlias.ALBEDO].image.filepath
             ):
-                props.filepath = bpy.path.relpath(
-                    str(
-                        Path(
-                            bpy.path.abspath(
-                                tex_nodes[TextureTypeAlias.ALBEDO].image.filepath
-                            )
-                        ).parent
-                    )
+                props.filepath = str(
+                    Path(
+                        bpy.path.abspath(
+                            tex_nodes[TextureTypeAlias.ALBEDO].image.filepath
+                        )
+                    ).parent
                 )
             else:
-                props.filepath = f"{get_preferences().output_directory}/"
+                props.filepath = bpy.path.abspath(
+                    get_preferences().output_directory + "/"
+                )
 
             for node_type, node in tex_nodes.items():
                 col = flow.column(align=True)
