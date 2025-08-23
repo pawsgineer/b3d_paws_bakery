@@ -113,16 +113,14 @@ class BakeManager:
 
         self.context.window.cursor_set("WAIT")
 
-        # TODO: probably use override of area and region from outliner to handle
-        #       local view and hidden objects
         get_props_wm(self.context).settings_scene = self.context.scene
-        self.context.window.scene = _BakingScene.prepare(
-            b_objects=self.objects.selected, bake_settings=self.settings
-        )
+        self.context.window.scene = _BakingScene.prepare(bake_settings=self.settings)
+
         # NOTE: Updating depsgraph to avoid random exception about
         # "writing ID in wrong context"
         self.context.view_layer.depsgraph.update()  # type: ignore[no-untyped-call]
-        self.context.view_layer.objects.active = self.objects.active
+
+        self._set_up_objects()
 
         self.__materials = tuple(get_objects_materials(self.objects.selected))
         _materials_cleanup(self.__materials)
@@ -169,6 +167,21 @@ class BakeManager:
         self.context.window.scene = self.__og_scene
         get_props_wm(self.context).settings_scene = None
         self.context.window.cursor_set("DEFAULT")
+
+    def _set_up_objects(self) -> None:
+        for b_obj in self.context.selected_objects:
+            b_obj.select_set(False)
+
+        for b_obj in self.objects.selected:
+            bake_coll = _BakingScene.get_bake_collection()
+            bake_coll.objects.link(b_obj)
+
+            b_obj.hide_set(False)
+            b_obj.hide_render = False
+            b_obj.hide_viewport = False
+            b_obj.select_set(True)
+
+        self.context.view_layer.objects.active = self.objects.active
 
 
 class _BakingScene:
@@ -217,12 +230,10 @@ class _BakingScene:
 
         return sc
 
-    # TODO: use tmp view layer for separate visibility control?
     @classmethod
     def prepare(
         cls,
         *,
-        b_objects: list[b_t.Object],
         bake_settings: BakeSettings,
     ) -> b_t.Scene:
         """Prepare and fill up scene.
@@ -237,15 +248,9 @@ class _BakingScene:
         bake_coll = bpy.data.collections.new(BAKE_COLLECTION_NAME)
         scene.collection.children.link(bake_coll)
 
-        bpy.ops.object.select_all(action="DESELECT")
-
-        for b_obj in b_objects:
-            bake_coll.objects.link(b_obj)
-
-            b_obj.hide_set(False)
-            b_obj.hide_render = False
-            b_obj.hide_viewport = False
-
-            b_obj.select_set(True)
-
         return scene
+
+    @staticmethod
+    def get_bake_collection() -> b_t.Collection:
+        """Return a Collection dedicated to baked meshes."""
+        return bpy.data.collections.get(BAKE_COLLECTION_NAME)
