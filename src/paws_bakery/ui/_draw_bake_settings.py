@@ -5,6 +5,7 @@ from typing import cast
 from bpy import types as b_t
 
 from ..props import BakeSettings, BakeTextureType
+from ._utils import LayoutPanel
 
 
 def draw_bake_settings(
@@ -21,7 +22,8 @@ def draw_bake_settings(
     row = layout.row()
     row.prop(settings, "name_template")
     row = layout.row()
-    row.label(text="Compiled Name:")
+    row = row.split(factor=0.25, align=True)
+    row.label(text="Name Preview:")
     row.label(text=settings.get_name(texture_set_display_name))
 
     row = layout.row()
@@ -43,7 +45,7 @@ def draw_bake_settings(
         row.prop(settings, "matid_use_object_color")
 
     header, panel = cast(
-        tuple[b_t.UILayout, b_t.UILayout | None],
+        LayoutPanel,
         layout.panel("use_selected_to_active", default_closed=True),
     )
     header.prop(settings, "use_selected_to_active", text="")

@@ -7,7 +7,7 @@ from bpy import types as b_t
 
 from ...enums import BlenderJobType
 from ...operators import TextureSetMeshAdd, TextureSetMeshClear, TextureSetMeshRemove
-from ...props import get_props
+from ...props import MeshProps, get_props
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
 
@@ -16,10 +16,10 @@ from .main import Main
 class MeshSpecialsMenu(b_t.Menu):
     """Mesh specials menu."""
 
-    bl_idname = "PAWSBKR_MT_mesh_set_meshs_specials"
+    bl_idname = "PAWSBKR_MT_texture_set_mesh_specials"
     bl_label = "Mesh Specials"
 
-    def draw(self, _context: b_t.Context) -> None:
+    def draw(self, _context: b_t.Context | None) -> None:
         """draw() override."""
         layout = self.layout
         subl = layout.column(align=True)
@@ -37,10 +37,10 @@ class MeshUIList(b_t.UIList):
         _context: b_t.Context | None,
         layout: b_t.UILayout,
         _data: Any | None,
-        item: Any | None,
+        item: MeshProps | None,
         _icon: int | None,
         _active_data: Any,
-        _active_property: str,
+        _active_property: str | None,
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:

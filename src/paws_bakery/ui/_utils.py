@@ -7,6 +7,8 @@ from bpy import types as b_t
 
 from ..utils import Registry
 
+LayoutPanel = tuple[b_t.UILayout, b_t.UILayout | None]
+
 
 def register_and_duplicate_to_node_editor(cls: type) -> type:
     """Register panel and duplicate to Node Editor."""
@@ -18,8 +20,9 @@ def register_and_duplicate_to_node_editor(cls: type) -> type:
 def node_panel_add(cls: type) -> type:
     """Add existing panel to Node Editor."""
 
-    def node_panel_rewrite(cls: type):
+    def node_panel_rewrite(cls: type) -> type:
         """Adapt properties editor panel to display in node editor.
+
         We have to copy the class rather than inherit due to the way bpy
         registration works.
         """
@@ -42,7 +45,7 @@ _T = TypeVar("_T", bound=type)
 
 
 def generate_info_popover_idname(prefix: str) -> Callable[[_T], _T]:
-    """Generates `bl_idname` from prefix and class name."""
+    """Generate `bl_idname` from prefix and class name."""
 
     def wrapper(cls: _T) -> _T:
         cls.bl_idname = f"PAWSBKR_PT_{prefix}_{cls.__name__.lower()}"
@@ -66,7 +69,7 @@ class InfoPopover(b_t.Panel):
     bl_region_type = "WINDOW"
     bl_ui_units_x = 16
 
-    def draw(self, _context):
+    def draw(self, _context: b_t.Context) -> None:
         """draw() override."""
         layout = self.layout
         col = layout.column(align=True)
