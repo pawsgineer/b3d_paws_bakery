@@ -252,10 +252,9 @@ class TextureSetBake(b_t.Operator):
 
     def _finish_texture(self, _context: b_t.Context) -> None:
         delta: datetime.timedelta = datetime.datetime.now() - self._time_start
-        hours, seconds = divmod(delta.seconds, 3600)
-        minutes, seconds = divmod(seconds, 60)
+        minutes, seconds = divmod(delta.seconds, 60)
 
-        self._bake_textures[0].last_bake_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+        self._bake_textures[0].last_bake_time = f"{minutes:02}:{seconds:02}"
         self._bake_textures[0].state = BakeState.FINISHED.name
         del self._bake_textures[0]
 

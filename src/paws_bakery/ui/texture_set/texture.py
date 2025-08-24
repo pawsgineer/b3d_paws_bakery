@@ -13,7 +13,7 @@ from ...operators import (
     TextureSetTextureRemove,
     TextureSetTextureSetupMaterial,
 )
-from ...props import get_bake_settings, get_props
+from ...props import TextureProps, get_bake_settings, get_props
 from .._draw_bake_settings import draw_bake_settings
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
@@ -50,7 +50,6 @@ class TextureSpecialsMenu(b_t.Menu):
             icon="NODE_MATERIAL",
             text="Cleanup Materials",
         )
-        props.texture_set_id = texture_set.prop_id
 
 
 @register_and_duplicate_to_node_editor
@@ -64,7 +63,7 @@ class TextureUIList(b_t.UIList):
         context: b_t.Context | None,
         layout: b_t.UILayout,
         _data: Any | None,
-        item: Any | None,
+        item: TextureProps | None,
         _icon: int | None,
         _active_data: Any,
         _active_property: str | None,
@@ -76,19 +75,22 @@ class TextureUIList(b_t.UIList):
         texture_set = pawsbkr.active_texture_set
         bake_settings = get_bake_settings(context, item.prop_id)
 
-        row = layout.split(factor=0.05)
-        row.label(
-            text="",
-            icon=row.enum_item_name(item, "state", item.state),
-        )
-        row = row.split(factor=0.05)
+        row = layout.row(align=True)
         row.prop(item, "is_enabled", text="")
 
-        row = row.split(factor=0.6)
-        row.label(text=f"{bake_settings.get_name(texture_set.display_name)}")
-        row = row.split(factor=0.6)
-        row.label(text=f"{bake_settings.type}")
-        row.label(text=f"{item.last_bake_time}")
+        row = row.split(factor=0.4, align=True)
+        row.label(
+            text=f"{bake_settings.get_name(texture_set.display_name)}",
+            icon=row.enum_item_name(item, "state", item.state),
+        )
+        row.label(text=bake_settings.type)
+        row = row.row(align=True)
+        row.alignment = "RIGHT"
+        row.label(text=item.last_bake_time)
+
+        props = row.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text="")
+        props.texture_set_id = texture_set.prop_id
+        props.texture_id = item.prop_id
 
 
 @register_and_duplicate_to_node_editor
@@ -152,11 +154,5 @@ class Texture(SidePanelMixin):
 
         if texture is None:
             return
-
-        props = col.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text="")
-        props.texture_set_id = texture_set.prop_id
-        props.texture_id = texture.prop_id
-
-        col.separator()
 
         col.menu(TextureSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
