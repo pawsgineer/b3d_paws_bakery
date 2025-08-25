@@ -7,10 +7,14 @@ import bpy
 from bpy import props as b_p
 from bpy import types as b_t
 
-from .._helpers import log
-from ..enums import BlenderEventType, BlenderJobType, BlenderOperatorReturnType
+from .._helpers import log, log_err
+from ..enums import (
+    BlenderEventType,
+    BlenderJobType,
+    BlenderOperatorReturnType,
+    BlenderWMReportType,
+)
 from ..props import (
-    MeshProps,
     TextureProps,
     TextureSetProps,
     get_bake_settings,
@@ -18,16 +22,15 @@ from ..props import (
 )
 from ..props_enums import BakeMode, BakeState
 from ..utils import Registry, TimerManager
-from .bake_common import BakeObjects, generate_image_name_and_path, match_low_to_high
+from .bake_common import (
+    BakeObjects,
+    ensure_mesh_ref,
+    generate_image_name_and_path,
+    match_low_to_high,
+)
 from .bake_job import BakeJob, BakeJobState
 from .bake_manager import BakeManager
-
-
-def _get_mesh_ref(mesh_props: MeshProps) -> b_t.Object:
-    mesh_ref: b_t.Object | None = mesh_props.get_ref()
-    if mesh_ref is None:
-        raise ValueError(f"Can not find Object with name {mesh_props.name!r}")
-    return mesh_ref
+from .texture_set_material_create import create_materials
 
 
 @Registry.add
@@ -68,9 +71,7 @@ class TextureSetBake(b_t.Operator):
             texture = self._texture_set.textures[self.texture_id]
             self._bake_textures.append(texture)
         else:
-            for texture in self._texture_set.textures:
-                if not texture.is_enabled:
-                    continue
+            for texture in self._texture_set.get_enabled_textures():
                 self._bake_textures.append(texture)
 
         for texture in self._bake_textures:
@@ -127,7 +128,7 @@ class TextureSetBake(b_t.Operator):
     ) -> None:
         bake_settings = get_bake_settings(context, texture.prop_id)
 
-        meshes_enabled = [m for m in self._texture_set.meshes if m.is_enabled]
+        meshes_enabled = self._texture_set.get_enabled_meshes()
 
         self._bake_objects_list = []
 
@@ -137,14 +138,14 @@ class TextureSetBake(b_t.Operator):
         ):
             matching_names = match_low_to_high([m.name for m in meshes_enabled])
             for low_high_map in matching_names:
-                active = _get_mesh_ref(self._texture_set.meshes[low_high_map.low])
+                active = ensure_mesh_ref(self._texture_set.meshes[low_high_map.low])
                 self._bake_objects_list.append(
                     BakeObjects(
                         active=active,
                         selected=[
                             active,
                             *(
-                                _get_mesh_ref(self._texture_set.meshes[name])
+                                ensure_mesh_ref(self._texture_set.meshes[name])
                                 for name in low_high_map.high
                             ),
                         ],
@@ -152,7 +153,7 @@ class TextureSetBake(b_t.Operator):
                 )
         else:
             for mesh in meshes_enabled:
-                mesh_ref = _get_mesh_ref(mesh)
+                mesh_ref = ensure_mesh_ref(mesh)
                 self._bake_objects_list.append(
                     BakeObjects(active=mesh_ref, selected=[mesh_ref])
                 )
@@ -261,7 +262,14 @@ class TextureSetBake(b_t.Operator):
         self._clear_image = True
         self._time_start = datetime.datetime.now()
 
-    def _finish(self, _context: b_t.Context) -> None:
+    def _finish(self, context: b_t.Context) -> None:
         TimerManager.release()
 
-        # self._texture_set.state = BakeState.FINISHED.name
+        if self._texture_set.create_materials:
+            try:
+                create_materials(context=context, texture_set=self._texture_set)
+            # pylint: disable-next=broad-exception-caught
+            except Exception as ex:
+                msg = f"Failed to create materials: {ex}"
+                log_err(msg)
+                self.report({BlenderWMReportType.ERROR}, msg)

@@ -1,7 +1,7 @@
 # flake8: noqa: F821
 """Addon Blender properties."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import cast
 from uuid import uuid4
 
@@ -146,6 +146,34 @@ class BakeSettings(b_t.PropertyGroup):
 
 
 @Registry.add
+class MaterialCreationSettings(b_t.PropertyGroup):
+    """Addon material creation settings."""
+
+    name_prefix: b_p.StringProperty(  # type: ignore[valid-type]
+        name="Name Prefix",
+        description="Prefix to add to the new material",
+        default="",
+        maxlen=64,
+    )
+    name_suffix: b_p.StringProperty(  # type: ignore[valid-type]
+        name="Name Suffix",
+        description="Suffix to add to the new material",
+        default="_baked",
+        maxlen=64,
+    )
+    mark_as_asset: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Mark as Asset",
+        description="Mark created material as asset for Asset Library",
+        default=False,
+    )
+    use_fake_user: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Use Fake User",
+        description="Apply fake user to created material to prevent it's purge",
+        default=False,
+    )
+
+
+@Registry.add
 class UtilsSettings(b_t.PropertyGroup):
     """Addon bake settings."""
 
@@ -158,6 +186,10 @@ class UtilsSettings(b_t.PropertyGroup):
         name="Show Baked Image In Editor",
         description="Load the image to the active editor view",
         default=True,
+    )
+
+    material_creation: b_p.PointerProperty(  # type: ignore[valid-type]
+        type=MaterialCreationSettings,
     )
 
     debug_pause: b_p.BoolProperty(  # type: ignore[valid-type]
@@ -222,9 +254,39 @@ class TextureSetProps(b_t.PropertyGroup):
         get=_get_name, set=_set_force_uuid_name
     )
 
+    create_materials: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Create Materials",
+        description="Create materials from baked textures after baking",
+        default=False,
+    )
+
+    create_materials_reuse_existing: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Reuse Existing",
+        description=(
+            "Add baked textures to the material already assigned to the object instead"
+            " of creating a new material"
+        ),
+        default=False,
+    )
+
+    create_materials_template: b_p.PointerProperty(  # type: ignore[valid-type]
+        name="Template",
+        type=b_t.Material,
+        description=(
+            "Material template to use as base for created materials."
+            "\nLeave empty to use default one"
+        ),
+    )
+
+    create_materials_assign_to_objects: b_p.BoolProperty(  # type: ignore[valid-type]
+        name="Assign to Objects",
+        description="Assign created materials to baked objects",
+        default=True,
+    )
+
     # TODO: add check for conflicts with texture types in name(rough, normal, etc)
     display_name: b_p.StringProperty(  # type: ignore[valid-type]
-        name="Texture Name", default="new_texture_set"
+        name="Name", default="new_texture_set"
     )
     is_enabled: b_p.BoolProperty(  # type: ignore[valid-type]
         name="Bake Enabled", default=True
@@ -250,7 +312,7 @@ class TextureSetProps(b_t.PropertyGroup):
     def active_mesh(self) -> MeshProps | None:
         """Get active mesh."""
         try:
-            return self.meshes[self.meshes_active_index]
+            return cast(MeshProps, self.meshes[self.meshes_active_index])
         except IndexError:
             return None
 
@@ -258,9 +320,25 @@ class TextureSetProps(b_t.PropertyGroup):
     def active_texture(self) -> TextureProps | None:
         """Get active texture."""
         try:
-            return self.textures[self.textures_active_index]
+            return cast(TextureProps, self.textures[self.textures_active_index])
         except IndexError:
             return None
+
+    def get_enabled_meshes(self) -> list[MeshProps]:
+        """Get enabled meshes."""
+        return [x for x in self.meshes if x.is_enabled]
+
+    def get_disabled_meshes(self) -> list[MeshProps]:
+        """Get disabled meshes."""
+        return [x for x in self.meshes if not x.is_enabled]
+
+    def get_enabled_textures(self) -> list[TextureProps]:
+        """Get enabled textures."""
+        return [x for x in self.textures if x.is_enabled]
+
+    def get_disabled_textures(self) -> list[TextureProps]:
+        """Get disabled textures."""
+        return [x for x in self.textures if not x.is_enabled]
 
 
 @Registry.add
@@ -285,7 +363,9 @@ class SceneProps(b_t.PropertyGroup):
     def active_texture_set(self) -> TextureSetProps | None:
         """Get active texture."""
         try:
-            return self.texture_sets[self.texture_sets_active_index]
+            return cast(
+                TextureSetProps, self.texture_sets[self.texture_sets_active_index]
+            )
         except IndexError:
             return None
 

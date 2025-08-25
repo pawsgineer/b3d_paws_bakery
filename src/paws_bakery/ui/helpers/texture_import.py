@@ -1,14 +1,15 @@
 """UI Panel - Texture Import."""
 
 from pathlib import Path
+from typing import cast
 
 import bpy
 from bpy import types as b_t
 
 from ... import operators as ops
+from ...operators.texture_import import get_prefix_to_nodes_map
 from ...preferences import get_preferences
-from ...props_enums import TextureTypeAlias
-from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
+from .._utils import LayoutPanel, SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
 
 
@@ -19,7 +20,7 @@ class TextureImportSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_texture_import_specials"
     bl_label = "Texture Import Specials"
 
-    def draw(self, _context: b_t.Context) -> None:
+    def draw(self, _context: b_t.Context | None) -> None:
         """draw() override."""
         layout = self.layout
 
@@ -40,11 +41,11 @@ class TextureImport(SidePanelMixin):
 
     def draw(self, context: b_t.Context) -> None:
         """draw() override."""
-        layout = self.layout
+        lyt = self.layout
 
         if not context.selected_objects:
-            layout.alert = True
-            layout.label(text="No objects selected", icon="ERROR")
+            lyt.alert = True
+            lyt.label(text="No objects selected", icon="ERROR")
             return
 
         materials: set[b_t.Material] = set()
@@ -55,83 +56,71 @@ class TextureImport(SidePanelMixin):
                     materials.add(slot.material)
 
         if not materials:
-            layout.alert = True
-            layout.label(text="No materials assigned to objects", icon="ERROR")
+            lyt.alert = True
+            lyt.label(text="No materials assigned to objects", icon="ERROR")
             return
 
-        col = layout.column(align=True)
-        row = col.row()
-        row.scale_y = 1.5
-        props = row.operator(
-            ops.TextureImport.bl_idname,
-            text="Batch Import Textures",
+        row = lyt.row()
+        op_props = row.operator(
+            ops.TextureImport.bl_idname, text="Batch Import Textures"
         )
 
         row.menu(TextureImportSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 
-        flow = layout.grid_flow(
-            row_major=True,
-            columns=2,
-            even_columns=False,
-            even_rows=False,
-            align=True,
-        )
-
         for mat in materials:
-            tex_nodes = {
-                x: mat.node_tree.nodes.get(x.node_name) for x in TextureTypeAlias
-            }
+            pref_to_nodes = get_prefix_to_nodes_map(mat)
 
-            col = flow.column(align=True)
-            row = col.row()
-            row.scale_y = 1.5
-            row.prop(mat, "name", icon="MATERIAL", text="")
+            current_image_filepath = ""
+            for node in pref_to_nodes.nodes:
+                if node.image is None or not node.image.filepath:
+                    continue
+                current_image_filepath = node.image.filepath
+                break
 
-            col = flow.column(align=True)
-            row = col.row()
-            row.scale_y = 1.5
-            props = row.operator(
-                ops.TextureImport.bl_idname,
+            nodes_found = sum(bool(v) for v in pref_to_nodes.by_prefix.values())
+            nodes_used = sum(bool(node.image) for node in pref_to_nodes.nodes)
+
+            header, panel = cast(
+                LayoutPanel,
+                lyt.panel("_".join([self.bl_idname, mat.name]), default_closed=True),
             )
-            props.target_material_name = mat.name
+            header.prop(mat, "name", icon="MATERIAL", text="")
+            op_props = header.operator(
+                ops.TextureImport.bl_idname,
+                text=f"Import Textures ({nodes_found}/{nodes_used})",
+            )
+            op_props.target_material_name = mat.name
+            if not panel:
+                continue
 
-            if (
-                tex_nodes[TextureTypeAlias.ALBEDO] is not None
-                and tex_nodes[TextureTypeAlias.ALBEDO].image is not None
-                and tex_nodes[TextureTypeAlias.ALBEDO].image.filepath
-            ):
-                props.filepath = str(
-                    Path(
-                        bpy.path.abspath(
-                            tex_nodes[TextureTypeAlias.ALBEDO].image.filepath
-                        )
-                    ).parent
+            if current_image_filepath:
+                op_props.filepath = str(
+                    Path(bpy.path.abspath(current_image_filepath)).parent
                 )
             else:
-                props.filepath = bpy.path.abspath(
+                op_props.filepath = bpy.path.abspath(
                     get_preferences().output_directory + "/"
                 )
 
-            for node_type, node in tex_nodes.items():
-                col = flow.column(align=True)
-                row = col.row()
-                row.label(text=node_type.name, icon="NODE_TEXTURE")
-
-                col = flow.column(align=True)
-                row = col.row()
-                if node is None:
+            for node_prefix, node_set in pref_to_nodes.by_prefix.items():
+                if not node_set:
+                    row = panel.row()
                     row.alert = True
                     row.label(
-                        text=f"No node with name {node_type.node_name!r}",
+                        text=f"No nodes with name prefix {node_prefix!r}",
                         icon="ERROR",
                     )
                     continue
 
-                if node.image is None:
-                    row.label(text="No image set", icon="ERROR")
-                    continue
+                for node in node_set:
+                    row = panel.row()
+                    row.label(text=node.name, icon="NODE_TEXTURE")
 
-                if node.image.filepath:
-                    row.label(text=bpy.path.basename(node.image.filepath))
-                else:
-                    row.label(text="No image path found", icon="ERROR")
+                    if node.image is None:
+                        row.label(text="No image set", icon="ERROR")
+                        continue
+
+                    if node.image.filepath:
+                        row.label(text=bpy.path.basename(node.image.filepath))
+                    else:
+                        row.label(text="Image without path", icon="ERROR")

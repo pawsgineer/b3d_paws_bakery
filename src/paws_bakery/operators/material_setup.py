@@ -9,22 +9,20 @@ from bpy import props as b_p
 from bpy import types as b_t
 from mathutils import Vector
 
-from .._helpers import UTIL_MATS_PATH, log
+from .._helpers import log
 from ..enums import BlenderOperatorReturnType
 from ..props import BakeSettings, BakeTextureType, get_bake_settings
-from ..utils import AddonException, Registry
+from ..utils import (
+    UTIL_NODES_GROUP_AORM,
+    UTIL_NODES_GROUP_COLOR,
+    AddonException,
+    Registry,
+    load_node_groups_from_lib,
+)
 from ._utils import generate_color_set, get_selected_materials
 
 MAP_PREFIX = "pawsbkr_map_"
 NODE_PREFIX = "pawsbkr_utils_"
-
-UTIL_NODES_GROUP_AORM = "pawsbkr_utils_aorm"
-UTIL_NODES_GROUP_COLOR = "pawsbkr_utils_color"
-
-UTIL_NODE_GROUPS = [
-    UTIL_NODES_GROUP_AORM,
-    UTIL_NODES_GROUP_COLOR,
-]
 
 
 class MaterialNodeNames(str, Enum):
@@ -94,23 +92,6 @@ def _init_uv_maps(texture_size: TextureSize) -> None:
         )
 
 
-def _load_node_groups_from_lib() -> None:
-    if all(ng_name in bpy.data.node_groups for ng_name in UTIL_NODE_GROUPS):
-        return
-
-    log("Some Node Groups are missing. Loading...")
-
-    with bpy.data.libraries.load(str(UTIL_MATS_PATH)) as (data_src, data_dst):
-        for ng_name in UTIL_NODE_GROUPS:
-            if ng_name not in data_src.node_groups:
-                raise AddonException(f"No Node Group with name {ng_name!r} found")
-            data_dst.node_groups.append(ng_name)
-
-    for ng_name in UTIL_NODE_GROUPS:
-        ng = bpy.data.node_groups.get(ng_name)
-        ng.use_fake_user = False
-
-
 def material_setup(
     mat: b_t.Material,
     *,
@@ -120,7 +101,7 @@ def material_setup(
 ) -> None:
     """Set up utils in the material."""
 
-    _load_node_groups_from_lib()
+    load_node_groups_from_lib()
 
     tree = cast(b_t.ShaderNodeTree, mat.node_tree)
     links = tree.links

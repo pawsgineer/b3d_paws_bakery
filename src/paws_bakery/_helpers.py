@@ -1,14 +1,13 @@
-"""Helpers for use in Blender addons."""
+"""Helpers for use in Blender add-ons. No add-on speciffic functions are expected."""
 
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-LOG_ADDON_NAME: str = __package__.rsplit(".", 1)[-1]
 ADDON_DIR = Path(__file__).parent.resolve()
-ASSETS_DIR = ADDON_DIR.joinpath("assets")
+LOG_ADDON_NAME: str = __package__.rsplit(".", 1)[-1]
 
-UTIL_MATS_PATH = ASSETS_DIR.joinpath("materials.blend")
+ASSETS_DIR = ADDON_DIR.joinpath("assets")
 
 
 class TermColors:
@@ -34,11 +33,21 @@ def log(msg: str, *args: Any, msg_color: str = TermColors.OKCYAN) -> None:
     print(compiled_msg, *args, flush=True)
 
 
+def log_warn(msg: str, *args: Any) -> None:
+    """Print a warning log message with the addon name."""
+    log(msg, *args, msg_color=TermColors.WARNING)
+
+
+def log_err(msg: str, *args: Any) -> None:
+    """Print a error log message with the addon name."""
+    log(msg, *args, msg_color=TermColors.FAIL)
+
+
 def log_line_number() -> None:
     """Print a log message with a line number."""
     import inspect  # pylint: disable=import-outside-toplevel
 
     caller = inspect.stack()[1]
     module = inspect.getmodule(caller.frame)
-    module_name = module.__name__
+    module_name = module.__name__ if module else "unknown"
     log(f"{module_name}: {caller.lineno}")

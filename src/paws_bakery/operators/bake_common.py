@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from bpy import types as b_t
 
 from ..preferences import get_preferences
-from ..props import get_bake_settings
+from ..props import MeshProps, get_bake_settings
 
+# TODO: move suffixes to preferences
 SUFFIX_HIGH = "_high"
 SUFFIX_LOW = "_low"
 BAKE_COLLECTION_NAME = "pawsbakery"
@@ -37,6 +38,14 @@ def match_low_to_high(names: list[str]) -> list[LowHighObjectNames]:
         )
 
     return matching
+
+
+def ensure_mesh_ref(mesh_props: MeshProps) -> b_t.Object:
+    """Return Object or raise ValueError."""
+    mesh_ref: b_t.Object | None = mesh_props.get_ref()
+    if mesh_ref is None:
+        raise ValueError(f"Can not find Object with name {mesh_props.name!r}")
+    return mesh_ref
 
 
 def generate_image_name_and_path(

@@ -16,7 +16,7 @@ class TextureSetAdd(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override"""
+        """execute() override."""
         pawsbkr = get_props(context)
         texture_sets = pawsbkr.texture_sets
         t_set = texture_sets.add()
@@ -34,7 +34,7 @@ class TextureSetRemove(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override"""
+        """execute() override."""
         pawsbkr = get_props(context)
         texture_sets = pawsbkr.texture_sets
         texture_sets.remove(pawsbkr.texture_sets_active_index)

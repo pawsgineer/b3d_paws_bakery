@@ -11,6 +11,7 @@ from .randomize_color import RandomizeColor
 from .texture_import import TextureImport, TextureImportLoadSampleMaterial
 from .texture_set import TextureSetAdd, TextureSetRemove
 from .texture_set_bake import TextureSetBake
+from .texture_set_material_create import TextureSetMaterialCreate
 from .texture_set_mesh import (
     TextureSetMeshAdd,
     TextureSetMeshClear,
@@ -34,6 +35,7 @@ __all__ = [
     "TextureImportLoadSampleMaterial",
     "TextureSetAdd",
     "TextureSetBake",
+    "TextureSetMaterialCreate",
     "TextureSetMeshAdd",
     "TextureSetMeshClear",
     "TextureSetMeshRemove",
