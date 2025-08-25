@@ -137,7 +137,7 @@ class AddonPreferences(b_t.AddonPreferences):
         description="Directory to save baked images",
         default="//pawsbkr_textures",
         subtype="DIR_PATH",
-        options={"PATH_SUPPORTS_BLEND_RELATIVE"},
+        options=set() if bpy.app.version < (4, 5) else {"PATH_SUPPORTS_BLEND_RELATIVE"},
     )
 
     enable_debug_tools: b_p.BoolProperty(  # type: ignore[valid-type]
