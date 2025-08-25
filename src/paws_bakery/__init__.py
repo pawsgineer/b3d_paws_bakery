@@ -4,7 +4,7 @@ import bpy
 from bpy.props import PointerProperty
 
 from . import operators, props, ui
-from .preferences import AddonPreferences
+from .preferences import AddonPreferences, get_preferences
 from .props import SceneProps, WMProps
 from .utils import Registry
 
@@ -20,6 +20,10 @@ __all__ = [
 def register() -> None:
     """Register addon."""
     Registry.register()
+
+    prefs = get_preferences()
+
+    bpy.app.timers.register(prefs.init_texture_import_rules, first_interval=1.0)
 
     bpy.types.Scene.pawsbkr = PointerProperty(type=SceneProps)
     bpy.types.WindowManager.pawsbkr = PointerProperty(type=WMProps)

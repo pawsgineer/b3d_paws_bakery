@@ -1,17 +1,21 @@
 """Import and assign textures to a material."""
 
+import re
+from collections import defaultdict
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
+from itertools import chain
 from pathlib import Path
-from typing import Sequence
 
 import bpy
 from bpy import props as b_p
 from bpy import types as b_t
 from bpy_extras.io_utils import ImportHelper
 
-from .._helpers import UTIL_MATS_PATH, log
+from .._helpers import log
 from ..enums import BlenderOperatorReturnType, Colorspace
-from ..props_enums import TextureTypeAlias
-from ..utils import AddonException, Registry
+from ..preferences import get_preferences
+from ..utils import AddonException, Registry, load_material_from_lib
 from ._utils import get_selected_materials
 
 UTIL_MATS_IMPORT_SAMPLE_NAME = "pawsbkr_texture_import_sample"
@@ -25,27 +29,9 @@ class TextureImportLoadSampleMaterial(b_t.Operator):
     bl_label = "Load Sample Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, _context: b_t.Context):
+    def execute(self, _context: b_t.Context) -> set[BlenderOperatorReturnType]:
         """Load Sample Material."""
-        if bpy.data.materials.get(UTIL_MATS_IMPORT_SAMPLE_NAME) is not None:
-            self.report(
-                {"ERROR"},
-                f"Material with the name {UTIL_MATS_IMPORT_SAMPLE_NAME!r} "
-                "already exists. "
-                "Remove or rename it if you want to reimport sample material",
-            )
-            return {BlenderOperatorReturnType.CANCELLED}
-
-        with bpy.data.libraries.load(
-            str(UTIL_MATS_PATH),
-            link=False,
-            assets_only=True,
-        ) as (data_src, data_dst):
-            if UTIL_MATS_IMPORT_SAMPLE_NAME not in data_src.materials:
-                raise AddonException(
-                    f"No material with name {UTIL_MATS_IMPORT_SAMPLE_NAME!r} found"
-                )
-            data_dst.materials = [UTIL_MATS_IMPORT_SAMPLE_NAME]
+        load_material_from_lib(UTIL_MATS_IMPORT_SAMPLE_NAME)
 
         return {BlenderOperatorReturnType.FINISHED}
 
@@ -58,36 +44,36 @@ class TextureImport(b_t.Operator, ImportHelper):
     bl_label = "Import Textures"
     bl_options = {"REGISTER", "UNDO"}
 
-    directory: b_p.StringProperty(
-        subtype="FILE_PATH",  # noqa: F821
+    directory: b_p.StringProperty(  # type: ignore[valid-type]
+        subtype="DIR_PATH",  # noqa: F821
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    files: b_p.CollectionProperty(
+    files: b_p.CollectionProperty(  # type: ignore[valid-type]
         type=b_t.OperatorFileListElement,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    filter_folder: b_p.BoolProperty(
+    filter_folder: b_p.BoolProperty(  # type: ignore[valid-type]
         default=True,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    filter_image: b_p.BoolProperty(
+    filter_image: b_p.BoolProperty(  # type: ignore[valid-type]
         default=True,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    target_material_name: b_p.StringProperty(
+    target_material_name: b_p.StringProperty(  # type: ignore[valid-type]
         name="Material Name",
         description="Material to set textures. All selected if empty",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    unlink_existing_textures: b_p.BoolProperty(
+    unlink_existing_textures: b_p.BoolProperty(  # type: ignore[valid-type]
         name="Unlink Existing Textures",
         description="Unlink existing textures from managed nodes",
         default=True,
     )
 
-    def execute(self, context: b_t.Context) -> set[BlenderOperatorReturnType]:
+    def execute(self, _context: b_t.Context) -> set[BlenderOperatorReturnType]:
         """Update material textures."""
         selected_mats = tuple(get_selected_materials())
 
@@ -100,45 +86,128 @@ class TextureImport(b_t.Operator, ImportHelper):
 
         for mat in mats:
             log(f"Updating material {mat.name}")
-            self.update_material(context, mat)
+            self._update_material(mat)
 
         return {BlenderOperatorReturnType.FINISHED}
 
-    def update_material(self, _context: b_t.Context, mat: b_t.Material):
-        """Update material textures."""
-        tex_nodes = {x: mat.node_tree.nodes.get(x.node_name) for x in TextureTypeAlias}
+    def _update_material(self, mat: b_t.Material) -> None:
+        pref_to_nodes = get_prefix_to_nodes_map(mat)
+        if len(tuple(pref_to_nodes.nodes)) < 1:
+            raise AddonException(
+                f"No suitable nodes found in the material: {mat.name!r}"
+            )
 
-        if self.unlink_existing_textures:
-            for node in tex_nodes.values():
-                if node is not None:
-                    node.image = None
+        assign_images_to_material(
+            mat, self._load_images(mat), self.unlink_existing_textures
+        )
+
+    def _load_images(self, mat: b_t.Material) -> list[b_t.Image]:
+        images: list[b_t.Image] = []
+
+        prefs = get_preferences()
+
+        pref_to_nodes = get_prefix_to_nodes_map(mat)
 
         for file in self.files:
-            image_tex_type = TextureTypeAlias.check_type(file.name)
-            if image_tex_type is None:
+            imp_rule = prefs.get_matching_import_rule(file.name)
+            if imp_rule is None:
                 log(f"Unrecognized texture type: {file.name!r}")
                 continue
 
-            node = mat.node_tree.nodes.get(image_tex_type.node_name)
-            if node is None:
-                log(f"Node for texture {image_tex_type!r} not found. Ignoring")
+            nodes = pref_to_nodes.by_prefix[imp_rule.node_name_prefix]
+            if not nodes:
+                log(f"No node found for texture type {imp_rule!r}. Ignoring")
                 continue
-
-            log(f"Importing texture {file.name!r} to node {node!r}")
 
             image = bpy.data.images.load(
                 bpy.path.relpath(str(Path(self.directory, file.name))),
                 check_existing=True,
             )
-            if image_tex_type not in [
-                TextureTypeAlias.ALBEDO,
-                TextureTypeAlias.EMISSION,
-            ]:
+            images.append(image)
+            if imp_rule.is_non_color:
                 image.colorspace_settings.name = Colorspace.NON_COLOR
 
-            node.image = image
+        return images
 
-        for node in tex_nodes.values():
-            if node is None:
+
+NodeNamePrefix = str
+
+
+@dataclass
+class PrefixNodesMapping:
+    """Container for map of low to high Object names."""
+
+    by_prefix: dict[NodeNamePrefix, list[b_t.ShaderNodeTexImage]]
+
+    @property
+    def nodes(self) -> Iterable[b_t.ShaderNodeTexImage]:
+        """Returns list of all nodes."""
+        return chain.from_iterable(self.by_prefix.values())
+
+
+def get_prefix_to_nodes_map(mat: b_t.Material) -> PrefixNodesMapping:
+    """Return map of node name prefixes to nodes."""
+    prefs = get_preferences()
+    pref_nodes_map = PrefixNodesMapping(defaultdict(list))
+    for node in mat.node_tree.nodes:
+        for imp_rule in prefs.get_enabled_import_rules():
+            # TODO: write test for regex
+            prefix = imp_rule.node_name_prefix
+            if not re.match(rf"^{prefix}([_.\-]|$)", node.name):
                 continue
-            node.mute = node.image is None
+
+            if not isinstance(node, b_t.ShaderNodeTexImage):
+                raise AddonException(
+                    f"Node with name {node.name!r} has wrong type: "
+                    f"{type(node)}. Expected: {b_t.ShaderNodeTexImage}"
+                )
+
+            pref_nodes_map.by_prefix[prefix].append(node)
+
+    pref_nodes_map.by_prefix.update(
+        {
+            ta_props.node_name_prefix: []
+            for ta_props in prefs.get_enabled_import_rules()
+            if ta_props.node_name_prefix not in pref_nodes_map.by_prefix
+        }
+    )
+
+    return pref_nodes_map
+
+
+def assign_images_to_material(
+    mat: b_t.Material,
+    images: Sequence[b_t.Image],
+    unlink_existing: bool,
+) -> None:
+    """Assign images to material texture nodes."""
+    prefs = get_preferences()
+
+    pref_to_nodes = get_prefix_to_nodes_map(mat)
+
+    if len(tuple(pref_to_nodes.nodes)) < 1:
+        raise AddonException(f"No suitable nodes found in the material: {mat.name!r}")
+
+    if unlink_existing:
+        for node in pref_to_nodes.nodes:
+            node.image = None  # type: ignore[assignment]
+
+    for img in images:
+        imp_rule = prefs.get_matching_import_rule(img.filepath)
+        if imp_rule is None:
+            log(f"Unrecognized texture type for image: {img.filepath!r}")
+            continue
+
+        prefix = imp_rule.node_name_prefix
+        nodes = pref_to_nodes.by_prefix[prefix]
+        if not nodes:
+            log(f"No node found for texture prefix {prefix!r}. Ignoring")
+            continue
+
+        log(f"Importing texture {img.name!r} to nodes {[n.name for n in nodes]!r}")
+
+        for node in nodes:
+            node.image = img
+
+    for node in pref_to_nodes.nodes:
+        node.mute = node.image is None

@@ -1,93 +1,17 @@
+# pylint: disable=invalid-enum-extension
 """Addon Blender property enums."""
 
-import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import TypeVar
+from typing import Any
 
 from bpy import props as b_p
 
 from . import icons
 from .enums import Colorspace, CyclesBakeType
 
-AnyTextureTypeAlias = TypeVar("AnyTextureTypeAlias", bound="TextureTypeAlias")
 
-
-@dataclass(kw_only=True)
-class _TextureTypeDescription:
-    node_name: str
-    aliases: list[str]
-
-
-class TextureTypeAlias(Enum):
-    """Aliases for texture names."""
-
-    ALBEDO = _TextureTypeDescription(
-        aliases=["albedo", "color", "base"],
-        node_name="texture_albedo",
-    )
-    METALNESS = _TextureTypeDescription(
-        aliases=["metalness", "metallic", "metal"],
-        node_name="texture_metalness",
-    )
-    ROUGHNESS = _TextureTypeDescription(
-        aliases=["roughness", "rough"],
-        node_name="texture_roughness",
-    )
-    NORMAL = _TextureTypeDescription(
-        aliases=["normalgl", "normal", "nor"],
-        node_name="texture_normal",
-    )
-    DISPLACEMENT = _TextureTypeDescription(
-        aliases=["displacement", "height"],
-        node_name="texture_displacement",
-    )
-    AMBIENT_OCCLUSION = _TextureTypeDescription(
-        aliases=["ambientocclusion", "ao"],
-        node_name="texture_ao",
-    )
-    AORM = _TextureTypeDescription(
-        aliases=["aorm"],
-        node_name="texture_aorm",
-    )
-    OPACITY = _TextureTypeDescription(
-        aliases=["opacity"],
-        node_name="texture_opacity",
-    )
-    EMISSION = _TextureTypeDescription(
-        aliases=["emission", "emit"],
-        node_name="texture_emission",
-    )
-    SCATTERING = _TextureTypeDescription(
-        aliases=["scattering"],
-        node_name="texture_scattering",
-    )
-
-    @property
-    def node_name(self) -> str:
-        """Return node name."""
-        return self.value.node_name
-
-    def check_aliases(self, filename: str) -> bool:
-        """Check if filename contains one of aliases."""
-        gen = (
-            re.search(f"_{alias}" + r"[._\-\s]", filename.lower())
-            for alias in self.value.aliases
-        )
-
-        return any(gen)
-
-    @staticmethod
-    def check_type(filename: str) -> AnyTextureTypeAlias | None:
-        """Return texture type or None."""
-        for texture_type in TextureTypeAlias:
-            if texture_type.check_aliases(filename):
-                return texture_type
-
-        return None
-
-
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class EnumItemInfo:
     """Common Blender enum item info."""
 
@@ -95,37 +19,39 @@ class EnumItemInfo:
     description: str
 
 
-# NOTE: We're not using inheretance from dataclass because linting doesn't work
 class BlenderPropertyEnum(Enum):
-    """Aliases for texture names."""
+    """Blender Property Enum."""
 
-    __bl_prop__: type[b_p.EnumProperty] | None = None
+    __bl_prop_cache__: Any | None = None
+
     __bl_prop_name__: str
     __bl_prop_description__: str = ""
 
     value: EnumItemInfo
     DEFAULT: EnumItemInfo
 
-    def __init__(self, _value: EnumItemInfo) -> None:
-        assert self.__bl_prop_name__
-        assert self.__bl_prop_description__ is not None
+    def __init_subclass__(cls) -> None:
+        assert cls.__bl_prop_name__
+        assert cls.__bl_prop_description__
 
     @classmethod
-    def get_blender_enum_property(cls) -> type[b_p.EnumProperty]:
-        """Generates EnumProperty to use in blender props definition."""
-        if cls.__bl_prop__ is None:
-            items = tuple((i.name, i.value.ui_name, i.value.description) for i in cls)
-            cls.__bl_prop__ = b_p.EnumProperty(
-                name=cls.__bl_prop_name__,
-                description=cls.__bl_prop_description__,
-                items=items,
-                default=cls.DEFAULT.name if cls.DEFAULT is not None else None,
-            )
+    def get_blender_enum_property(cls) -> Any:
+        """Return EnumProperty to use in blender props definition."""
+        if cls.__bl_prop_cache__ is not None:
+            return cls.__bl_prop_cache__
 
-        return cls.__bl_prop__
+        items = tuple((i.name, i.value.ui_name, i.value.description) for i in cls)
+        cls.__bl_prop_cache__ = b_p.EnumProperty(
+            name=cls.__bl_prop_name__,
+            description=cls.__bl_prop_description__,
+            items=items,
+            default=cls.DEFAULT.name if cls.DEFAULT is not None else None,
+        )
+
+        return cls.__bl_prop_cache__
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class BakeTextureTypeInfo(EnumItemInfo):
     """Texture type additional info."""
 
@@ -136,7 +62,7 @@ class BakeTextureTypeInfo(EnumItemInfo):
 
 
 class BakeTextureType(BlenderPropertyEnum):
-    """Aliases for texture names."""
+    """Bake texture types."""
 
     __bl_prop_name__ = "Type"
     __bl_prop_description__ = "Texture Type"
@@ -148,7 +74,7 @@ class BakeTextureType(BlenderPropertyEnum):
         description="Bake current material output in emit mode",
         short_name="emit",
     )
-    EMIT_COLOR = DEFAULT = BakeTextureTypeInfo(
+    EMIT_COLOR = BakeTextureTypeInfo(
         ui_name="Color(Emit)",
         description="Bake color value as emit output",
         short_name="color",
@@ -271,48 +197,48 @@ class BakeTextureType(BlenderPropertyEnum):
         self.cycles_type = info.cycles_type
         self.colorspace = info.colorspace
         self.is_float = info.is_float
-        super().__init__(info)
+
+    DEFAULT = EMIT_COLOR
 
 
 class BakeMode(BlenderPropertyEnum):
-    """Aliases for texture names."""
+    """Bake modes."""
 
     __bl_prop_name__ = "Bake mode"
+    __bl_prop_description__ = "Bake mode"
 
     value: EnumItemInfo
 
-    SINGLE = DEFAULT = EnumItemInfo(
+    SINGLE = EnumItemInfo(
         ui_name="Single Texture",
         description="Bake all materials from all objects into a single texture",
     )
+
+    DEFAULT = SINGLE
 
     # PER_OBJECT = EnumItemInfo(
     #     ui_name="Per Object",
     #     description=(
     #         "Bake the materials of each object into a single texture. "
-    #         # TODO: Implement matching
-    #         "Tries to match objects by names if 'Match active by suffix' enabled"
     #     ),
     # )
     # PER_MATERIAL = EnumItemInfo(
     #     ui_name="Per Material",
     #     description=(
     #         "Bake each material into separate textures"
-    #         # TODO: Implement matching
-    #         "Tries to match objects by names if 'Match active by suffix' enabled"
     #     ),
     # )
 
 
 class BakeState(BlenderPropertyEnum):
-    """Aliases for texture names."""
+    """Bake states."""
 
     __bl_prop_name__ = "Render State"
     __bl_prop_description__ = "Render State"
 
     value: EnumItemInfo
 
-    CANCELLED = DEFAULT = EnumItemInfo(
+    CANCELLED = EnumItemInfo(
         ui_name=icons.STRIP_COLOR_01,
         description="Bake cancelled or was not started yet",
     )
@@ -328,3 +254,5 @@ class BakeState(BlenderPropertyEnum):
         ui_name=icons.STRIP_COLOR_04,
         description="Bake finished",
     )
+
+    DEFAULT = CANCELLED
