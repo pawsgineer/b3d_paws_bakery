@@ -28,7 +28,6 @@ class TextureSetMaterialCreate(b_t.Operator):
 
     bl_idname = "pawsbkr.texture_set_material_create"
     bl_label = "Create Materials from Baked Textures"
-    bl_options = {"REGISTER", "UNDO"}
 
     texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
@@ -101,6 +100,7 @@ def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> N
             )
         )
 
+    bpy.ops.ed.undo_push(message="Create Materials")
     for mat_info in mat_info_list:
         if texture_set.create_materials_reuse_existing:
             for mat in set(
@@ -119,12 +119,14 @@ def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> N
             recreate=True,
         )
 
-        if not texture_set.create_materials_assign_to_objects:
-            continue
+    if not texture_set.create_materials_assign_to_objects:
+        return
 
+    bpy.ops.ed.undo_push(message="Assign Materials")
+    for mat_info in mat_info_list:
         for mesh in mat_info.meshes:
             for slot in mesh.material_slots:
-                slot.material = mat
+                slot.material = bpy.data.materials.get(mat_info.name)
 
 
 def _get_meshes_to_update(
