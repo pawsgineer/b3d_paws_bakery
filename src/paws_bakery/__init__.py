@@ -23,7 +23,9 @@ def register() -> None:
 
     prefs = get_preferences()
 
-    bpy.app.timers.register(prefs.init_texture_import_rules, first_interval=1.0)
+    bpy.app.timers.register(
+        prefs.init_texture_import_rules, first_interval=1.0, persistent=True
+    )
 
     bpy.types.Scene.pawsbkr = PointerProperty(type=SceneProps)
     bpy.types.WindowManager.pawsbkr = PointerProperty(type=WMProps)

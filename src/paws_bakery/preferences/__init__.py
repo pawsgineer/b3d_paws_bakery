@@ -208,7 +208,7 @@ class AddonPreferences(b_t.AddonPreferences):
         col = row.column(align=True)
         col.operator(TextureImportRuleAdd.bl_idname, icon="ADD", text="")
 
-    def init_texture_import_rules(self, *_args: tuple[Any]) -> None:
+    def init_texture_import_rules(self) -> None:
         """Validate existing Texture Import Rules and update default data."""
         node_prefixes = DefaultTextureImportRule.get_all_node_prefixes()
         uniq_names: set[str] = set()
