@@ -271,5 +271,5 @@ class TextureSetBake(b_t.Operator):
             # pylint: disable-next=broad-exception-caught
             except Exception as ex:
                 msg = f"Failed to create materials: {ex}"
-                log_err(msg)
+                log_err(msg, with_tb=True)
                 self.report({BlenderWMReportType.ERROR}, msg)

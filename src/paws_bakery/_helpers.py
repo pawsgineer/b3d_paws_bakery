@@ -1,8 +1,9 @@
 """Helpers for use in Blender add-ons. No add-on speciffic functions are expected."""
 
+import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, NotRequired, TypedDict, Unpack
 
 ADDON_DIR = Path(__file__).parent.resolve()
 LOG_ADDON_NAME: str = __package__.rsplit(".", 1)[-1]
@@ -26,21 +27,32 @@ class TermColors:
     UNDERLINE = "\033[4m"
 
 
-def log(msg: str, *args: Any, msg_color: str = TermColors.OKCYAN) -> None:
+class _LogParams(TypedDict):
+    with_tb: NotRequired[bool]
+
+
+def log(
+    msg: str, *args: Any, msg_color: str = TermColors.OKCYAN, with_tb: bool = False
+) -> None:
     """Print a log message with the addon name."""
     time_str = datetime.now().strftime("%H:%M:%S") + " "
     compiled_msg = f"{time_str}{msg_color}{LOG_ADDON_NAME}{TermColors.ENDC}: {msg}"
-    print(compiled_msg, *args, flush=True)
+    additional_data = set()
+    if with_tb:
+        additional_data.add("\n")
+        additional_data.add(traceback.format_exc())
+
+    print(compiled_msg, *args, *additional_data, flush=True)  # noqa: T201
 
 
-def log_warn(msg: str, *args: Any) -> None:
+def log_warn(msg: str, *args: Any, **kwargs: Unpack[_LogParams]) -> None:
     """Print a warning log message with the addon name."""
-    log(msg, *args, msg_color=TermColors.WARNING)
+    log(msg, *args, **kwargs, msg_color=TermColors.WARNING)
 
 
-def log_err(msg: str, *args: Any) -> None:
+def log_err(msg: str, *args: Any, **kwargs: Unpack[_LogParams]) -> None:
     """Print a error log message with the addon name."""
-    log(msg, *args, msg_color=TermColors.FAIL)
+    log(msg, *args, **kwargs, msg_color=TermColors.FAIL)
 
 
 def log_line_number() -> None:
