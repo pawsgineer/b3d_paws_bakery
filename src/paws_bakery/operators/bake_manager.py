@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import bpy
 from bpy import types as b_t
 
-from .._helpers import log
+from .._helpers import log, log_err
 from ..enums import BlenderJobType, BlenderOperatorReturnType
 from ..props import BakeSettings, BakeTextureType, get_props_wm
 from ..utils import AddonException
@@ -104,12 +104,27 @@ class BakeManager:
         if bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE):
             raise AddonException("Blender OBJECT_BAKE job already running.")
 
-        self.__set_running(True)
-
         if self.context.mode != _EDITOR_MODE:
             bpy.ops.object.mode_set(mode=_EDITOR_MODE)
 
         self._save_user_settings()
+
+        try:
+            bake_result = self._unsafe_execute()
+        except Exception:
+            log_err("Failed to start baking, trying to clean up", with_tb=True)
+            self.cleanup()
+            raise
+
+        if bake_result != {BlenderOperatorReturnType.RUNNING_MODAL}:
+            self.cleanup()
+            raise AddonException(
+                "Failed to start baking. Wrong return type from object.bake operator.",
+                bake_result,
+            )
+
+    def _unsafe_execute(self) -> set[BlenderOperatorReturnType]:
+        self.__set_running(True)
 
         self.context.window.cursor_set("WAIT")
 
@@ -128,13 +143,7 @@ class BakeManager:
 
         # TODO: implement uv_layer selection
         bake_result = call_bake_op(self.settings, use_clear=self.clear_image)
-
-        if bake_result != {BlenderOperatorReturnType.RUNNING_MODAL}:
-            self.cleanup()
-            raise AddonException(
-                "Failed to start baking. Wrong return type from object.bake operator.",
-                bake_result,
-            )
+        return bake_result
 
     def on_modal(self) -> None:
         """Call handler from Operator's modal()."""
