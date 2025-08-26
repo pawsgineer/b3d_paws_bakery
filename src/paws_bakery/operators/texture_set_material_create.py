@@ -10,7 +10,7 @@ from bpy import types as b_t
 from .._helpers import log, log_err
 from ..enums import BlenderOperatorReturnType, BlenderWMReportType
 from ..props import MeshProps, TextureSetProps, get_bake_settings, get_props
-from ..utils import AddonException, Registry, load_material_from_lib
+from ..utils import AddonException, AssetLibraryManager, Registry
 from .bake_common import (
     ensure_mesh_ref,
     generate_image_name_and_path,
@@ -105,8 +105,8 @@ def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> N
     """Create material with baked textures."""
     template_material = texture_set.create_materials_template
     if not template_material:
-        template_material = load_material_from_lib(
-            UTIL_MATS_IMPORT_SAMPLE_NAME, ignore_existing=True
+        template_material = AssetLibraryManager.material_load(
+            UTIL_MATS_IMPORT_SAMPLE_NAME
         )
 
     images: dict[str, b_t.Image] = {}
