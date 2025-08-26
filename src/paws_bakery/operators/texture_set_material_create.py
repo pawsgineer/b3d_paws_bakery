@@ -7,8 +7,8 @@ import bpy
 from bpy import props as b_p
 from bpy import types as b_t
 
-from .._helpers import log
-from ..enums import BlenderOperatorReturnType
+from .._helpers import log, log_err
+from ..enums import BlenderOperatorReturnType, BlenderWMReportType
 from ..props import MeshProps, TextureSetProps, get_bake_settings, get_props
 from ..utils import AddonException, Registry, load_material_from_lib
 from .bake_common import (
@@ -53,7 +53,9 @@ class TextureSetMaterialCreate(b_t.Operator):
             create_materials(context=context, texture_set=self._texture_set)
         # pylint: disable-next=broad-exception-caught
         except Exception as ex:
-            self.report({"ERROR"}, f"Failed to create materials: {ex}")
+            msg = f"Failed to create materials: {ex}"
+            log_err(msg, with_tb=True)
+            self.report({BlenderWMReportType.ERROR}, msg)
             return {BlenderOperatorReturnType.CANCELLED}
 
         return {BlenderOperatorReturnType.FINISHED}
