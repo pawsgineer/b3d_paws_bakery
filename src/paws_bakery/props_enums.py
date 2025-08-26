@@ -214,14 +214,13 @@ class BakeMode(BlenderPropertyEnum):
         description="Bake all materials from all objects into a single texture",
     )
 
+    PER_OBJECT = EnumItemInfo(
+        ui_name="Per Object (Experimental)",
+        description="Bake the materials using a separate texture for each object",
+    )
+
     DEFAULT = SINGLE
 
-    # PER_OBJECT = EnumItemInfo(
-    #     ui_name="Per Object",
-    #     description=(
-    #         "Bake the materials of each object into a single texture. "
-    #     ),
-    # )
     # PER_MATERIAL = EnumItemInfo(
     #     ui_name="Per Material",
     #     description=(

@@ -216,15 +216,21 @@ class TextureSetBake(b_t.Operator):
 
     def __bake_next(self, context: b_t.Context) -> BakeJob:
         self._bake_textures[0].state = BakeState.RUNNING.name
-        img_name, img_path = generate_image_name_and_path(
-            context=context,
-            settings_id=self._bake_textures[0].prop_id,
-            texture_set_name=self._texture_set.display_name,
-        )
 
         bake_objects = self._bake_objects_list[0]
         for mesh in chain([bake_objects.active], bake_objects.selected):
             self._texture_set.meshes[mesh.name].state = BakeState.RUNNING.name
+
+        if BakeMode[self._texture_set.mode] is BakeMode.PER_OBJECT:
+            object_prefix = bake_objects.active.name
+        else:
+            object_prefix = ""
+        img_name, img_path = generate_image_name_and_path(
+            context=context,
+            settings_id=self._bake_textures[0].prop_id,
+            texture_set_name=self._texture_set.display_name,
+            object_prefix=object_prefix,
+        )
 
         self.__bake_job = BakeJob(
             context=context,

@@ -53,12 +53,12 @@ def generate_image_name_and_path(
     context: b_t.Context,
     settings_id: str,
     texture_set_name: str,
-    texture_set_object_suffix: str = "",
+    object_prefix: str = "",
 ) -> tuple[str, str]:
     """Return generated image name and path."""
     image_name_parts = [texture_set_name]
-    if texture_set_object_suffix:
-        image_name_parts.append(texture_set_object_suffix)
+    if object_prefix:
+        image_name_parts.insert(0, object_prefix)
 
     name = (
         get_bake_settings(context, settings_id).get_name("_".join(image_name_parts))
