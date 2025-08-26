@@ -16,8 +16,8 @@ from ..utils import (
     UTIL_NODES_GROUP_AORM,
     UTIL_NODES_GROUP_COLOR,
     AddonException,
+    AssetLibraryManager,
     Registry,
-    load_node_groups_from_lib,
 )
 from ._utils import generate_color_set, get_selected_materials
 
@@ -100,8 +100,7 @@ def material_setup(
     mat_id_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> None:
     """Set up utils in the material."""
-
-    load_node_groups_from_lib()
+    AssetLibraryManager.node_groups_load()
 
     tree = cast(b_t.ShaderNodeTree, mat.node_tree)
     links = tree.links
@@ -266,7 +265,6 @@ def material_setup(
             target_socket = target_input.links[0].from_socket
             links.new(target_socket, out_node.inputs["Surface"])
         else:
-
             ng_aorm.outputs["metalness"].default_value = target_input.default_value
             links.new(ng_aorm.outputs["metalness"], out_node.inputs["Surface"])
 
@@ -381,7 +379,6 @@ class MaterialSetupSelected(b_t.Operator):
         return {BlenderOperatorReturnType.FINISHED}
 
 
-# TODO: Move to and load most of the nodes setup from the .blend file
 @Registry.add
 class MaterialSetup(b_t.Operator):
     """Setup utils in the material."""
@@ -415,7 +412,6 @@ class MaterialSetup(b_t.Operator):
 
     def execute(self, context: b_t.Context) -> set[str]:
         """execute() override."""
-        # log(f"Cleanup: {self.cleanup!r}. texture_type: {self.texture_type!r}")
         if self.cleanup:
             self._cleanup(context)
             return {BlenderOperatorReturnType.FINISHED}

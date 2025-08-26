@@ -15,7 +15,7 @@ from bpy_extras.io_utils import ImportHelper
 from .._helpers import log
 from ..enums import BlenderOperatorReturnType, Colorspace
 from ..preferences import get_preferences
-from ..utils import AddonException, Registry, load_material_from_lib
+from ..utils import AddonException, AssetLibraryManager, Registry
 from ._utils import get_selected_materials
 
 UTIL_MATS_IMPORT_SAMPLE_NAME = "pawsbkr_texture_import_sample"
@@ -31,7 +31,7 @@ class TextureImportLoadSampleMaterial(b_t.Operator):
 
     def execute(self, _context: b_t.Context) -> set[BlenderOperatorReturnType]:
         """Load Sample Material."""
-        load_material_from_lib(UTIL_MATS_IMPORT_SAMPLE_NAME)
+        AssetLibraryManager.material_load(UTIL_MATS_IMPORT_SAMPLE_NAME)
 
         return {BlenderOperatorReturnType.FINISHED}
 

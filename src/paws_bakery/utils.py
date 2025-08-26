@@ -10,10 +10,12 @@ UTIL_MATS_PATH = ASSETS_DIR.joinpath("materials.blend")
 UTIL_NODES_GROUP_AORM = "pawsbkr_utils_aorm"
 UTIL_NODES_GROUP_COLOR = "pawsbkr_utils_color"
 
-UTIL_NODE_GROUPS = [
-    UTIL_NODES_GROUP_AORM,
-    UTIL_NODES_GROUP_COLOR,
-]
+UTIL_NODE_GROUPS = frozenset(
+    {
+        UTIL_NODES_GROUP_AORM,
+        UTIL_NODES_GROUP_COLOR,
+    }
+)
 
 
 class AddonException(Exception):
@@ -38,7 +40,7 @@ class Registry:
         for class_ in Registry.CLASSES:
             # log(f"Registering: {class_.__name__}.")
             try:
-                bpy.utils.register_class(class_)
+                bpy.utils.register_class(class_)  # type: ignore[no-untyped-call]
             except BaseException:
                 log(f"Can't register: {class_}.")
                 Registry.unregister()
@@ -50,7 +52,7 @@ class Registry:
         for class_ in reversed(Registry.CLASSES):
             # log(f"Unregistering: {class_.__name__}")
             try:
-                bpy.utils.unregister_class(class_)
+                bpy.utils.unregister_class(class_)  # type: ignore[no-untyped-call]
             # pylint: disable-next=broad-exception-caught
             except BaseException:  # noqa: B036
                 log(f"Can't unregister: {class_}.")
@@ -92,48 +94,96 @@ class TimerManager:
             cls.__remove_timer()
 
 
-def load_material_from_lib(name: str, *, ignore_existing: bool = False) -> b_t.Material:
-    """Load material from add-on asset library."""
-    mat = bpy.data.materials.get(name)
+class AssetLibraryManager:
+    """Manager of Blender timers."""
 
-    if mat:
-        if ignore_existing:
-            return mat
+    # TODO: handle opening another file?
+    _is_nodes_imported = False
 
-        raise AddonException(
-            f"Material with the name {name!r} already exists. "
-            "Remove or rename it if you want to reimport material"
-        )
+    @staticmethod
+    def material_load(
+        name: str,
+        *,
+        link: bool = False,
+        use_existing: bool = False,
+        replace_existing: bool = True,
+    ) -> b_t.Material:
+        """Load material from add-on asset library.
 
-    with bpy.data.libraries.load(
-        str(UTIL_MATS_PATH),
-        link=False,
-        assets_only=True,
-    ) as (data_src, data_dst):
-        if name not in data_src.materials:
-            raise AddonException(f"No material with name {name!r} found in library")
-        data_dst.materials = [name]
+        :param str name: Material name
+        :param bool use_existing: Skip import if material already exists,
+            defaults to False
+        :param bool replace_existing: Re-import the material and replace references from
+            the old one, defaults to True
+        :raises AddonException: If material not found in the library
+        :return b_t.Material: Imported material
+        """
+        mat = bpy.data.materials.get(name)
 
-    mat = bpy.data.materials.get(name)
-    mat.asset_clear()  # type: disable=no-untyped-call
-    mat.use_fake_user = False
+        if mat:
+            if use_existing:
+                return mat
 
-    return mat
+            mat.use_fake_user = False
+            if mat.users < 1:
+                bpy.data.materials.remove(mat)
 
+        mat_old = bpy.data.materials.get(name)
+        if mat_old:
+            mat_old.name += "_old"
 
-def load_node_groups_from_lib() -> None:
-    """Load node groups from add-on asset library."""
-    if all(ng_name in bpy.data.node_groups for ng_name in UTIL_NODE_GROUPS):
-        return
+        with bpy.data.libraries.load(
+            str(UTIL_MATS_PATH), link=link, assets_only=True
+        ) as (
+            data_src,
+            data_dst,
+        ):
+            if name not in data_src.materials:
+                raise AddonException(f"No material with name {name!r} found in library")
+            data_dst.materials = [name]
 
-    log("Some Node Groups are missing. Loading...")
+        mat = bpy.data.materials.get(name)
+        mat.asset_clear()  # type: ignore[no-untyped-call]
+        mat.use_fake_user = False
 
-    with bpy.data.libraries.load(str(UTIL_MATS_PATH)) as (data_src, data_dst):
+        if mat_old and replace_existing:
+            mat_old.user_remap(mat)
+            bpy.data.materials.remove(mat_old)
+
+        return mat
+
+    @classmethod
+    def node_groups_load(cls) -> None:
+        """Load node groups from add-on asset library."""
+        missing_names: set[str]
+
+        if not cls._is_nodes_imported:
+            log("Importing Node Groups for the first time.")
+            for ng_name in UTIL_NODE_GROUPS:
+                node = bpy.data.node_groups.get(ng_name)
+                if not node:
+                    continue
+                bpy.data.node_groups.remove(node)
+            missing_names = UTIL_NODE_GROUPS
+        else:
+            missing_names = {
+                ng_name
+                for ng_name in UTIL_NODE_GROUPS
+                if ng_name not in bpy.data.node_groups
+            }
+        if not missing_names:
+            return
+
+        log("Some Node Groups are missing. Loading...", missing_names)
+
+        with bpy.data.libraries.load(str(UTIL_MATS_PATH)) as (data_src, data_dst):
+            for ng_name in missing_names:
+                if ng_name not in data_src.node_groups:
+                    raise AddonException(f"No Node Group with name {ng_name!r} found")
+                data_dst.node_groups.append(ng_name)
+
         for ng_name in UTIL_NODE_GROUPS:
-            if ng_name not in data_src.node_groups:
-                raise AddonException(f"No Node Group with name {ng_name!r} found")
-            data_dst.node_groups.append(ng_name)
+            ng = bpy.data.node_groups.get(ng_name)
+            ng.use_fake_user = False
 
-    for ng_name in UTIL_NODE_GROUPS:
-        ng = bpy.data.node_groups.get(ng_name)
-        ng.use_fake_user = False
+        cls._is_nodes_imported = True
