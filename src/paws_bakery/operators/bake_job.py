@@ -91,7 +91,6 @@ class BakeJob:
         try:
             self.__manager.on_execute()
         except AddonException:
-            # TODO: parametrize for debug purposes
             self.__cleanup()
             raise
 
