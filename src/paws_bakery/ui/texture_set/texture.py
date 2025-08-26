@@ -50,6 +50,7 @@ class TextureSpecialsMenu(b_t.Menu):
             icon="NODE_MATERIAL",
             text="Cleanup Materials",
         )
+        props.texture_set_id = texture_set.prop_id
 
 
 @register_and_duplicate_to_node_editor
