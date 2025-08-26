@@ -38,7 +38,7 @@ class TextureSetBake(b_t.Operator):
     """Bake texture set textures."""
 
     bl_idname = "pawsbkr.texture_set_bake"
-    bl_label = "Bake texture set textures"
+    bl_label = "Bake Texture Set Textures"
 
     texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
