@@ -27,7 +27,7 @@ class TextureSpecialsMenu(b_t.Menu):
     bl_label = "Texture Specials"
 
     def draw(self, context: b_t.Context | None) -> None:
-        """draw() override."""
+        """UIList draw override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         texture = texture_set.active_texture
@@ -71,7 +71,7 @@ class TextureUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """draw() override."""
+        """UIList draw override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         bake_settings = get_bake_settings(context, item.prop_id)
@@ -104,20 +104,20 @@ class Texture(SidePanelMixin):
 
     @classmethod
     def poll(cls, context: b_t.Context) -> bool:
-        """poll() override."""
+        """Panel poll override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
     def draw_header(self, context: b_t.Context) -> None:
-        """draw_header() override."""
+        """Panel draw_header override."""
         pawsbkr = get_props(context)
         if len(pawsbkr.active_texture_set.textures) < 1:
             self.layout.alert = True
             self.layout.label(text="", icon="ERROR")
 
     def draw(self, context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         texture = texture_set.active_texture

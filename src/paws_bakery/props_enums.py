@@ -33,6 +33,7 @@ class BlenderPropertyEnum(Enum):
     DEFAULT: EnumItemInfo
 
     def __init_subclass__(cls) -> None:
+        """Validate fields after initialization."""
         assert cls.__bl_prop_name__
         assert cls.__bl_prop_description__
 

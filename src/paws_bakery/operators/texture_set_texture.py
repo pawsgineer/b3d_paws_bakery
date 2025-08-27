@@ -20,7 +20,7 @@ class TextureSetTextureAdd(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         textures = texture_set.textures
@@ -43,7 +43,7 @@ class TextureSetTextureRemove(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         pawsbkr = get_props(context)
         settings_store = pawsbkr.bake_settings_store
         texture_set = pawsbkr.active_texture_set
@@ -78,11 +78,15 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
     bl_label = "Setup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    texture_set_id: b_p.StringProperty(name="Target texture set name", default="")
-    texture_id: b_p.StringProperty(name="Target texture name", default="")
+    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+        name="Target texture set name", default=""
+    )
+    texture_id: b_p.StringProperty(  # type: ignore[valid-type]
+        name="Target texture name", default=""
+    )
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if not self.texture_set_id:
             raise NotImplementedError("Baking without texture_set_id not implemented")
         if not self.texture_id:
@@ -121,10 +125,12 @@ class TextureSetTextureCleanupMaterial(b_t.Operator):
     bl_label = "Cleanup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    texture_set_id: b_p.StringProperty(name="Target texture set name", default="")
+    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+        name="Target texture set name", default=""
+    )
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if not self.texture_set_id:
             raise NotImplementedError("Baking without texture_set_id not implemented")
 

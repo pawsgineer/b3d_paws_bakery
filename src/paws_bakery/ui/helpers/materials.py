@@ -17,7 +17,7 @@ class Materials(SidePanelMixin):
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         layout = self.layout
 
         if not context.selected_objects:

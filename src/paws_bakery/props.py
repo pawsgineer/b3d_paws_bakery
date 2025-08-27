@@ -1,7 +1,7 @@
 # flake8: noqa: F821
 """Addon Blender properties."""
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from typing import cast
 from uuid import uuid4
 
@@ -132,7 +132,7 @@ class BakeSettings(b_t.PropertyGroup):
     )
 
     def get_name(self, set_name: str = "") -> str:
-        """Returns compiled name."""
+        """Return compiled name."""
         placeholders: Mapping[str, str] = {
             "set_name": set_name,
             "size": self.size,

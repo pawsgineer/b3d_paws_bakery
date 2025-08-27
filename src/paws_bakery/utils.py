@@ -164,7 +164,7 @@ class AssetLibraryManager:
                 if not node:
                     continue
                 bpy.data.node_groups.remove(node)
-            missing_names = UTIL_NODE_GROUPS
+            missing_names = set(UTIL_NODE_GROUPS)
         else:
             missing_names = {
                 ng_name

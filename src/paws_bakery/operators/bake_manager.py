@@ -1,3 +1,5 @@
+"""Manages scene, materials setup and Blender's bake operator."""
+
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
@@ -76,7 +78,7 @@ def _materials_setup(
 
 @dataclass(kw_only=True)
 class BakeManager:
-    """Manages baking environment and keeps track of running bake."""
+    """Manages scene, materials setup and Blender's bake operator."""
 
     context: b_t.Context
     objects: BakeObjects

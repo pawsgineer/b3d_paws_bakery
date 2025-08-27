@@ -36,7 +36,7 @@ class BakeSelected(b_t.Operator):
     __bake_job: BakeJob
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if BakeManager.is_running():
             log(f"{self.bl_idname}: execute() failed: Already running")
             return {BlenderOperatorReturnType.CANCELLED}
@@ -77,7 +77,7 @@ class BakeSelected(b_t.Operator):
         return {BlenderOperatorReturnType.RUNNING_MODAL}
 
     def modal(self, context: b_t.Context, event: b_t.Event) -> set[str]:
-        """modal() override."""
+        """Operator modal override."""
         if event.type in {BlenderEventType.ESC}:
             self.__cancel(context)
             return {BlenderOperatorReturnType.CANCELLED}

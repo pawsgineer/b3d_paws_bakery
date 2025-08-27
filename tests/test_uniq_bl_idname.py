@@ -8,9 +8,8 @@ PACKAGES_TO_CHECK = ["paws_bakery"]
 
 
 # TODO: test nested submodules
-def test_unique_bl_idname():
-    "Check that all bl_idname properties are uniq."
-
+def test_unique_bl_idname() -> None:  # noqa: C901
+    """Check that all bl_idname properties are uniq."""
     for package_name in PACKAGES_TO_CHECK:
         module = importlib.import_module(package_name)
 
@@ -41,7 +40,7 @@ def test_unique_bl_idname():
                 if cls.bl_idname in classes_with_bl_idname:
                     classes_with_bl_idname[cls.bl_idname].add(cls)
                 else:
-                    classes_with_bl_idname[cls.bl_idname] = set((cls,))
+                    classes_with_bl_idname[cls.bl_idname] = {cls}
 
         for bl_idname, classes in classes_with_bl_idname.items():
             if len(classes) > 1:

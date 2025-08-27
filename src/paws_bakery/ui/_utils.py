@@ -70,7 +70,7 @@ class InfoPopover(b_t.Panel):
     bl_ui_units_x = 16
 
     def draw(self, _context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         layout = self.layout
         col = layout.column(align=True)
         col.scale_y = 0.80

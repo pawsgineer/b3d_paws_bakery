@@ -36,7 +36,7 @@ class TextureSetMaterialCreate(b_t.Operator):
     _texture_set: TextureSetProps
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if not self.texture_set_id:
             raise AddonException("texture_set_id is required")
 
@@ -69,8 +69,43 @@ def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> N
             UTIL_MATS_IMPORT_SAMPLE_NAME
         )
 
-    meshes_to_update = _get_meshes_to_update(context=context, texture_set=texture_set)
+    mat_info_list = _collect_material_update_info(
+        context=context, texture_set=texture_set
+    )
 
+    bpy.ops.ed.undo_push(message="Create Materials")
+    for mat_info in mat_info_list:
+        if texture_set.create_materials_reuse_existing:
+            for mat in set(
+                chain.from_iterable(
+                    _get_object_materials(mesh) for mesh in mat_info.meshes
+                )
+            ):
+                assign_images_to_material(mat, mat_info.images, True)
+            continue
+
+        mat = _setup_material(
+            context=context,
+            name=mat_info.name,
+            images=mat_info.images,
+            template_material=template_material,
+            recreate=True,
+        )
+
+    if not texture_set.create_materials_assign_to_objects:
+        return
+
+    bpy.ops.ed.undo_push(message="Assign Materials")
+    for mat_info in mat_info_list:
+        for mesh in mat_info.meshes:
+            for slot in mesh.material_slots:
+                slot.material = bpy.data.materials.get(mat_info.name)
+
+
+def _collect_material_update_info(
+    *, context: b_t.Context, texture_set: TextureSetProps
+) -> list[_MaterialUpdateInfo]:
+    meshes_to_update = _get_meshes_to_update(context=context, texture_set=texture_set)
     mat_info_list: list[_MaterialUpdateInfo] = []
     if BakeMode[texture_set.mode] is BakeMode.PER_OBJECT:
         for mesh in meshes_to_update:
@@ -100,33 +135,7 @@ def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> N
             )
         )
 
-    bpy.ops.ed.undo_push(message="Create Materials")
-    for mat_info in mat_info_list:
-        if texture_set.create_materials_reuse_existing:
-            for mat in set(
-                chain.from_iterable(
-                    _get_object_materials(mesh) for mesh in mat_info.meshes
-                )
-            ):
-                assign_images_to_material(mat, mat_info.images, True)
-            continue
-
-        mat = _setup_material(
-            context=context,
-            name=mat_info.name,
-            images=mat_info.images,
-            template_material=template_material,
-            recreate=True,
-        )
-
-    if not texture_set.create_materials_assign_to_objects:
-        return
-
-    bpy.ops.ed.undo_push(message="Assign Materials")
-    for mat_info in mat_info_list:
-        for mesh in mat_info.meshes:
-            for slot in mesh.material_slots:
-                slot.material = bpy.data.materials.get(mat_info.name)
+    return mat_info_list
 
 
 def _get_meshes_to_update(

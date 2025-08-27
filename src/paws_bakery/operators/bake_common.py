@@ -1,3 +1,5 @@
+"""Common bake utils."""
+
 from dataclasses import dataclass
 
 from bpy import types as b_t
@@ -87,5 +89,6 @@ class BakeObjects:
     selected: list[b_t.Object]
 
     def __post_init__(self) -> None:
+        """Validate state after initialization."""
         if self.active not in self.selected:
             raise ValueError(f"Active Object {self.active!r} is not in selected")

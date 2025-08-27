@@ -1,3 +1,5 @@
+"""Manage images and run BakeManager."""
+
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -18,13 +20,16 @@ from .bake_manager import BakeManager
 
 
 class BakeJobState(Enum):
-    # CREATED = auto()
+    """States of BakeJob."""
+
     RUNNING = auto()
     CANCELED = auto()
     FINISHED = auto()
 
 
 class BakeHandlerState(Enum):
+    """States of BakeHandlers."""
+
     CREATED = auto()
     PRE = auto()
     CANCELED = auto()
@@ -33,6 +38,8 @@ class BakeHandlerState(Enum):
 
 @dataclass(kw_only=True)
 class BakeJob:
+    """Manage images and run BakeManager."""
+
     context: b_t.Context
     objects: BakeObjects
     settings: BakeSettings
@@ -49,6 +56,7 @@ class BakeJob:
     )
 
     def __post_init__(self) -> None:
+        """Create handler methods after initialization."""
         self.__handlers = (
             (
                 bpy.app.handlers.object_bake_pre,
