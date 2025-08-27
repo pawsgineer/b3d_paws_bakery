@@ -3,6 +3,13 @@
   "tasks": [
     {
       "label": "Pylint: lint whole folder",
+      "group": {
+        "kind": "test"
+      },
+      "icon": {
+        "id": "bracket-error",
+        "color": "terminal.ansiGreen"
+      },
       "options": { "cwd": "${workspaceFolder}" },
       "type": "shell",
       "command": "${command:python.interpreterPath}",
@@ -18,7 +25,11 @@
       }
     },
     {
-      "label": "Blender: extension build",
+      "label": "Blender: Extension Build",
+      "icon": {
+        "id": "archive",
+        "color": "terminal.ansiRed"
+      },
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -27,7 +38,7 @@
         }
       },
       "type": "shell",
-      "command": "\"${config:paws_blender_path}\" --factory-startup --command extension build --source-dir ./src/paws_bakery 2>&1 | python ./.vscode/replace_path.py",
+      "command": "\"${config:paws_blender_path}\" --factory-startup --command extension build --verbose --source-dir ./src/paws_bakery 2>&1 | python ./.vscode/replace_path.py",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -40,6 +51,10 @@
     },
     {
       "label": "Blender: open test1.blend",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiCyan"
+      },
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -64,6 +79,10 @@
     },
     {
       "label": "Blender: open test1.blend --factory-startup",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiMagenta"
+      },
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -88,6 +107,10 @@
     },
     {
       "label": "Blender: debug-all open test1.blend",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiCyan"
+      },
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -112,6 +135,10 @@
     },
     {
       "label": "Blender: open materials.blend --factory-startup",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiMagenta"
+      },
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
