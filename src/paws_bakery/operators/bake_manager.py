@@ -10,7 +10,11 @@ from ..props import BakeSettings, BakeTextureType, get_props_wm
 from ..utils import AddonException
 from ._utils import generate_color_set, get_objects_materials
 from .bake_common import BakeObjects
-from .material_setup import MaterialNodeNames, material_cleanup, material_setup
+from .material_setup import (
+    BakeMaterialManager,
+    MaterialNodeNames,
+    material_cleanup,
+)
 
 TMP_SCENE_NAME = "pawsbkr_tmp"
 BAKE_COLLECTION_NAME = TMP_SCENE_NAME
@@ -55,8 +59,8 @@ def _materials_setup(
 ) -> None:
     for mat in materials:
         colors = generate_color_set(len(materials))
-        material_setup(
-            mat,
+        BakeMaterialManager(
+            mat=mat,
             bake_settings=settings,
             image_name=image.name,
             mat_id_color=colors[list(materials).index(mat)],

@@ -1,8 +1,11 @@
 """Setup material utils."""
 
+from __future__ import annotations
+
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Type, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import bpy
 from bpy import props as b_p
@@ -40,7 +43,7 @@ class MaterialNodeNames(str, Enum):
     COMBINE_COLOR = auto()
     FRAME = auto()
     OBJECT_INFO = auto()
-    OUT = auto()
+    BAKE_OUT = auto()
     UV_TEXTURE = auto()
     VALUE = auto()
 
@@ -92,211 +95,374 @@ def _init_uv_maps(texture_size: TextureSize) -> None:
         )
 
 
-def material_setup(
-    mat: b_t.Material,
-    *,
-    bake_settings: BakeSettings,
-    image_name: str,
-    mat_id_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
-) -> None:
-    """Set up utils in the material."""
-    AssetLibraryManager.node_groups_load()
+def _node_get_or_create(
+    tree: b_t.ShaderNodeTree,
+    name: MaterialNodeNames,
+    node_type: type[ShaderNodeSub],
+    parent: b_t.Node,
+    location: tuple[int, int],
+) -> ShaderNodeSub:
+    node = tree.nodes.get(name)
+    if node is not None and not isinstance(node, node_type):
+        tree.nodes.remove(node)
+    if node is None:
+        node = cast(ShaderNodeSub, tree.nodes.new(node_type.__name__))
+        node.name = node.label = name
+        node.parent = parent
+        node.location = location
 
-    tree = cast(b_t.ShaderNodeTree, mat.node_tree)
-    links = tree.links
+    return cast(ShaderNodeSub, node)
 
-    output_node = tree.get_output_node("CYCLES")
 
-    # TODO: we shouldn't care about existing material outputs when baking matid?
-    if output_node is None:
-        # TODO: only modify node group once
-        # node_groups: list[b_t.ShaderNodeGroup] = []
-        # for node in tree.nodes:
-        #     if isinstance(node, b_t.ShaderNodeGroup):
-        #         node_groups.append(node)
+BakeConnectionSocket = (
+    b_t.NodeSocketFloat
+    | b_t.NodeSocketVector
+    | b_t.NodeSocketFloatFactor
+    | b_t.NodeSocketColor
+)
 
-        raise AddonException("Can't bake material without material outputs")
 
-    frame_name = MaterialNodeNames.FRAME
-    frame: b_t.NodeFrame = tree.nodes.get(frame_name)
-    if frame is None:
-        frame = tree.nodes.new(b_t.NodeFrame.__name__)
-        frame.name = frame_name
-        frame.label = "PAWS: Bakery Utils"
-        frame.use_custom_color = True
-        frame.color.hsv = (0.25, 0.7, 0.7)
+ShaderNodeSub = TypeVar("ShaderNodeSub", bound=b_t.ShaderNode)
 
-    start_location = Vector((500, 500))
 
-    T = TypeVar("T", bound=b_t.ShaderNode)
+class BakeMaterialManager:
+    """Prepare material for baking."""
 
-    def add_node(node_type: Type[T], name: str) -> T:
-        if name in tree.nodes:
+    mat: b_t.Material
+    bake_settings: BakeSettings
+    mat_id_color: tuple[float, float, float]
+
+    frame: b_t.NodeFrame
+    tree: b_t.ShaderNodeTree
+    links: b_t.NodeLinks
+    start_location: Vector
+    output_node: b_t.ShaderNodeOutputMaterial
+
+    ng_color: b_t.ShaderNodeGroup
+    ng_aorm: b_t.ShaderNodeGroup
+
+    def _add_node(self, node_type: type[ShaderNodeSub], name: str) -> ShaderNodeSub:
+        if name in self.tree.nodes:
             raise AddonException(f"Material already has Node with name {name!r}")
-        node: T = tree.nodes.new(node_type.__name__)
+        node: ShaderNodeSub = cast(
+            ShaderNodeSub, self.tree.nodes.new(node_type.__name__)
+        )
         node.name = name
-        node.parent = frame
-        node.location = start_location
-        start_location.y += 250
+        node.parent = self.frame
+        node.location = self.start_location
+        self.start_location.y += 250
         return node
 
-    ng_color = add_node(b_t.ShaderNodeGroup, UTIL_NODES_GROUP_COLOR)
-    ng_color.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_COLOR)
-    ng_color.inputs["color"].default_value = tuple(mat_id_color) + (1.0,)
+    def _get_node_frame(self) -> b_t.NodeFrame:
+        frame_name = MaterialNodeNames.FRAME
+        node: b_t.Node = self.tree.nodes.get(frame_name)
+        if node is not None:
+            if isinstance(node, b_t.NodeFrame):
+                return node
+            self.tree.nodes.remove(node)
 
-    ng_aorm = add_node(b_t.ShaderNodeGroup, UTIL_NODES_GROUP_AORM)
-    ng_aorm.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_AORM)
+        node = cast(b_t.NodeFrame, self.tree.nodes.new(b_t.NodeFrame.__name__))
+        node.name = frame_name
+        node.label = "PAWS: Bakery Utils"
+        node.use_custom_color = True
+        node.color.hsv = (0.25, 0.7, 0.7)
 
-    node_name = MaterialNodeNames.BAKE_TEXTURE
-    bake_texture_node = tree.nodes.get(node_name)
-    if bake_texture_node is None:
-        bake_texture_node = tree.nodes.new(b_t.ShaderNodeTexImage.__name__)
-        bake_texture_node.name = bake_texture_node.label = node_name
-        bake_texture_node.parent = frame
-        bake_texture_node.location = (800, 600)
+        return node
 
-    bake_texture_node.image = bpy.data.images.get(image_name)
-    if bake_texture_node.image is None:
-        log(f"bake_texture_node.image is None for name: {image_name}")
-    # TODO: ensure it selected before baking
-    # bake_texture_node.select = True
-    # tree.nodes.active = bake_texture_node
+    def _get_node_bake_texture(self) -> b_t.ShaderNodeTexImage:
+        return _node_get_or_create(
+            self.tree,
+            MaterialNodeNames.BAKE_TEXTURE,
+            b_t.ShaderNodeTexImage,
+            self.frame,
+            (800, 600),
+        )
 
-    if bake_settings.type not in [
-        BakeTextureType.COMBINED.name,
-        BakeTextureType.DIFFUSE.name,
-        BakeTextureType.EMIT.name,
-        BakeTextureType.ENVIRONMENT.name,
-        BakeTextureType.GLOSSY.name,
-        BakeTextureType.NORMAL.name,
-        BakeTextureType.POSITION.name,
-        BakeTextureType.ROUGHNESS.name,
-        BakeTextureType.SHADOW.name,
-        BakeTextureType.TRANSMISSION.name,
-        BakeTextureType.UV.name,
-    ]:
-        node_name = MaterialNodeNames.OUT
-        out_node = tree.nodes.get(node_name)
-        if out_node is None:
-            out_node = tree.nodes.new(b_t.ShaderNodeOutputMaterial.__name__)
-            out_node.name = out_node.label = node_name
-            out_node.parent = frame
-            out_node.location = (800, 800)
+    def _get_node_bake_output(self) -> b_t.ShaderNodeOutputMaterial:
+        node = _node_get_or_create(
+            self.tree,
+            MaterialNodeNames.BAKE_OUT,
+            b_t.ShaderNodeOutputMaterial,
+            self.frame,
+            (800, 800),
+        )
+        self.tree.nodes.active = node
+        return node
 
-            tree.nodes.active = out_node
+    def _add_color_node_group(self) -> b_t.ShaderNodeGroup:
+        group = self._add_node(b_t.ShaderNodeGroup, UTIL_NODES_GROUP_COLOR)
+        group.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_COLOR)
+        group.inputs["color"].default_value = tuple(self.mat_id_color) + (1.0,)
+        return group
 
-    # TEXTURE BAKING
+    def _add_aorm_node_group(self) -> b_t.ShaderNodeGroup:
+        group = self._add_node(b_t.ShaderNodeGroup, UTIL_NODES_GROUP_AORM)
+        group.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_AORM)
+        return group
 
-    # TODO: filter muted and not connected out nodes
-    output_nodes = []
-    for node in tree.nodes:
-        if (
-            node.name == MaterialNodeNames.OUT
-            or not isinstance(node, b_t.ShaderNodeOutputMaterial)
-            or node.target not in ("CYCLES", "ALL")
-        ):
-            continue
-        output_nodes.append(node)
+    def _get_og_output_node(self) -> b_t.ShaderNodeOutputMaterial:
+        # TODO: filter muted and not connected out nodes
+        output_nodes = []
+        for node in self.tree.nodes:
+            if (
+                node.name == MaterialNodeNames.BAKE_OUT
+                or not isinstance(node, b_t.ShaderNodeOutputMaterial)
+                or node.target not in ("CYCLES", "ALL")
+            ):
+                continue
+            output_nodes.append(node)
 
-    # TODO: we shouldn't care about existing material outputs when baking matid?
-    if not output_nodes:
-        raise AddonException("Can't bake material without material outputs")
+        # TODO: we shouldn't care about existing material outputs when baking matid?
+        if not output_nodes:
+            raise AddonException("Can't bake material without material outputs")
 
-    if len(output_nodes) > 1:
-        raise AddonException("Material has more than 1 material output")
+        if len(output_nodes) > 1:
+            raise AddonException("Material has more than 1 material output")
 
-    from_node = output_nodes[0].inputs["Surface"].links[0].from_node
+        return output_nodes[0]
 
-    # TODO: add more shader types?
-    if not isinstance(from_node, b_t.ShaderNodeBsdfPrincipled):
-        raise AddonException("Can't bake material with current shader type")
+    def _get_shader_node(self) -> b_t.ShaderNodeBsdfPrincipled:
+        node = self._get_og_output_node().inputs["Surface"].links[0].from_node
 
-    if bake_settings.type == BakeTextureType.AO.name:
-        links.new(ng_aorm.outputs["ao"], out_node.inputs["Surface"])
+        # TODO: add more shader types?
+        if not isinstance(node, b_t.ShaderNodeBsdfPrincipled):
+            raise AddonException("Can't bake material with current shader type")
 
-        target_input = from_node.inputs["Normal"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, ng_aorm.inputs["normal"])
+        return node
 
-    if bake_settings.type == BakeTextureType.AORM.name:
-        links.new(ng_aorm.outputs["aorm"], out_node.inputs["Surface"])
+    def _set_up_link(
+        self,
+        input_socket: BakeConnectionSocket,
+        output_socket: BakeConnectionSocket | b_t.NodeSocketShader,
+        default_value: float | Sequence[float] | None = None,
+        default_input_socket: BakeConnectionSocket | None = None,
+        default_output_socket: BakeConnectionSocket | None = None,
+    ) -> None:
+        if input_socket.is_linked:
+            self.links.new(input_socket.links[0].from_socket, output_socket)
+            return
 
-        target_input = from_node.inputs["Normal"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, ng_aorm.inputs["normal"])
+        if default_value is None:
+            return
+        if default_input_socket is None:
+            default_input_socket = input_socket
 
-        target_input = from_node.inputs["Roughness"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, ng_aorm.inputs["roughness"])
+        if type(default_input_socket.default_value) is not type(default_value):
+            raise AddonException(
+                "Socket type and default value doesn't match",
+                type(default_input_socket.default_value),
+                type(default_value),
+            )
+
+        default_input_socket.default_value = default_value
+        if default_output_socket:
+            self.links.new(default_output_socket, output_socket)
+
+    def _set_up_ao(
+        self,
+        shader_node: b_t.ShaderNodeBsdfPrincipled,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        self.links.new(self.ng_aorm.outputs["ao"], bake_out_node.inputs["Surface"])
+
+        s_inp = shader_node.inputs["Normal"]
+        s_out = self.ng_aorm.inputs["normal"]
+        assert isinstance(s_inp, b_t.NodeSocketVector), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketVector), type(s_out)
+        self._set_up_link(s_inp, s_out)
+
+    def _set_up_aorm(
+        self,
+        shader_node: b_t.ShaderNodeBsdfPrincipled,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        self.links.new(self.ng_aorm.outputs["aorm"], bake_out_node.inputs["Surface"])
+
+        s_inp = shader_node.inputs["Normal"]
+        s_out = self.ng_aorm.inputs["normal"]
+        assert isinstance(s_inp, b_t.NodeSocketVector), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketVector), type(s_out)
+        self._set_up_link(s_inp, s_out)
+
+        s_inp = shader_node.inputs["Roughness"]
+        s_out = self.ng_aorm.inputs["roughness"]
+        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketFloatFactor), type(s_out)
+        self._set_up_link(s_inp, s_out, s_inp.default_value)
+
+        s_inp = shader_node.inputs["Metallic"]
+        s_out = self.ng_aorm.inputs["metalness"]
+        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketFloatFactor), type(s_out)
+        self._set_up_link(s_inp, s_out, s_inp.default_value)
+
+    def _set_up_emit_color(
+        self,
+        shader_node: b_t.ShaderNodeBsdfPrincipled,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        s_inp = shader_node.inputs["Base Color"]
+        s_out = bake_out_node.inputs["Surface"]
+        s_def_inp = self.ng_color.inputs["color"]
+        s_def_out = self.ng_color.outputs["color"]
+        assert isinstance(s_inp, b_t.NodeSocketColor), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, b_t.NodeSocketColor), type(s_def_inp)
+        assert isinstance(s_def_out, b_t.NodeSocketColor), type(s_def_out)
+        self._set_up_link(s_inp, s_out, s_inp.default_value, s_def_inp, s_def_out)
+
+    def _set_up_emit_roughness(
+        self,
+        shader_node: b_t.ShaderNodeBsdfPrincipled,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        s_inp = shader_node.inputs["Roughness"]
+        s_out = bake_out_node.inputs["Surface"]
+        s_def_inp = self.ng_aorm.inputs["roughness"]
+        s_def_out = self.ng_aorm.outputs["roughness"]
+        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, b_t.NodeSocketFloatFactor), type(s_def_inp)
+        assert isinstance(s_def_out, b_t.NodeSocketFloatFactor), type(s_def_out)
+        self._set_up_link(s_inp, s_out, s_inp.default_value, s_def_inp, s_def_out)
+
+    def _set_up_emit_metalness(
+        self,
+        shader_node: b_t.ShaderNodeBsdfPrincipled,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        s_inp = shader_node.inputs["Metallic"]
+        s_out = bake_out_node.inputs["Surface"]
+        s_def_inp = self.ng_aorm.inputs["metalness"]
+        s_def_out = self.ng_aorm.outputs["metalness"]
+        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, b_t.NodeSocketFloatFactor), type(s_def_inp)
+        assert isinstance(s_def_out, b_t.NodeSocketFloatFactor), type(s_def_out)
+        self._set_up_link(s_inp, s_out, s_inp.default_value, s_def_inp, s_def_out)
+
+    def _set_up_opacity(
+        self,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        s_out = bake_out_node.inputs["Surface"]
+        s_def_inp = self.ng_aorm.inputs["metalness"]
+        s_def_out = self.ng_aorm.outputs["metalness"]
+        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, b_t.NodeSocketFloatFactor), type(s_def_inp)
+        assert isinstance(s_def_out, b_t.NodeSocketFloatFactor), type(s_def_out)
+        s_def_inp.default_value = 1.0
+        self.links.new(s_def_out, s_out)
+
+    def _set_up_mat_id(
+        self,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
+        s_out = bake_out_node.inputs["Surface"]
+        if self.bake_settings.matid_use_object_color:
+            s_inp = self.ng_color.outputs["object_color"]
         else:
-            ng_aorm.inputs["roughness"].default_value = target_input.default_value
+            s_inp = self.ng_color.outputs["color"]
+        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
+        assert isinstance(s_inp, b_t.NodeSocketColor), type(s_inp)
 
-        target_input = from_node.inputs["Metallic"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, ng_aorm.inputs["metalness"])
-        else:
-            ng_aorm.inputs["metalness"].default_value = target_input.default_value
+        self.links.new(s_inp, s_out)
 
-    if bake_settings.type == BakeTextureType.EMIT_COLOR.name:
-        target_input = from_node.inputs["Base Color"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, out_node.inputs["Surface"])
-        else:
-            ng_color.inputs["color"].default_value = target_input.default_value
-            links.new(ng_color.outputs["color"], out_node.inputs["Surface"])
-
-    if bake_settings.type == BakeTextureType.EMIT_ROUGHNESS.name:
-        target_input = from_node.inputs["Roughness"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, out_node.inputs["Surface"])
-        else:
-            ng_aorm.outputs["roughness"].default_value = target_input.default_value
-            links.new(ng_aorm.outputs["roughness"], out_node.inputs["Surface"])
-
-    if bake_settings.type == BakeTextureType.EMIT_METALNESS.name:
-        target_input = from_node.inputs["Metallic"]
-        if target_input.is_linked:
-            target_socket = target_input.links[0].from_socket
-            links.new(target_socket, out_node.inputs["Surface"])
-        else:
-            ng_aorm.outputs["metalness"].default_value = target_input.default_value
-            links.new(ng_aorm.outputs["metalness"], out_node.inputs["Surface"])
-
-    if bake_settings.type == BakeTextureType.EMIT_OPACITY.name:
-        ng_aorm.outputs["metalness"].default_value = 1.0
-        links.new(ng_aorm.outputs["metalness"], out_node.inputs["Surface"])
-
-    if bake_settings.type == BakeTextureType.MATERIAL_ID.name:
-        if bake_settings.matid_use_object_color:
-            links.new(ng_color.outputs["object_color"], out_node.inputs["Surface"])
-        else:
-            links.new(ng_color.outputs["color"], out_node.inputs["Surface"])
-
-    if bake_settings.type in [
-        BakeTextureType.UTILS_GRID_COLOR.name,
-        BakeTextureType.UTILS_GRID_UV.name,
-    ]:
+    def _set_up_grid(
+        self,
+        bake_out_node: b_t.ShaderNodeOutputMaterial,
+    ) -> None:
         grid_img_name: str
         texture_size = TextureSize(
-            width=int(bake_settings.size), height=int(bake_settings.size)
+            width=int(self.bake_settings.size), height=int(self.bake_settings.size)
         )
         _init_uv_maps(texture_size)
-        if bake_settings.type == BakeTextureType.UTILS_GRID_COLOR.name:
+        if self.bake_settings.type == BakeTextureType.UTILS_GRID_COLOR.name:
             grid_img_name = _get_color_grid_map_name(texture_size)
-        elif bake_settings.type == BakeTextureType.UTILS_GRID_UV.name:
+        elif self.bake_settings.type == BakeTextureType.UTILS_GRID_UV.name:
             grid_img_name = _get_uv_grid_map_name(texture_size)
 
-        texture_node = add_node(b_t.ShaderNodeTexImage, MaterialNodeNames.UV_TEXTURE)
+        texture_node = self._add_node(
+            b_t.ShaderNodeTexImage, MaterialNodeNames.UV_TEXTURE
+        )
+        assert isinstance(texture_node, b_t.ShaderNodeTexImage)
         # FIXME: map is being deleted from other materials if we have multiple materials
         texture_node.image = bpy.data.images[grid_img_name]
 
-        links.new(texture_node.outputs["Color"], out_node.inputs["Surface"])
+        self.links.new(texture_node.outputs["Color"], bake_out_node.inputs["Surface"])
+
+    def __init__(
+        self,
+        *,
+        mat: b_t.Material,
+        bake_settings: BakeSettings,
+        image_name: str,
+        mat_id_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
+    ):
+        """Prepare material for baking."""
+        AssetLibraryManager.node_groups_load()
+
+        assert isinstance(mat.node_tree, b_t.ShaderNodeTree), type(mat.node_tree)
+        self.tree = mat.node_tree
+        self.links = self.tree.links
+        self.start_location = Vector((500, 500))  # type: ignore[no-untyped-call]
+        self.mat = mat
+        self.bake_settings = bake_settings
+        self.mat_id_color = mat_id_color
+
+        self.output_node = self.tree.get_output_node("CYCLES")
+        # TODO: we shouldn't care about existing material outputs when baking matid?
+        if self.tree.get_output_node("CYCLES") is None:
+            # TODO: only modify node group once
+            # node_groups: list[b_t.ShaderNodeGroup] = []
+            # for node in tree.nodes:
+            #     if isinstance(node, b_t.ShaderNodeGroup):
+            #         node_groups.append(node)
+
+            raise AddonException("Can't bake material without material outputs")
+
+        self.frame = self._get_node_frame()
+
+        self.ng_color = self._add_color_node_group()
+        self.ng_aorm = self._add_aorm_node_group()
+
+        bake_texture_node = self._get_node_bake_texture()
+        bake_texture_node.image = bpy.data.images.get(image_name)
+        if bake_texture_node.image is None:
+            log(f"bake_texture_node.image is None for name: {image_name}")
+        # TODO: ensure it selected before baking
+        # bake_texture_node.select = True
+        # tree.nodes.active = bake_texture_node
+
+        if BakeTextureType[bake_settings.type].is_native:
+            return
+
+        self._material_setup()
+
+    def _material_setup(self) -> None:
+        """Set up utils in the material."""
+        bake_out_node = self._get_node_bake_output()
+        shader_node = self._get_shader_node()
+
+        if self.bake_settings.type == BakeTextureType.AO.name:
+            self._set_up_ao(shader_node, bake_out_node)
+        if self.bake_settings.type == BakeTextureType.AORM.name:
+            self._set_up_aorm(shader_node, bake_out_node)
+        if self.bake_settings.type == BakeTextureType.EMIT_COLOR.name:
+            self._set_up_emit_color(shader_node, bake_out_node)
+        if self.bake_settings.type == BakeTextureType.EMIT_ROUGHNESS.name:
+            self._set_up_emit_roughness(shader_node, bake_out_node)
+        if self.bake_settings.type == BakeTextureType.EMIT_METALNESS.name:
+            self._set_up_emit_metalness(shader_node, bake_out_node)
+        if self.bake_settings.type == BakeTextureType.EMIT_OPACITY.name:
+            self._set_up_opacity(bake_out_node)
+        if self.bake_settings.type == BakeTextureType.MATERIAL_ID.name:
+            self._set_up_mat_id(bake_out_node)
+        if self.bake_settings.type in [
+            BakeTextureType.UTILS_GRID_COLOR.name,
+            BakeTextureType.UTILS_GRID_UV.name,
+        ]:
+            self._set_up_grid(bake_out_node)
 
 
 def material_cleanup(mat: b_t.Material) -> None:
@@ -369,8 +535,8 @@ class MaterialSetupSelected(b_t.Operator):
         colors = generate_color_set(len(selected_mats))
         for mat in selected_mats:
             material_cleanup(mat)
-            material_setup(
-                mat,
+            BakeMaterialManager(
+                mat=mat,
                 bake_settings=cfg,
                 image_name="",
                 mat_id_color=colors[selected_mats.index(mat)],
@@ -421,8 +587,8 @@ class MaterialSetup(b_t.Operator):
         cfg = get_bake_settings(context, self.settings_id)
 
         mat = bpy.data.materials[self.target_material_name]
-        material_setup(
-            mat,
+        BakeMaterialManager(
+            mat=mat,
             bake_settings=cfg,
             image_name=self.target_image_name,
             mat_id_color=self.mat_id_color,
