@@ -18,7 +18,7 @@ class SimpleBakeSpecialsMenu(b_t.Menu):
     bl_label = "Simple Bake Specials"
 
     def draw(self, _context: b_t.Context | None) -> None:
-        """draw() override."""
+        """UIList draw override."""
         layout = self.layout
 
         subl = layout.column(align=True)
@@ -47,7 +47,7 @@ class SimpleBake(SidePanelMixin):
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
     def draw(self, context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         lyt = self.layout
 
         if not context.selected_objects:

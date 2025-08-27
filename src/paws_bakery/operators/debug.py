@@ -15,7 +15,7 @@ class DebugResetState(b_t.Operator):
     bl_options = {"REGISTER"}
 
     def execute(self, _context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         # pylint: disable=protected-access
         TimerManager._TimerManager__ref_count = 0
         TimerManager._TimerManager__remove_timer()

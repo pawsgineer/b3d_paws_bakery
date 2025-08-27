@@ -16,7 +16,7 @@ class TextureSetMeshAdd(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override"""
+        """Operator execute override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
@@ -43,7 +43,7 @@ class TextureSetMeshRemove(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override"""
+        """Operator execute override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
@@ -61,7 +61,7 @@ class TextureSetMeshClear(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override"""
+        """Operator execute override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 

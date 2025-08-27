@@ -25,7 +25,7 @@ class TextureImportRuleAdd(b_t.Operator):
     bl_options = {BlenderOperatorType.INTERNAL}
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         prop = get_preferences().texture_import_rules.add()
         prop.name = ""
 
@@ -45,7 +45,7 @@ class TextureImportRuleRemove(b_t.Operator):
     )
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         get_preferences().texture_import_rules.remove(self.idx)
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -69,7 +69,7 @@ class TextureImportRuleUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """draw() override."""
+        """UIList draw override."""
         assert item
         prefs = get_preferences()
 
@@ -176,7 +176,7 @@ class AddonPreferences(b_t.AddonPreferences):
         return None
 
     def draw(self, _context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         lyt = self.layout
 
         column = lyt.column(align=True)

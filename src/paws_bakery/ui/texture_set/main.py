@@ -32,7 +32,7 @@ class SetUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """draw() override."""
+        """UIList draw override."""
         assert item
         row = layout.row(align=True)
         row.prop(item, "is_enabled", text="")
@@ -72,7 +72,7 @@ class Main(SidePanelMixin):
     bl_order = 2
 
     def draw(self, context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         pawsbkr = get_props(context)
         active_set = pawsbkr.active_texture_set
 

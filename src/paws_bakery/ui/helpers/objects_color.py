@@ -9,7 +9,7 @@ from .main import Main
 
 @register_and_duplicate_to_node_editor
 class ObjectsColor(SidePanelMixin):
-    "UI Panel - Objects Color."
+    """UI Panel - Objects Color."""
 
     bl_parent_id = Main.bl_idname
     bl_idname = "PAWSBKR_PT_helpers_objects_color"
@@ -18,7 +18,7 @@ class ObjectsColor(SidePanelMixin):
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context: b_t.Context) -> None:
-        "Panel draw() override."
+        """Panel UIList draw override."""
         layout = self.layout
 
         if not context.selected_objects:

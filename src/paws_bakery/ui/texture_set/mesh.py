@@ -20,7 +20,7 @@ class MeshSpecialsMenu(b_t.Menu):
     bl_label = "Mesh Specials"
 
     def draw(self, _context: b_t.Context | None) -> None:
-        """draw() override."""
+        """UIList draw override."""
         layout = self.layout
         subl = layout.column(align=True)
         subl.operator(TextureSetMeshClear.bl_idname, icon="CANCEL")
@@ -44,7 +44,7 @@ class MeshUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """draw() override."""
+        """UIList draw override."""
         row = layout.split(factor=0.05)
         row.label(
             text="",
@@ -90,13 +90,13 @@ class Meshes(SidePanelMixin):
 
     @classmethod
     def poll(cls, context: b_t.Context) -> bool:
-        """poll() override."""
+        """Panel poll override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
     def draw_header(self, context: b_t.Context) -> None:
-        """draw_header() override."""
+        """Panel draw_header override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         if len(texture_set.meshes) < 1:
@@ -104,7 +104,7 @@ class Meshes(SidePanelMixin):
             self.layout.label(text="", icon="ERROR")
 
     def draw(self, context: b_t.Context) -> None:
-        """draw() override."""
+        """UIList draw override."""
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 

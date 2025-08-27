@@ -1,0 +1,40 @@
+[tool.black]
+preview = true
+
+[tool.ruff]
+fix = true
+target-version = "py310"
+
+# exclude = []
+# include = [".vscode/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "B", "W", "C", "Q", "D"]
+# extend-fixable = ["W505", "E501"]
+unfixable = ["F401"]
+external = ["B036"]
+
+[tool.ruff.lint.per-file-ignores]
+# "__init__.py" = ["E402"]
+"setup.py" = ["D1"]
+"**/{tests,docs,tools}/*" = ["D1"]
+
+[tool.ruff.lint.flake8-bandit]
+check-typed-exception = true
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+"bpy.types" = "blt"
+"bpy.props" = "blp"
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 88
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+# ignore-var-parameters = true
+
+[tool.ruff.format]
+# preview = true
+docstring-code-format = true
+# docstring-code-line-length = 88
+line-ending = "lf"

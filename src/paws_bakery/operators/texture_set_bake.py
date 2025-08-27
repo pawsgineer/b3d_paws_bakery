@@ -58,7 +58,7 @@ class TextureSetBake(b_t.Operator):
     __bake_job: BakeJob | None = None
 
     def execute(self, context: b_t.Context) -> set[BlenderOperatorReturnType]:
-        """execute() override."""
+        """Operator execute override."""
         can_run, msg = self.__can_run()
         if not can_run:
             log(msg)
@@ -89,7 +89,7 @@ class TextureSetBake(b_t.Operator):
     def modal(
         self, context: b_t.Context, event: b_t.Event
     ) -> set[BlenderOperatorReturnType]:
-        """modal() override."""
+        """Operator modal override."""
         if event.type in {BlenderEventType.ESC}:
             self._cancel(context)
             return {BlenderOperatorReturnType.CANCELLED}

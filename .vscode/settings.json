@@ -1,6 +1,16 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "notebook.formatOnSave.enabled": true,
+  "notebook.codeActionsOnSave": {
+    "notebook.source.fixAll.ruff": "explicit",
+    "notebook.source.organizeImports.ruff": "explicit"
   },
   "mypy-type-checker.args": [
     // "--show-column-numbers",

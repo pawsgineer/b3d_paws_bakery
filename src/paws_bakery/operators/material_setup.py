@@ -54,6 +54,7 @@ class MaterialNodeNames(str, Enum):
     #         return obj
 
     def __str__(self) -> str:
+        """Return a string representation of the Material Node name."""
         return str(self.value)
 
 
@@ -505,7 +506,7 @@ class MaterialCleanupSelected(b_t.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, _context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         selected_mats = tuple(get_selected_materials())
         for mat in selected_mats:
             material_cleanup(mat)
@@ -521,12 +522,12 @@ class MaterialSetupSelected(b_t.Operator):
     bl_label = "Setup Selected Materials"
     bl_options = {"REGISTER", "UNDO"}
 
-    settings_id: b_p.StringProperty(
+    settings_id: b_p.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if len(self.settings_id) < 1:
             raise ValueError("settings_id not set")
         cfg = get_bake_settings(context, self.settings_id)
@@ -553,22 +554,22 @@ class MaterialSetup(b_t.Operator):
     bl_label = "Setup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    cleanup: b_p.BoolProperty(
+    cleanup: b_p.BoolProperty(  # type: ignore[valid-type]
         default=False,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    target_material_name: b_p.StringProperty(
+    target_material_name: b_p.StringProperty(  # type: ignore[valid-type]
         name="Material Name",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    target_image_name: b_p.StringProperty(
+    target_image_name: b_p.StringProperty(  # type: ignore[valid-type]
         name="Bake Image Name",
         description="Name of the image to bake textures into",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    mat_id_color: b_p.FloatVectorProperty()
+    mat_id_color: b_p.FloatVectorProperty()  # type: ignore[valid-type]
 
-    settings_id: b_p.StringProperty(
+    settings_id: b_p.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
@@ -577,7 +578,7 @@ class MaterialSetup(b_t.Operator):
         material_cleanup(mat)
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if self.cleanup:
             self._cleanup(context)
             return {BlenderOperatorReturnType.FINISHED}

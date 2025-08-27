@@ -1,6 +1,6 @@
 """Randomize objects color."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import bpy
 from bpy import props as b_p
@@ -19,7 +19,7 @@ class RandomizeColor(b_t.Operator):
     bl_label = "Randomize Color"
     bl_options = {"REGISTER", "UNDO"}
 
-    target_object: b_p.StringProperty(
+    target_object: b_p.StringProperty(  # type: ignore[valid-type]
         name="Target Object",
         description="Object to randomize color. If empty, applies to all selected",
         default="",
@@ -27,7 +27,7 @@ class RandomizeColor(b_t.Operator):
     )
 
     def execute(self, context: b_t.Context) -> set[str]:
-        """execute() override."""
+        """Operator execute override."""
         if self.target_object:
             targets: Sequence[bpy.types.Object] = [bpy.data.objects[self.target_object]]
         else:
@@ -37,6 +37,6 @@ class RandomizeColor(b_t.Operator):
 
         for i, obj in enumerate(targets):
             new_color = colors[i]
-            obj.color = new_color + (1.0,)  # type: ignore[assignment]
+            obj.color = new_color + (1.0,)
 
         return {BlenderOperatorReturnType.FINISHED}
