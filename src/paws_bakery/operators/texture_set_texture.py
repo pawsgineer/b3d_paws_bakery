@@ -8,7 +8,7 @@ from ..enums import BlenderOperatorReturnType
 from ..props import get_bake_settings, get_props
 from ..utils import AddonException, Registry
 from ._utils import generate_color_set
-from .material_setup import material_cleanup, material_setup
+from .material_setup import BakeMaterialManager, material_cleanup
 
 
 @Registry.add
@@ -103,8 +103,8 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
         for mat in materials:
             self.report({"INFO"}, f"Initializing material {mat.name!r}")
             material_cleanup(mat)
-            material_setup(
-                mat,
+            BakeMaterialManager(
+                mat=mat,
                 bake_settings=cfg,
                 image_name="",
                 mat_id_color=colors[list(materials).index(mat)],
