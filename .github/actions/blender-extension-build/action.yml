@@ -1,0 +1,42 @@
+name: Blender Extension Build
+description: Build Blender Extension with the provided options.
+
+inputs:
+  blender_version:
+    description: Blender version
+    required: true
+    type: string
+  extension_name:
+    description: Extension name
+    required: true
+    type: string
+  upload_artifact:
+    description: Upload build artifacts
+    default: true
+    type: boolean
+
+outputs:
+  extension_version:
+    description: Extension version
+    value: ${{ steps.build.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Extension Build
+      id: build
+      shell: bash
+      env:
+        BL_VERSION: ${{ inputs.blender_version }}
+        BL_EXT_NAME: ${{ inputs.extension_name }}
+      run: bash ${{ github.action_path }}/script.sh
+
+    # NOTE: zip is being zipped anyway
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ inputs.upload_artifact }}
+      with:
+        name: ${{ inputs.extension_name }}-${{ steps.build.outputs.version }}
+        path: ${{ inputs.extension_name }}-${{ steps.build.outputs.version }}.zip
+        compression-level: 0
+        if-no-files-found: error

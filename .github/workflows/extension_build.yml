@@ -1,0 +1,36 @@
+name: Build Extension (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      blender_version:
+        description: Blender version
+        default: '4.5.2'
+        type: choice
+        options:
+          - '4.5.2'
+          - '4.4.3'
+          - '4.3.2'
+          - '4.2.3'
+
+permissions:
+  contents: read
+
+env:
+  BL_VERSION: ${{ inputs.blender_version }}
+  EXTENSION_NAME: paws_bakery
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: Build | Extension
+        id: build
+        uses: ./.github/actions/blender-extension-build
+        with:
+          blender_version: ${{ env.BL_VERSION }}
+          extension_name: ${{ env.EXTENSION_NAME }}

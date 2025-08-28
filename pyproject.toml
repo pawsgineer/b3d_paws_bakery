@@ -84,6 +84,6 @@ exclude_commit_patterns = [
 # ignore_token_for_push = false
 # insecure = false
 
-# [tool.semantic_release.publish]
-# dist_glob_patterns = ["dist/*"]
+[tool.semantic_release.publish]
+dist_glob_patterns = ["paws_bakery-*.zip"]
 # upload_to_vcs_release = true
