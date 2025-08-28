@@ -1,12 +1,22 @@
-name: release
+name: Release Add-on
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      force_upload:
+        description: Force build and upload of extension to Releases page
+        default: false
+        type: boolean
 
 permissions:
   contents: read
+
+env:
+  BL_VERSION: 4.5.2
+  EXTENSION_NAME: paws_bakery
 
 jobs:
   release:
@@ -17,47 +27,17 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Setup | Checkout Repository on Release Branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
+          lfs: true
 
       - name: Setup | Force release branch to be at workflow sha
-        run: |
-          git reset --hard ${{ github.sha }}
+        run: git reset --hard ${{ github.sha }}
 
       - name: Evaluate | Verify upstream has NOT changed
-        shell: bash
-        run: |
-          set +o pipefail
-
-          UPSTREAM_BRANCH_NAME="$(git status -sb | head -n 1 | cut -d' ' -f2 | grep -E '\.{3}' | cut -d'.' -f4)"
-          printf '%s\n' "Upstream branch name: $UPSTREAM_BRANCH_NAME"
-
-          set -o pipefail
-
-          if [ -z "$UPSTREAM_BRANCH_NAME" ]; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch name!"
-              exit 1
-          fi
-
-          git fetch "${UPSTREAM_BRANCH_NAME%%/*}"
-
-          if ! UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")"; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
-              exit 1
-          fi
-
-          HEAD_SHA="$(git rev-parse HEAD)"
-
-          if [ "$HEAD_SHA" != "$UPSTREAM_SHA" ]; then
-              printf >&2 '%s\n' "[HEAD SHA] $HEAD_SHA != $UPSTREAM_SHA [UPSTREAM SHA]"
-              printf >&2 '%s\n' "::error::Upstream has changed, aborting release..."
-              exit 1
-          fi
-
-          printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
+        run: bash .github/workflows/verify_upstream_not_changed.sh
 
       - name: Action | Semantic Version Release
         id: release
@@ -67,19 +47,20 @@ jobs:
           git_committer_name: 'github-actions'
           git_committer_email: 'actions@users.noreply.github.com'
 
+      - id: build
+        if: ${{ steps.release.outputs.released == 'true' || inputs.force_upload }}
+        uses: ./.github/actions/blender-extension-build
+        with:
+          blender_version: ${{ env.BL_VERSION }}
+          extension_name: ${{ env.EXTENSION_NAME }}
+
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v10.3.1
-        if: steps.release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
-
-      - name: Upload | Distribution Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: distribution-artifacts
-          path: dist
-          if-no-files-found: error
+          verbosity: 2
+#
 #   deploy:
 #     runs-on: ubuntu-latest
 #     needs: release
