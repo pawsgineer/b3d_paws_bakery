@@ -29,7 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.ref_name }}
           fetch-depth: 0
           lfs: true
 
@@ -47,18 +46,28 @@ jobs:
           git_committer_name: 'github-actions'
           git_committer_email: 'actions@users.noreply.github.com'
 
-      - id: build
-        if: ${{ steps.release.outputs.released == 'true' || inputs.force_upload }}
+  publish:
+    runs-on: ubuntu-latest
+    needs: release
+    if: ${{ needs.release.outputs.released == 'true' || inputs.force_upload }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          lfs: true
+
+      - name: Build Extension
+        id: build
         uses: ./.github/actions/blender-extension-build
         with:
           blender_version: ${{ env.BL_VERSION }}
           extension_name: ${{ env.EXTENSION_NAME }}
 
-      - name: Publish | Upload to GitHub Release Assets
+      - name: Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v10.3.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release.outputs.tag }}
+          tag: ${{ needs.release.outputs.tag }}
           verbosity: 2
 #
 #   deploy:
