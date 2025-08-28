@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      # - ci/*
   workflow_dispatch:
     inputs:
       force_upload:
@@ -26,6 +27,10 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: write
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -46,11 +51,23 @@ jobs:
           git_committer_name: 'github-actions'
           git_committer_email: 'actions@users.noreply.github.com'
 
+      - name: Ensure the release metadata is set
+        run: |
+          test -n "${{ steps.release.outputs.released }}"
+          test -n "${{ steps.release.outputs.tag }}"
+          test -n "${{ steps.release.outputs.version }}"
+
   publish:
     runs-on: ubuntu-latest
     needs: release
     if: ${{ needs.release.outputs.released == 'true' || inputs.force_upload }}
     steps:
+      - name: Ensure the release metadata is set
+        run: |
+          test -n "${{ needs.release.outputs.released }}"
+          test -n "${{ needs.release.outputs.tag }}"
+          test -n "${{ needs.release.outputs.version }}"
+
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.release.outputs.tag }}
