@@ -14,5 +14,5 @@ class Main(SidePanelMixin):
     bl_order = 10
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, context: b_t.Context) -> None:
-        """UIList draw override."""
+    def draw(self, _context: b_t.Context) -> None:  # noqa: D102
+        pass

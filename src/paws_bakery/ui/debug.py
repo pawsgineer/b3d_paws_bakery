@@ -41,12 +41,10 @@ class Debug(SidePanelMixin):
     bl_order = 9999
 
     @classmethod
-    def poll(cls, _context: b_t.Context) -> bool:
-        """Panel poll override."""
+    def poll(cls, _context: b_t.Context) -> bool:  # noqa: D102
         return get_preferences().enable_debug_tools
 
-    def draw(self, context: b_t.Context) -> None:
-        """Panel draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
 
         layout = self.layout

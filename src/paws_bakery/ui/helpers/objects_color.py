@@ -1,5 +1,7 @@
 """UI Panel - Objects Color."""
 
+from typing import cast
+
 from bpy import types as b_t
 
 from ...operators import RandomizeColor
@@ -17,8 +19,7 @@ class ObjectsColor(SidePanelMixin):
     bl_order = 1
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, context: b_t.Context) -> None:
-        """Panel UIList draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: D102
         layout = self.layout
 
         if not context.selected_objects:
@@ -35,10 +36,13 @@ class ObjectsColor(SidePanelMixin):
         )
 
         row = flow.row(align=True)
-        props = row.operator(
-            RandomizeColor.bl_idname,
-            text="Randomize selected",
-            icon="FILE_REFRESH",
+        props = cast(
+            RandomizeColor,
+            row.operator(
+                RandomizeColor.bl_idname,
+                text="Randomize selected",
+                icon="FILE_REFRESH",
+            ),
         )
         props.target_object = ""
 

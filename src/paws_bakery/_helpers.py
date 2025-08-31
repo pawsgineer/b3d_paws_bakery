@@ -1,4 +1,9 @@
-"""Helpers for use in Blender add-ons. No add-on speciffic functions are expected."""
+"""Helpers for use in Blender add-ons.
+
+No add-on speciffic functions are expected.
+This module supposed to be imported wherever you want, cyclic imports must be
+avoided.
+"""
 
 import traceback
 from datetime import datetime

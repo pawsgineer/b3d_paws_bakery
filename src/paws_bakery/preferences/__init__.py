@@ -24,8 +24,7 @@ class TextureImportRuleAdd(b_t.Operator):
     bl_label = "Add Texture Import Rule"
     bl_options = {BlenderOperatorType.INTERNAL}
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         prop = get_preferences().texture_import_rules.add()
         prop.name = ""
 
@@ -44,8 +43,7 @@ class TextureImportRuleRemove(b_t.Operator):
         options={"HIDDEN", "SKIP_SAVE"},
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         get_preferences().texture_import_rules.remove(self.idx)
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -57,7 +55,7 @@ class TextureImportRuleUIList(b_t.UIList):
 
     bl_idname = "PAWSBKR_UL_prefs_texture_import_rules"
 
-    def draw_item(
+    def draw_item(  # noqa: D102
         self,
         context: b_t.Context | None,
         layout: b_t.UILayout,
@@ -69,7 +67,6 @@ class TextureImportRuleUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """UIList draw override."""
         assert item
         prefs = get_preferences()
 
@@ -120,8 +117,9 @@ class TextureImportRuleUIList(b_t.UIList):
         subrow.prop(imp_rule, "is_non_color")
 
         if not imp_rule.is_builtin:
-            props = row.operator(
-                TextureImportRuleRemove.bl_idname, icon="TRASH", text=""
+            props = cast(
+                TextureImportRuleRemove,
+                row.operator(TextureImportRuleRemove.bl_idname, icon="TRASH", text=""),
             )
             props.idx = prefs.texture_import_rules.find(imp_rule.name)
 
@@ -175,8 +173,7 @@ class AddonPreferences(b_t.AddonPreferences):
 
         return None
 
-    def draw(self, _context: b_t.Context) -> None:
-        """UIList draw override."""
+    def draw(self, _context: b_t.Context) -> None:  # noqa: D102
         lyt = self.layout
 
         column = lyt.column(align=True)

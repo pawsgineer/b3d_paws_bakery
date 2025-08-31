@@ -1,5 +1,7 @@
 """UI Panel - Simple Bake."""
 
+from typing import cast
+
 import bpy
 from bpy import types as b_t
 
@@ -17,20 +19,22 @@ class SimpleBakeSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_simple_bake_specials"
     bl_label = "Simple Bake Specials"
 
-    def draw(self, _context: b_t.Context | None) -> None:
-        """UIList draw override."""
+    def draw(self, _context: b_t.Context | None) -> None:  # noqa: D102
         layout = self.layout
 
         subl = layout.column(align=True)
 
-        props = subl.operator(
-            MaterialSetupSelected.bl_idname,
-            text="Setup Materials",
-            icon="MATERIAL",
+        props = cast(
+            MaterialSetupSelected,
+            subl.operator(
+                MaterialSetupSelected.bl_idname,
+                text="Setup Materials",
+                icon="MATERIAL",
+            ),
         )
         props.settings_id = SIMPLE_BAKE_SETTINGS_ID
 
-        props = subl.operator(
+        subl.operator(
             MaterialCleanupSelected.bl_idname,
             text="Cleanup Materials",
             icon="NODE_MATERIAL",
@@ -46,8 +50,7 @@ class SimpleBake(SidePanelMixin):
     bl_order = 1
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
-    def draw(self, context: b_t.Context) -> None:
-        """UIList draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: D102
         lyt = self.layout
 
         if not context.selected_objects:

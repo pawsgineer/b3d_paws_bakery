@@ -139,6 +139,7 @@ class BakeMaterialManager:
     start_location: Vector
     output_node: b_t.ShaderNodeOutputMaterial
 
+    # TODO: add classes with validation of util GN(and Shaders?) sockets and type hints
     ng_color: b_t.ShaderNodeGroup
     ng_aorm: b_t.ShaderNodeGroup
 
@@ -505,8 +506,7 @@ class MaterialCleanupSelected(b_t.Operator):
     bl_label = "Cleanup Selected Materials"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, _context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, _context: b_t.Context) -> set[str]:  # noqa: D102
         selected_mats = tuple(get_selected_materials())
         for mat in selected_mats:
             material_cleanup(mat)
@@ -526,8 +526,7 @@ class MaterialSetupSelected(b_t.Operator):
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         if len(self.settings_id) < 1:
             raise ValueError("settings_id not set")
         cfg = get_bake_settings(context, self.settings_id)
@@ -577,8 +576,7 @@ class MaterialSetup(b_t.Operator):
         mat = bpy.data.materials[self.target_material_name]
         material_cleanup(mat)
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         if self.cleanup:
             self._cleanup(context)
             return {BlenderOperatorReturnType.FINISHED}

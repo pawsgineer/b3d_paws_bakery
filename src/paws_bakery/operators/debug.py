@@ -14,11 +14,10 @@ class DebugResetState(b_t.Operator):
     bl_label = "Reset Addon State"
     bl_options = {"REGISTER"}
 
-    def execute(self, _context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, _context: b_t.Context) -> set[str]:  # noqa: D102
         # pylint: disable=protected-access
-        TimerManager._TimerManager__ref_count = 0
-        TimerManager._TimerManager__remove_timer()
+        TimerManager._TimerManager__ref_count = 0  # type: ignore[attr-defined]
+        TimerManager._TimerManager__remove_timer()  # type: ignore[attr-defined]
         # BakeSelected._Bake__is_running = False
         # TextureSetBake._TextureSetTextureBake__is_running = False
         # pylint: enable=protected-access

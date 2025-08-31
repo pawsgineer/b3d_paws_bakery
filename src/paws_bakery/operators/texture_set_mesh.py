@@ -15,10 +15,10 @@ class TextureSetMeshAdd(b_t.Operator):
     bl_label = "Add Object"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
 
         for obj in context.selected_objects:
             if obj.type != "MESH":
@@ -42,11 +42,11 @@ class TextureSetMeshRemove(b_t.Operator):
     bl_label = "Remove Object"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
+        assert texture_set
         texture_set.meshes.remove(texture_set.meshes_active_index)
 
         return {BlenderOperatorReturnType.FINISHED}
@@ -60,11 +60,11 @@ class TextureSetMeshClear(b_t.Operator):
     bl_label = "Remove All Object"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
+        assert texture_set
         texture_set.meshes.clear()
 
         return {BlenderOperatorReturnType.FINISHED}

@@ -35,8 +35,7 @@ class TextureSetMaterialCreate(b_t.Operator):
 
     _texture_set: TextureSetProps
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         if not self.texture_set_id:
             raise AddonException("texture_set_id is required")
 
