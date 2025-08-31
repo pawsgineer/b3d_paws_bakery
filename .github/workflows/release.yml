@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      # - ci/*
+      # - ci/**
   workflow_dispatch:
     inputs:
       force_upload:
@@ -32,26 +32,51 @@ jobs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.release.outputs.version }}
     steps:
+      - name: Generate a token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
           fetch-depth: 0
           lfs: true
 
-      - name: Setup | Force release branch to be at workflow sha
+      - name: Force release branch to be at workflow sha
         run: git reset --hard ${{ github.sha }}
 
-      - name: Evaluate | Verify upstream has NOT changed
+      - name: Verify upstream has NOT changed
         run: bash .github/workflows/verify_upstream_not_changed.sh
 
-      - name: Action | Semantic Version Release
+      - name: Get GitHub App User ID
+        id: app-user-id
+        run: |
+          slug="${{ steps.app-token.outputs.app-slug }}"
+          echo "id=$(gh api "/users/${slug}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Generate git author
+        id: git-author
+        run: |
+          slug="${{ steps.app-token.outputs.app-slug }}"
+          id="${{ steps.app-user-id.outputs.id }}"
+          echo "name=${slug}[bot]" >> "$GITHUB_OUTPUT"
+          echo "email=${id}+${slug}[bot]@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
+      - name: Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v10.3.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          git_committer_name: 'github-actions'
-          git_committer_email: 'actions@users.noreply.github.com'
+          github_token: ${{ steps.app-token.outputs.token }}
+          git_committer_name: ${{ steps.committer.outputs.name }}
+          git_committer_email: ${{ steps.committer.outputs.email }}
 
-      - name: Ensure the release metadata is set
+      - name: Ensure the version metadata is set
         run: |
           test -n "${{ steps.release.outputs.released }}"
           test -n "${{ steps.release.outputs.tag }}"
@@ -70,6 +95,8 @@ jobs:
 
       - uses: actions/checkout@v5
         with:
+          # FIXME: doesn't work because tag may be older than workflow actions
+          token: ${{ steps.token.outputs.token }}
           ref: ${{ needs.release.outputs.tag }}
           lfs: true
 
