@@ -61,8 +61,9 @@ class TextureImport(SidePanelMixin):
             return
 
         row = lyt.row()
-        op_props = row.operator(
-            ops.TextureImport.bl_idname, text="Batch Import Textures"
+        op_props = cast(
+            ops.TextureImport,
+            row.operator(ops.TextureImport.bl_idname, text="Batch Import Textures"),
         )
 
         row.menu(TextureImportSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
@@ -85,22 +86,25 @@ class TextureImport(SidePanelMixin):
                 lyt.panel("_".join([self.bl_idname, mat.name]), default_closed=True),
             )
             header.prop(mat, "name", icon="MATERIAL", text="")
-            op_props = header.operator(
-                ops.TextureImport.bl_idname,
-                text=f"Import Textures ({nodes_found}/{nodes_used})",
+            op_props = cast(
+                ops.TextureImport,
+                header.operator(
+                    ops.TextureImport.bl_idname,
+                    text=f"Import Textures ({nodes_found}/{nodes_used})",
+                ),
             )
             op_props.target_material_name = mat.name
-            if not panel:
-                continue
-
             if current_image_filepath:
-                op_props.filepath = str(
+                op_props.directory = str(
                     Path(bpy.path.abspath(current_image_filepath)).parent
                 )
             else:
-                op_props.filepath = bpy.path.abspath(
+                op_props.directory = bpy.path.abspath(
                     get_preferences().output_directory + "/"
                 )
+
+            if not panel:
+                continue
 
             for node_prefix, node_set in pref_to_nodes.by_prefix.items():
                 if not node_set:
