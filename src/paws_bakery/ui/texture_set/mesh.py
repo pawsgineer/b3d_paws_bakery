@@ -19,8 +19,7 @@ class MeshSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_texture_set_mesh_specials"
     bl_label = "Mesh Specials"
 
-    def draw(self, _context: b_t.Context | None) -> None:
-        """UIList draw override."""
+    def draw(self, _context: b_t.Context | None) -> None:  # noqa: D102
         layout = self.layout
         subl = layout.column(align=True)
         subl.operator(TextureSetMeshClear.bl_idname, icon="CANCEL")
@@ -32,7 +31,7 @@ class MeshUIList(b_t.UIList):
 
     bl_idname = "PAWSBKR_UL_texture_set_meshes"
 
-    def draw_item(
+    def draw_item(  # noqa: D102
         self,
         _context: b_t.Context | None,
         layout: b_t.UILayout,
@@ -44,7 +43,8 @@ class MeshUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """UIList draw override."""
+        assert item
+
         row = layout.split(factor=0.05)
         row.label(
             text="",
@@ -89,22 +89,20 @@ class Meshes(SidePanelMixin):
     bl_label = "Objects"
 
     @classmethod
-    def poll(cls, context: b_t.Context) -> bool:
-        """Panel poll override."""
+    def poll(cls, context: b_t.Context) -> bool:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
-    def draw_header(self, context: b_t.Context) -> None:
-        """Panel draw_header override."""
+    def draw_header(self, context: b_t.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
         if len(texture_set.meshes) < 1:
             self.layout.alert = True
             self.layout.label(text="", icon="ERROR")
 
-    def draw(self, context: b_t.Context) -> None:
-        """UIList draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
@@ -113,6 +111,7 @@ class Meshes(SidePanelMixin):
         is_bake_running = bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE)
         layout.enabled = not is_bake_running
 
+        assert texture_set
         row = layout.row()
         if len(texture_set.meshes) < 1:
             row.alert = True

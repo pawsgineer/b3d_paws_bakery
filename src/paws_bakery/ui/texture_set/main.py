@@ -20,7 +20,7 @@ class SetUIList(b_t.UIList):
 
     bl_idname = "PAWSBKR_UL_texture_set"
 
-    def draw_item(
+    def draw_item(  # noqa: D102
         self,
         context: b_t.Context | None,
         layout: b_t.UILayout,
@@ -32,7 +32,7 @@ class SetUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """UIList draw override."""
+        assert context
         assert item
         row = layout.row(align=True)
         row.prop(item, "is_enabled", text="")
@@ -53,12 +53,18 @@ class SetUIList(b_t.UIList):
             row.label(text="No textures in set", icon="ERROR")
             return
 
-        props = row.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text="")
-        props.texture_set_id = item.prop_id
+        tsb_props = cast(
+            TextureSetBake,
+            row.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text=""),
+        )
+        tsb_props.texture_set_id = item.prop_id
 
         if get_props(context).texture_sets[item.prop_id].create_materials:
-            props = row.operator(
-                TextureSetMaterialCreate.bl_idname, icon="MATERIAL", text=""
+            props = cast(
+                TextureSetMaterialCreate,
+                row.operator(
+                    TextureSetMaterialCreate.bl_idname, icon="MATERIAL", text=""
+                ),
             )
             props.texture_set_id = item.prop_id
 
@@ -71,8 +77,7 @@ class Main(SidePanelMixin):
     bl_label = "Texture Set Bake"
     bl_order = 2
 
-    def draw(self, context: b_t.Context) -> None:
-        """UIList draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         active_set = pawsbkr.active_texture_set
 

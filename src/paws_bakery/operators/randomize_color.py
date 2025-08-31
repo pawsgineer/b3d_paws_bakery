@@ -26,8 +26,7 @@ class RandomizeColor(b_t.Operator):
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         if self.target_object:
             targets: Sequence[bpy.types.Object] = [bpy.data.objects[self.target_object]]
         else:

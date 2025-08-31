@@ -1,6 +1,6 @@
 """UI Panel - Texture Set Textures."""
 
-from typing import Any
+from typing import Any, cast
 
 import bpy
 from bpy import types as b_t
@@ -26,31 +26,39 @@ class TextureSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_texture_set_textures_specials"
     bl_label = "Texture Specials"
 
-    def draw(self, context: b_t.Context | None) -> None:
-        """UIList draw override."""
+    def draw(self, context: b_t.Context | None) -> None:  # noqa: D102
+        assert context
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
         texture = texture_set.active_texture
+        assert texture
 
         layout = self.layout
 
         subl = layout.column(align=True)
 
-        props = subl.operator(
-            TextureSetTextureSetupMaterial.bl_idname,
-            icon="MATERIAL",
-            text="Setup Materials",
+        props = cast(
+            TextureSetTextureSetupMaterial,
+            subl.operator(
+                TextureSetTextureSetupMaterial.bl_idname,
+                icon="MATERIAL",
+                text="Setup Materials",
+            ),
         )
         props.texture_set_id = texture_set.prop_id
         props.texture_id = texture.prop_id
 
         subl.alert = True
-        props = subl.operator(
-            TextureSetTextureCleanupMaterial.bl_idname,
-            icon="NODE_MATERIAL",
-            text="Cleanup Materials",
+        cm_props = cast(
+            TextureSetTextureCleanupMaterial,
+            subl.operator(
+                TextureSetTextureCleanupMaterial.bl_idname,
+                icon="NODE_MATERIAL",
+                text="Cleanup Materials",
+            ),
         )
-        props.texture_set_id = texture_set.prop_id
+        cm_props.texture_set_id = texture_set.prop_id
 
 
 @register_and_duplicate_to_node_editor
@@ -59,7 +67,7 @@ class TextureUIList(b_t.UIList):
 
     bl_idname = "PAWSBKR_UL_texture_set_textures"
 
-    def draw_item(
+    def draw_item(  # noqa: D102
         self,
         context: b_t.Context | None,
         layout: b_t.UILayout,
@@ -71,9 +79,11 @@ class TextureUIList(b_t.UIList):
         _index: Any | None = 0,
         _flt_flag: Any | None = 0,
     ) -> None:
-        """UIList draw override."""
+        assert context
+        assert item
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
         bake_settings = get_bake_settings(context, item.prop_id)
 
         row = layout.row(align=True)
@@ -89,7 +99,10 @@ class TextureUIList(b_t.UIList):
         row.alignment = "RIGHT"
         row.label(text=item.last_bake_time)
 
-        props = row.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text="")
+        props = cast(
+            TextureSetBake,
+            row.operator(TextureSetBake.bl_idname, icon="RENDER_STILL", text=""),
+        )
         props.texture_set_id = texture_set.prop_id
         props.texture_id = item.prop_id
 
@@ -103,23 +116,22 @@ class Texture(SidePanelMixin):
     bl_label = "Textures"
 
     @classmethod
-    def poll(cls, context: b_t.Context) -> bool:
-        """Panel poll override."""
+    def poll(cls, context: b_t.Context) -> bool:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
-    def draw_header(self, context: b_t.Context) -> None:
-        """Panel draw_header override."""
+    def draw_header(self, context: b_t.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
+        assert pawsbkr.active_texture_set
         if len(pawsbkr.active_texture_set.textures) < 1:
             self.layout.alert = True
             self.layout.label(text="", icon="ERROR")
 
-    def draw(self, context: b_t.Context) -> None:
-        """UIList draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
         texture = texture_set.active_texture
 
         lyt = self.layout

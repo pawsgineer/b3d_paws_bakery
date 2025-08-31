@@ -20,8 +20,7 @@ class TextureImportSpecialsMenu(b_t.Menu):
     bl_idname = "PAWSBKR_MT_texture_import_specials"
     bl_label = "Texture Import Specials"
 
-    def draw(self, _context: b_t.Context | None) -> None:
-        """UIList draw override."""
+    def draw(self, _context: b_t.Context | None) -> None:  # noqa: D102
         layout = self.layout
 
         subl = layout.column(align=True)
@@ -39,8 +38,7 @@ class TextureImport(SidePanelMixin):
     bl_order = 2
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: C901
-        """Panel draw override."""
+    def draw(self, context: b_t.Context) -> None:  # noqa: C901 D102
         lyt = self.layout
 
         if not context.selected_objects:

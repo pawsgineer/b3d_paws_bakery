@@ -19,10 +19,10 @@ class TextureSetTextureAdd(b_t.Operator):
     bl_label = "Add Texture"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
         textures = texture_set.textures
         settings_store = pawsbkr.bake_settings_store
 
@@ -42,12 +42,13 @@ class TextureSetTextureRemove(b_t.Operator):
     bl_label = "Remove Texture"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         settings_store = pawsbkr.bake_settings_store
         texture_set = pawsbkr.active_texture_set
+        assert texture_set
         texture = texture_set.active_texture
+        assert texture
 
         settings_store.remove(settings_store.find(texture.prop_id))
         texture_set.textures.remove(texture_set.textures_active_index)
@@ -85,8 +86,7 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
         name="Target texture name", default=""
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         if not self.texture_set_id:
             raise NotImplementedError("Baking without texture_set_id not implemented")
         if not self.texture_id:
@@ -129,8 +129,7 @@ class TextureSetTextureCleanupMaterial(b_t.Operator):
         name="Target texture set name", default=""
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:
-        """Operator execute override."""
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
         if not self.texture_set_id:
             raise NotImplementedError("Baking without texture_set_id not implemented")
 
