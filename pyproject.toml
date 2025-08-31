@@ -53,14 +53,15 @@ version_toml = [
 ]
 
 [tool.semantic_release.branches.main]
-match = "(main)"
-# prerelease_token = "rc"
-# prerelease = false
+match = "^(main)$"
+
+[tool.semantic_release.branches.release]
+match = "^(release)/.+"
 
 [tool.semantic_release.branches.alpha]
 match = "^(feat|fix|perf)/.+"
 prerelease = true
-# prerelease_token = "alpha"
+# prerelease_token = "rc"
 
 [tool.semantic_release.branches.ci]
 match = "^(ci)/.+"
