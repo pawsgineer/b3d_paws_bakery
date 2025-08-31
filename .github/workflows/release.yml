@@ -98,6 +98,7 @@ jobs:
           # FIXME: tag doesn't work because tag may be older than workflow actions
           token: ${{ secrets.GITHUB_TOKEN }}
           # ref: ${{ needs.release.outputs.tag }}
+          fetch-depth: 0
           lfs: true
 
       - name: Build Extension
