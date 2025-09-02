@@ -28,6 +28,7 @@ class TextureSetMeshAdd(b_t.Operator):
             if obj.name not in texture_set.meshes:
                 mesh_props = texture_set.meshes.add()
                 mesh_props.name = obj.name
+                texture_set.sort_meshes()
             else:
                 self.report({"INFO"}, f"PAWSBKR: Object {obj.name!r} already in set")
 

@@ -1,25 +1,28 @@
 # flake8: noqa: F821
 """Addon Blender properties."""
 
-from collections.abc import Mapping
-from typing import cast
+from collections.abc import Callable, Mapping
+from typing import Any, TypeVar, cast
 from uuid import uuid4
 
 import bpy
 from bpy import props as b_p
 from bpy import types as b_t
 
+from .common import sort_mesh_names
 from .props_enums import BakeMode, BakeState, BakeTextureType
-from .utils import Registry
+from .utils import Registry, naturalize_key
 
 SIMPLE_BAKE_SETTINGS_ID = "pawsbkr_simple"
 
 
 def _get_name(self: b_t.ID) -> str:
+    """Return custom property `name`. To be used as getter."""
     return cast(str, self["name"])
 
 
 def _set_force_uuid_name(self: b_t.ID, _value: str) -> None:
+    """Set property `name` to UUID if empty."""
     prev_name = self.get("name")
     if not prev_name:
         self["name"] = str(uuid4())
@@ -356,6 +359,35 @@ class TextureSetProps(b_t.PropertyGroup):
         """Get disabled textures."""
         return [x for x in self.textures if not x.is_enabled]
 
+    def sort_meshes(self) -> None:
+        """Sort meshes."""
+        meshes_sorted = [
+            self.meshes[name]
+            for name in sort_mesh_names([mesh_props.name for mesh_props in self.meshes])
+        ]
+
+        new_active_idx = sort_collection_property(
+            self.meshes,
+            active_name=self.active_mesh.name if self.active_mesh else "",
+            sorted_collection=cast(list[b_t.ID], meshes_sorted),
+        )
+        self.meshes_active_index = new_active_idx
+
+    def sort_textures(self) -> None:
+        """Sort textures."""
+
+        def key(x: TextureProps) -> list[str | int]:
+            return naturalize_key(
+                get_bake_settings(bpy.context, x.name).get_name(self.display_name)
+            )
+
+        new_active_idx = sort_collection_property(
+            self.textures,
+            active_name=self.active_texture.name if self.active_texture else "",
+            key=key,  # type: ignore[type-var]
+        )
+        self.textures_active_index = new_active_idx
+
 
 @Registry.add
 class SceneProps(b_t.PropertyGroup):
@@ -384,6 +416,18 @@ class SceneProps(b_t.PropertyGroup):
             )
         except IndexError:
             return None
+
+    def sort_texture_sets(self) -> None:
+        """Sort texture sets."""
+        active_ts = self.active_texture_set
+        new_active_idx = sort_collection_property(
+            self.texture_sets,
+            active_name=active_ts.name if active_ts else "",
+            key=lambda tset: naturalize_key(
+                tset.display_name  # type: ignore[attr-defined]
+            ),
+        )
+        self.texture_sets_active_index = new_active_idx
 
 
 @Registry.add
@@ -428,3 +472,47 @@ def get_props_scene(scene: b_t.Scene) -> SceneProps:
 def get_props_wm(ctx: b_t.Context) -> WMProps:
     """Return addon specific WindowManager properties."""
     return cast(WMProps, ctx.window_manager.pawsbkr)  # type: ignore[attr-defined]
+
+
+_PCollT = TypeVar("_PCollT", bound=b_t.bpy_prop_collection)  # type: ignore[type-arg]
+_PCollItemT = TypeVar("_PCollItemT", bound=b_t.ID)
+
+
+def sort_collection_property(
+    collection: _PCollT,
+    *,
+    key: Callable[[_PCollItemT], Any] | None = None,
+    sorted_collection: list[_PCollItemT] | None = None,
+    active_name: str = "",
+    reverse: bool = False,
+) -> int:
+    """Sort items of a collection property in-place.
+
+    :param collection: Collection
+    :param key: Key function to get sorting key from items, defaults to naturalized
+    `item.name`
+    :param sorted_collection: Pre-sorted list to use instead of key, if set the method
+    only moves items inside the collection
+    :param active_name: Name of the current active item, defaults to ""
+    :param reverse: Sort in descending order
+    :return: New index of the active item
+    """
+    if key and sorted_collection:
+        raise ValueError("Provide either key or sorted_collection, not both")
+
+    if sorted_collection is not None:
+        coll_sorted = sorted_collection
+    else:
+        coll_sorted = cast(list[_PCollItemT], collection[:])
+        coll_sorted.sort(
+            key=key if key else lambda x: naturalize_key(x.name),
+            reverse=reverse,
+        )
+
+    for idx, name in enumerate([x.name for x in coll_sorted]):
+        current_idx = collection.find(name)
+        if current_idx == idx:
+            continue
+        collection.move(current_idx, idx)  # type: ignore[attr-defined]
+
+    return collection.find(active_name) if active_name else 0

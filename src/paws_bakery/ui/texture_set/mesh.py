@@ -5,6 +5,7 @@ from typing import Any
 import bpy
 from bpy import types as b_t
 
+from ...common import is_name_low
 from ...enums import BlenderJobType
 from ...operators import TextureSetMeshAdd, TextureSetMeshClear, TextureSetMeshRemove
 from ...props import MeshProps, get_props
@@ -45,14 +46,13 @@ class MeshUIList(b_t.UIList):
     ) -> None:
         assert item
 
-        row = layout.split(factor=0.05)
+        row = layout.row(align=True)
+        row.prop(item, "is_enabled", text="")
+
         row.label(
             text="",
             icon=row.enum_item_name(item, "state", item.state),
         )
-
-        row = row.split(factor=0.05)
-        row.prop(item, "is_enabled", text="")
 
         obj = item.get_ref()
         if obj is None:
@@ -61,14 +61,11 @@ class MeshUIList(b_t.UIList):
             return
 
         row = row.split(factor=0.65)
-        row.label(text=f"{item.name}")
+        # Yep, dirty, though better than nothing
+        row.label(text=f"{'' if is_name_low(item.name) else ' ' * 4}{item.name}")
 
         active_uv_layer = next(
-            (
-                layer
-                for layer in item.get_ref().data.uv_layers
-                if layer.active_render is True
-            ),
+            (layer for layer in obj.data.uv_layers if layer.active_render is True),
             None,
         )
 

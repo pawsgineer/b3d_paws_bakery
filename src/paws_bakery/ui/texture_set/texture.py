@@ -13,6 +13,7 @@ from ...operators import (
     TextureSetTextureRemove,
     TextureSetTextureSetupMaterial,
 )
+from ...operators.texture_set_texture import TextureSetTextureSort
 from ...props import TextureProps, get_bake_settings, get_props
 from .._draw_bake_settings import draw_bake_settings
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
@@ -49,7 +50,6 @@ class TextureSpecialsMenu(b_t.Menu):
         props.texture_set_id = texture_set.prop_id
         props.texture_id = texture.prop_id
 
-        subl.alert = True
         cm_props = cast(
             TextureSetTextureCleanupMaterial,
             subl.operator(
@@ -59,6 +59,12 @@ class TextureSpecialsMenu(b_t.Menu):
             ),
         )
         cm_props.texture_set_id = texture_set.prop_id
+
+        subl.separator()
+
+        subl.operator(
+            TextureSetTextureSort.bl_idname, icon="NODE_MATERIAL", text="Sort Textures"
+        )
 
 
 @register_and_duplicate_to_node_editor
@@ -163,9 +169,9 @@ class Texture(SidePanelMixin):
         col = row.column(align=True)
         col.operator(TextureSetTextureAdd.bl_idname, icon="ADD", text="")
         col.operator(TextureSetTextureRemove.bl_idname, icon="REMOVE", text="")
-        col.separator()
 
         if texture is None:
             return
 
+        col.separator()
         col.menu(TextureSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
