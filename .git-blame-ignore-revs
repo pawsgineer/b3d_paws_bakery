@@ -1,0 +1,4 @@
+# refactor: use enums for most of blender literals
+d57713fc445f0cb71a3adfc6c960e1e241791a6e
+# refactor: use more convenient import aliases
+a6768f0366f4fc2aa44054f448ef09bc0f414967
