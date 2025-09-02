@@ -24,7 +24,6 @@ from ..props_enums import BakeMode, BakeState
 from ..utils import Registry, TimerManager
 from .bake_common import (
     BakeObjects,
-    ensure_mesh_ref,
     generate_image_name_and_path,
     match_low_to_high,
 )
@@ -138,14 +137,14 @@ class TextureSetBake(b_t.Operator):
         ):
             matching_names = match_low_to_high([m.name for m in meshes_enabled])
             for low_high_map in matching_names:
-                active = ensure_mesh_ref(self._texture_set.meshes[low_high_map.low])
+                active = self._texture_set.meshes[low_high_map.low].ensure_mesh_ref()
                 self._bake_objects_list.append(
                     BakeObjects(
                         active=active,
                         selected=[
                             active,
                             *(
-                                ensure_mesh_ref(self._texture_set.meshes[name])
+                                self._texture_set.meshes[name].ensure_mesh_ref()
                                 for name in low_high_map.high
                             ),
                         ],
@@ -153,7 +152,7 @@ class TextureSetBake(b_t.Operator):
                 )
         else:
             for mesh in meshes_enabled:
-                mesh_ref = ensure_mesh_ref(mesh)
+                mesh_ref = mesh.ensure_mesh_ref()
                 self._bake_objects_list.append(
                     BakeObjects(active=mesh_ref, selected=[mesh_ref])
                 )
