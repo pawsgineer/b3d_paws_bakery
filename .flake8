@@ -1,0 +1,28 @@
+[flake8]
+max-line-length = 88
+extend-ignore =
+  E203
+  E501
+  # F722: conflicts with blender attribute type annotations
+  F722
+  # F821: conflicts with blender attribute type annotations
+  # F821
+  D402
+  U101
+  # D105: Missing docstring in magic method
+  D105
+  # D202: No blank lines allowed after function docstring
+  D202
+  # D107: Missing docstring in __init__
+  D107
+  WPS
+  WPS300
+  WPS602
+extend-select = B9
+per-file-ignores =
+  tests/*: T201,D101
+
+# WARN: require-plugins doesn't throw error in vscode
+# require-plugins =
+#   flake8-bugbear
+#   non-existent-plugin
