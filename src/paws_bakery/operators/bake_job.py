@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from .._helpers import log
 from ..enums import BlenderJobType
@@ -40,7 +40,7 @@ class BakeHandlerState(Enum):
 class BakeJob:
     """Manage images and run BakeManager."""
 
-    context: b_t.Context
+    context: blt.Context
     objects: BakeObjects
     settings: BakeSettings
     clear_image: bool
@@ -49,7 +49,7 @@ class BakeJob:
     image_name: str
     image_path: str
 
-    __image: b_t.Image = field(init=False)
+    __image: blt.Image = field(init=False)
     __manager: BakeManager = field(init=False)
     __handlers_state: BakeHandlerState = field(
         init=False, default=BakeHandlerState.CREATED
@@ -136,14 +136,14 @@ class BakeJob:
 
     def __cb_object_bake_factory(
         self, state: BakeHandlerState
-    ) -> Callable[[b_t.Object, Any], None]:
-        def cb(b_obj: b_t.Object, _: Any) -> None:
+    ) -> Callable[[blt.Object, Any], None]:
+        def cb(b_obj: blt.Object, _: Any) -> None:
             if b_obj is self.objects.active:
                 self.__handlers_state = state
 
         return cb
 
-    def __image_prepare(self) -> b_t.Image:
+    def __image_prepare(self) -> blt.Image:
         img = bpy.data.images.get(self.image_name)
 
         if img is None and Path(bpy.path.abspath(self.image_path)).exists():

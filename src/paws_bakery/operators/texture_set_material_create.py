@@ -6,8 +6,8 @@ from itertools import chain
 from typing import cast
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from .._helpers import log, log_err
 from ..common import match_low_to_high
@@ -20,19 +20,19 @@ from .texture_import import UTIL_MATS_IMPORT_SAMPLE_NAME, assign_images_to_mater
 
 
 @Registry.add
-class TextureSetMaterialCreate(b_t.Operator):
+class TextureSetMaterialCreate(blt.Operator):
     """Create materials from Texture Set textures."""
 
     bl_idname = "pawsbkr.texture_set_material_create"
     bl_label = "Create Materials from Baked Textures"
 
-    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+    texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
     _texture_set: TextureSetProps
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if not self.texture_set_id:
             raise AddonException("texture_set_id is required")
 
@@ -53,11 +53,11 @@ class TextureSetMaterialCreate(b_t.Operator):
 @dataclass(kw_only=True)
 class _MaterialUpdateInfo:
     name: str
-    meshes: list[b_t.Object]
-    images: list[b_t.Image]
+    meshes: list[blt.Object]
+    images: list[blt.Image]
 
 
-def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> None:
+def create_materials(*, context: blt.Context, texture_set: TextureSetProps) -> None:
     """Create material with baked textures."""
     template_material = texture_set.create_materials_template
     if not template_material:
@@ -99,7 +99,7 @@ def create_materials(*, context: b_t.Context, texture_set: TextureSetProps) -> N
 
 
 def _collect_material_update_info(
-    *, context: b_t.Context, texture_set: TextureSetProps
+    *, context: blt.Context, texture_set: TextureSetProps
 ) -> list[_MaterialUpdateInfo]:
     meshes_to_update = _get_meshes_to_update(context=context, texture_set=texture_set)
     mat_info_list: list[_MaterialUpdateInfo] = []
@@ -135,8 +135,8 @@ def _collect_material_update_info(
 
 
 def _get_meshes_to_update(
-    *, context: b_t.Context, texture_set: TextureSetProps
-) -> list[b_t.Object]:
+    *, context: blt.Context, texture_set: TextureSetProps
+) -> list[blt.Object]:
     meshes_enabled: list[MeshProps] = texture_set.get_enabled_meshes()
     bake_settings = get_bake_settings(context, texture_set.textures[0].prop_id)
     if bake_settings.bake_high_to_low:
@@ -152,7 +152,7 @@ def _get_meshes_to_update(
 
 
 def _generate_material_name(
-    *, context: b_t.Context, texture_set_name: str, object_prefix: str = ""
+    *, context: blt.Context, texture_set_name: str, object_prefix: str = ""
 ) -> str:
     """Return generated material name."""
     utils_settings = get_props(context).utils_settings
@@ -166,11 +166,11 @@ def _generate_material_name(
 
 def _load_images(
     *,
-    context: b_t.Context,
+    context: blt.Context,
     texture_set: TextureSetProps,
     object_prefix: str = "",
-) -> list[b_t.Image]:
-    images: list[b_t.Image] = []
+) -> list[blt.Image]:
+    images: list[blt.Image] = []
     images_missing: list[str] = []
 
     for texture_props in texture_set.get_enabled_textures():
@@ -196,8 +196,8 @@ def _load_images(
     return images
 
 
-def _get_object_materials(bobj: b_t.Object) -> set[b_t.Material]:
-    mats: set[b_t.Material] = set()
+def _get_object_materials(bobj: blt.Object) -> set[blt.Material]:
+    mats: set[blt.Material] = set()
     for slot in bobj.material_slots:
         if not slot.material:
             continue
@@ -208,17 +208,17 @@ def _get_object_materials(bobj: b_t.Object) -> set[b_t.Material]:
 
 def _setup_material(
     *,
-    context: b_t.Context,
+    context: blt.Context,
     name: str,
-    images: Sequence[b_t.Image],
-    template_material: b_t.Material,
+    images: Sequence[blt.Image],
+    template_material: blt.Material,
     recreate: bool,
-) -> b_t.Material:
+) -> blt.Material:
     """Assign images to material.
 
     Creates new material if not exists.
     """
-    mat: b_t.Material | None = bpy.data.materials.get(name)
+    mat: blt.Material | None = bpy.data.materials.get(name)
 
     if recreate and mat:
         bpy.data.materials.remove(mat)
@@ -226,7 +226,7 @@ def _setup_material(
 
     if not mat:
         log(f"Material {name!r} doesn't exist, creating from {template_material!r}")
-        mat = cast(b_t.Material, template_material.copy())
+        mat = cast(blt.Material, template_material.copy())
         mat.name = name
 
     opts = get_props(context).utils_settings.material_creation

@@ -3,11 +3,11 @@
 import textwrap
 from typing import Callable, TypeVar
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..utils import Registry
 
-LayoutPanel = tuple[b_t.UILayout, b_t.UILayout | None]
+LayoutPanel = tuple[blt.UILayout, blt.UILayout | None]
 
 
 def register_and_duplicate_to_node_editor(cls: type) -> type:
@@ -54,7 +54,7 @@ def generate_info_popover_idname(prefix: str) -> Callable[[_T], _T]:
     return wrapper
 
 
-class SidePanelMixin(b_t.Panel):
+class SidePanelMixin(blt.Panel):
     """UI Side Panel mixin."""
 
     bl_category = "🍰PAWSBKR"
@@ -62,14 +62,14 @@ class SidePanelMixin(b_t.Panel):
     bl_region_type = "UI"
 
 
-class InfoPopover(b_t.Panel):
+class InfoPopover(blt.Panel):
     """UI Info Popover mixin."""
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "WINDOW"
     bl_ui_units_x = 16
 
-    def draw(self, _context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, _context: blt.Context) -> None:  # noqa: D102
         layout = self.layout
         col = layout.column(align=True)
         col.scale_y = 0.80

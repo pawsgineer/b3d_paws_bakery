@@ -1,8 +1,8 @@
 """Bake textures."""
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from .._helpers import log
 from ..enums import BlenderEventType, BlenderJobType, BlenderOperatorReturnType
@@ -14,18 +14,18 @@ from .bake_manager import BakeManager
 
 
 @Registry.add
-class BakeSelected(b_t.Operator):
+class BakeSelected(blt.Operator):
     """Bake texture map for selected objects."""
 
     bl_idname = "pawsbkr.bake"
     bl_label = "Bake Map"
 
-    clear_image: b_p.BoolProperty(  # type: ignore[valid-type]
+    clear_image: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
         description="Create new image instead of adding to existing",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    scale_image: b_p.BoolProperty(  # type: ignore[valid-type]
+    scale_image: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
         description="Scale image if AA enabled",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
@@ -35,7 +35,7 @@ class BakeSelected(b_t.Operator):
 
     __bake_job: BakeJob
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if BakeManager.is_running():
             log(f"{self.bl_idname}: execute() failed: Already running")
             return {BlenderOperatorReturnType.CANCELLED}
@@ -75,7 +75,7 @@ class BakeSelected(b_t.Operator):
 
         return {BlenderOperatorReturnType.RUNNING_MODAL}
 
-    def modal(self, context: b_t.Context, event: b_t.Event) -> set[str]:  # noqa: D102
+    def modal(self, context: blt.Context, event: blt.Event) -> set[str]:  # noqa: D102
         if event.type in {BlenderEventType.ESC}:
             self.__cancel(context)
             return {BlenderOperatorReturnType.CANCELLED}
@@ -98,10 +98,10 @@ class BakeSelected(b_t.Operator):
         self.__cancel(context)
         return {BlenderOperatorReturnType.CANCELLED}
 
-    def __cancel(self, _context: b_t.Context) -> None:
+    def __cancel(self, _context: blt.Context) -> None:
         TimerManager.release()
         self.__bake_job.cancel()
 
     # pylint: disable-next=no-self-use
-    def __finish(self, _context: b_t.Context) -> None:
+    def __finish(self, _context: blt.Context) -> None:
         TimerManager.release()

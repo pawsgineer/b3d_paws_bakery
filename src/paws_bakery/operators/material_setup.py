@@ -8,8 +8,8 @@ from enum import Enum, auto
 from typing import Any, TypeVar, cast
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 from mathutils import Vector
 
 from .._helpers import log
@@ -97,10 +97,10 @@ def _init_uv_maps(texture_size: TextureSize) -> None:
 
 
 def _node_get_or_create(
-    tree: b_t.ShaderNodeTree,
+    tree: blt.ShaderNodeTree,
     name: MaterialNodeNames,
     node_type: type[ShaderNodeSub],
-    parent: b_t.Node,
+    parent: blt.Node,
     location: tuple[int, int],
 ) -> ShaderNodeSub:
     node = tree.nodes.get(name)
@@ -116,32 +116,32 @@ def _node_get_or_create(
 
 
 BakeConnectionSocket = (
-    b_t.NodeSocketFloat
-    | b_t.NodeSocketVector
-    | b_t.NodeSocketFloatFactor
-    | b_t.NodeSocketColor
+    blt.NodeSocketFloat
+    | blt.NodeSocketVector
+    | blt.NodeSocketFloatFactor
+    | blt.NodeSocketColor
 )
 
 
-ShaderNodeSub = TypeVar("ShaderNodeSub", bound=b_t.ShaderNode)
+ShaderNodeSub = TypeVar("ShaderNodeSub", bound=blt.ShaderNode)
 
 
 class BakeMaterialManager:
     """Prepare material for baking."""
 
-    mat: b_t.Material
+    mat: blt.Material
     bake_settings: BakeSettings
     mat_id_color: tuple[float, float, float]
 
-    frame: b_t.NodeFrame
-    tree: b_t.ShaderNodeTree
-    links: b_t.NodeLinks
+    frame: blt.NodeFrame
+    tree: blt.ShaderNodeTree
+    links: blt.NodeLinks
     start_location: Vector
-    output_node: b_t.ShaderNodeOutputMaterial
+    output_node: blt.ShaderNodeOutputMaterial
 
     # TODO: add classes with validation of util GN(and Shaders?) sockets and type hints
-    ng_color: b_t.ShaderNodeGroup
-    ng_aorm: b_t.ShaderNodeGroup
+    ng_color: blt.ShaderNodeGroup
+    ng_aorm: blt.ShaderNodeGroup
 
     def _add_node(self, node_type: type[ShaderNodeSub], name: str) -> ShaderNodeSub:
         if name in self.tree.nodes:
@@ -155,15 +155,15 @@ class BakeMaterialManager:
         self.start_location.y += 250
         return node
 
-    def _get_node_frame(self) -> b_t.NodeFrame:
+    def _get_node_frame(self) -> blt.NodeFrame:
         frame_name = MaterialNodeNames.FRAME
-        node: b_t.Node = self.tree.nodes.get(frame_name)
+        node: blt.Node = self.tree.nodes.get(frame_name)
         if node is not None:
-            if isinstance(node, b_t.NodeFrame):
+            if isinstance(node, blt.NodeFrame):
                 return node
             self.tree.nodes.remove(node)
 
-        node = cast(b_t.NodeFrame, self.tree.nodes.new(b_t.NodeFrame.__name__))
+        node = cast(blt.NodeFrame, self.tree.nodes.new(blt.NodeFrame.__name__))
         node.name = frame_name
         node.label = "PAWS: Bakery Utils"
         node.use_custom_color = True
@@ -171,44 +171,44 @@ class BakeMaterialManager:
 
         return node
 
-    def _get_node_bake_texture(self) -> b_t.ShaderNodeTexImage:
+    def _get_node_bake_texture(self) -> blt.ShaderNodeTexImage:
         return _node_get_or_create(
             self.tree,
             MaterialNodeNames.BAKE_TEXTURE,
-            b_t.ShaderNodeTexImage,
+            blt.ShaderNodeTexImage,
             self.frame,
             (800, 600),
         )
 
-    def _get_node_bake_output(self) -> b_t.ShaderNodeOutputMaterial:
+    def _get_node_bake_output(self) -> blt.ShaderNodeOutputMaterial:
         node = _node_get_or_create(
             self.tree,
             MaterialNodeNames.BAKE_OUT,
-            b_t.ShaderNodeOutputMaterial,
+            blt.ShaderNodeOutputMaterial,
             self.frame,
             (800, 800),
         )
         self.tree.nodes.active = node
         return node
 
-    def _add_color_node_group(self) -> b_t.ShaderNodeGroup:
-        group = self._add_node(b_t.ShaderNodeGroup, UTIL_NODES_GROUP_COLOR)
+    def _add_color_node_group(self) -> blt.ShaderNodeGroup:
+        group = self._add_node(blt.ShaderNodeGroup, UTIL_NODES_GROUP_COLOR)
         group.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_COLOR)
         group.inputs["color"].default_value = tuple(self.mat_id_color) + (1.0,)
         return group
 
-    def _add_aorm_node_group(self) -> b_t.ShaderNodeGroup:
-        group = self._add_node(b_t.ShaderNodeGroup, UTIL_NODES_GROUP_AORM)
+    def _add_aorm_node_group(self) -> blt.ShaderNodeGroup:
+        group = self._add_node(blt.ShaderNodeGroup, UTIL_NODES_GROUP_AORM)
         group.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_AORM)
         return group
 
-    def _get_og_output_node(self) -> b_t.ShaderNodeOutputMaterial:
+    def _get_og_output_node(self) -> blt.ShaderNodeOutputMaterial:
         # TODO: filter muted and not connected out nodes
         output_nodes = []
         for node in self.tree.nodes:
             if (
                 node.name == MaterialNodeNames.BAKE_OUT
-                or not isinstance(node, b_t.ShaderNodeOutputMaterial)
+                or not isinstance(node, blt.ShaderNodeOutputMaterial)
                 or node.target not in ("CYCLES", "ALL")
             ):
                 continue
@@ -223,11 +223,11 @@ class BakeMaterialManager:
 
         return output_nodes[0]
 
-    def _get_shader_node(self) -> b_t.ShaderNodeBsdfPrincipled:
+    def _get_shader_node(self) -> blt.ShaderNodeBsdfPrincipled:
         node = self._get_og_output_node().inputs["Surface"].links[0].from_node
 
         # TODO: add more shader types?
-        if not isinstance(node, b_t.ShaderNodeBsdfPrincipled):
+        if not isinstance(node, blt.ShaderNodeBsdfPrincipled):
             raise AddonException("Can't bake material with current shader type")
 
         return node
@@ -235,7 +235,7 @@ class BakeMaterialManager:
     def _set_up_link(
         self,
         input_socket: BakeConnectionSocket,
-        output_socket: BakeConnectionSocket | b_t.NodeSocketShader,
+        output_socket: BakeConnectionSocket | blt.NodeSocketShader,
         default_value: float | Sequence[float] | None = None,
         default_input_socket: BakeConnectionSocket | None = None,
         default_output_socket: BakeConnectionSocket | None = None,
@@ -262,117 +262,117 @@ class BakeMaterialManager:
 
     def _set_up_ao(
         self,
-        shader_node: b_t.ShaderNodeBsdfPrincipled,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        shader_node: blt.ShaderNodeBsdfPrincipled,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         self.links.new(self.ng_aorm.outputs["ao"], bake_out_node.inputs["Surface"])
 
         s_inp = shader_node.inputs["Normal"]
         s_out = self.ng_aorm.inputs["normal"]
-        assert isinstance(s_inp, b_t.NodeSocketVector), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketVector), type(s_out)
+        assert isinstance(s_inp, blt.NodeSocketVector), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketVector), type(s_out)
         self._set_up_link(s_inp, s_out)
 
     def _set_up_aorm(
         self,
-        shader_node: b_t.ShaderNodeBsdfPrincipled,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        shader_node: blt.ShaderNodeBsdfPrincipled,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         self.links.new(self.ng_aorm.outputs["aorm"], bake_out_node.inputs["Surface"])
 
         s_inp = shader_node.inputs["Normal"]
         s_out = self.ng_aorm.inputs["normal"]
-        assert isinstance(s_inp, b_t.NodeSocketVector), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketVector), type(s_out)
+        assert isinstance(s_inp, blt.NodeSocketVector), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketVector), type(s_out)
         self._set_up_link(s_inp, s_out)
 
         s_inp = shader_node.inputs["Roughness"]
         s_out = self.ng_aorm.inputs["roughness"]
-        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketFloatFactor), type(s_out)
+        assert isinstance(s_inp, blt.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketFloatFactor), type(s_out)
         self._set_up_link(s_inp, s_out, s_inp.default_value)
 
         s_inp = shader_node.inputs["Metallic"]
         s_out = self.ng_aorm.inputs["metalness"]
-        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketFloatFactor), type(s_out)
+        assert isinstance(s_inp, blt.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketFloatFactor), type(s_out)
         self._set_up_link(s_inp, s_out, s_inp.default_value)
 
     def _set_up_emit_color(
         self,
-        shader_node: b_t.ShaderNodeBsdfPrincipled,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        shader_node: blt.ShaderNodeBsdfPrincipled,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         s_inp = shader_node.inputs["Base Color"]
         s_out = bake_out_node.inputs["Surface"]
         s_def_inp = self.ng_color.inputs["color"]
         s_def_out = self.ng_color.outputs["color"]
-        assert isinstance(s_inp, b_t.NodeSocketColor), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
-        assert isinstance(s_def_inp, b_t.NodeSocketColor), type(s_def_inp)
-        assert isinstance(s_def_out, b_t.NodeSocketColor), type(s_def_out)
+        assert isinstance(s_inp, blt.NodeSocketColor), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, blt.NodeSocketColor), type(s_def_inp)
+        assert isinstance(s_def_out, blt.NodeSocketColor), type(s_def_out)
         self._set_up_link(s_inp, s_out, s_inp.default_value, s_def_inp, s_def_out)
 
     def _set_up_emit_roughness(
         self,
-        shader_node: b_t.ShaderNodeBsdfPrincipled,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        shader_node: blt.ShaderNodeBsdfPrincipled,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         s_inp = shader_node.inputs["Roughness"]
         s_out = bake_out_node.inputs["Surface"]
         s_def_inp = self.ng_aorm.inputs["roughness"]
         s_def_out = self.ng_aorm.outputs["roughness"]
-        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
-        assert isinstance(s_def_inp, b_t.NodeSocketFloatFactor), type(s_def_inp)
-        assert isinstance(s_def_out, b_t.NodeSocketFloatFactor), type(s_def_out)
+        assert isinstance(s_inp, blt.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, blt.NodeSocketFloatFactor), type(s_def_inp)
+        assert isinstance(s_def_out, blt.NodeSocketFloatFactor), type(s_def_out)
         self._set_up_link(s_inp, s_out, s_inp.default_value, s_def_inp, s_def_out)
 
     def _set_up_emit_metalness(
         self,
-        shader_node: b_t.ShaderNodeBsdfPrincipled,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        shader_node: blt.ShaderNodeBsdfPrincipled,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         s_inp = shader_node.inputs["Metallic"]
         s_out = bake_out_node.inputs["Surface"]
         s_def_inp = self.ng_aorm.inputs["metalness"]
         s_def_out = self.ng_aorm.outputs["metalness"]
-        assert isinstance(s_inp, b_t.NodeSocketFloatFactor), type(s_inp)
-        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
-        assert isinstance(s_def_inp, b_t.NodeSocketFloatFactor), type(s_def_inp)
-        assert isinstance(s_def_out, b_t.NodeSocketFloatFactor), type(s_def_out)
+        assert isinstance(s_inp, blt.NodeSocketFloatFactor), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, blt.NodeSocketFloatFactor), type(s_def_inp)
+        assert isinstance(s_def_out, blt.NodeSocketFloatFactor), type(s_def_out)
         self._set_up_link(s_inp, s_out, s_inp.default_value, s_def_inp, s_def_out)
 
     def _set_up_opacity(
         self,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         s_out = bake_out_node.inputs["Surface"]
         s_def_inp = self.ng_aorm.inputs["metalness"]
         s_def_out = self.ng_aorm.outputs["metalness"]
-        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
-        assert isinstance(s_def_inp, b_t.NodeSocketFloatFactor), type(s_def_inp)
-        assert isinstance(s_def_out, b_t.NodeSocketFloatFactor), type(s_def_out)
+        assert isinstance(s_out, blt.NodeSocketShader), type(s_out)
+        assert isinstance(s_def_inp, blt.NodeSocketFloatFactor), type(s_def_inp)
+        assert isinstance(s_def_out, blt.NodeSocketFloatFactor), type(s_def_out)
         s_def_inp.default_value = 1.0
         self.links.new(s_def_out, s_out)
 
     def _set_up_mat_id(
         self,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         s_out = bake_out_node.inputs["Surface"]
         if self.bake_settings.matid_use_object_color:
             s_inp = self.ng_color.outputs["object_color"]
         else:
             s_inp = self.ng_color.outputs["color"]
-        assert isinstance(s_out, b_t.NodeSocketShader), type(s_out)
-        assert isinstance(s_inp, b_t.NodeSocketColor), type(s_inp)
+        assert isinstance(s_out, blt.NodeSocketShader), type(s_out)
+        assert isinstance(s_inp, blt.NodeSocketColor), type(s_inp)
 
         self.links.new(s_inp, s_out)
 
     def _set_up_grid(
         self,
-        bake_out_node: b_t.ShaderNodeOutputMaterial,
+        bake_out_node: blt.ShaderNodeOutputMaterial,
     ) -> None:
         grid_img_name: str
         texture_size = TextureSize(
@@ -385,9 +385,9 @@ class BakeMaterialManager:
             grid_img_name = _get_uv_grid_map_name(texture_size)
 
         texture_node = self._add_node(
-            b_t.ShaderNodeTexImage, MaterialNodeNames.UV_TEXTURE
+            blt.ShaderNodeTexImage, MaterialNodeNames.UV_TEXTURE
         )
-        assert isinstance(texture_node, b_t.ShaderNodeTexImage)
+        assert isinstance(texture_node, blt.ShaderNodeTexImage)
         # FIXME: map is being deleted from other materials if we have multiple materials
         texture_node.image = bpy.data.images[grid_img_name]
 
@@ -396,7 +396,7 @@ class BakeMaterialManager:
     def __init__(
         self,
         *,
-        mat: b_t.Material,
+        mat: blt.Material,
         bake_settings: BakeSettings,
         image_name: str,
         mat_id_color: tuple[float, float, float] = (0.0, 0.0, 0.0),
@@ -404,7 +404,7 @@ class BakeMaterialManager:
         """Prepare material for baking."""
         AssetLibraryManager.node_groups_load()
 
-        assert isinstance(mat.node_tree, b_t.ShaderNodeTree), type(mat.node_tree)
+        assert isinstance(mat.node_tree, blt.ShaderNodeTree), type(mat.node_tree)
         self.tree = mat.node_tree
         self.links = self.tree.links
         self.start_location = Vector((500, 500))  # type: ignore[no-untyped-call]
@@ -416,9 +416,9 @@ class BakeMaterialManager:
         # TODO: we shouldn't care about existing material outputs when baking matid?
         if self.tree.get_output_node("CYCLES") is None:
             # TODO: only modify node group once
-            # node_groups: list[b_t.ShaderNodeGroup] = []
+            # node_groups: list[blt.ShaderNodeGroup] = []
             # for node in tree.nodes:
-            #     if isinstance(node, b_t.ShaderNodeGroup):
+            #     if isinstance(node, blt.ShaderNodeGroup):
             #         node_groups.append(node)
 
             raise AddonException("Can't bake material without material outputs")
@@ -467,7 +467,7 @@ class BakeMaterialManager:
             self._set_up_grid(bake_out_node)
 
 
-def material_cleanup(mat: b_t.Material) -> None:
+def material_cleanup(mat: blt.Material) -> None:
     """Cleanup utils in the material."""
     # log(f"Cleaning up material: {self.target_material_name!r}")
     nodes = mat.node_tree.nodes
@@ -499,14 +499,14 @@ def material_cleanup(mat: b_t.Material) -> None:
 
 
 @Registry.add
-class MaterialCleanupSelected(b_t.Operator):
+class MaterialCleanupSelected(blt.Operator):
     """Cleanup utils in the selected materials."""
 
     bl_idname = "pawsbkr.material_cleanup_selected"
     bl_label = "Cleanup Selected Materials"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, _context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, _context: blt.Context) -> set[str]:  # noqa: D102
         selected_mats = tuple(get_selected_materials())
         for mat in selected_mats:
             material_cleanup(mat)
@@ -515,18 +515,18 @@ class MaterialCleanupSelected(b_t.Operator):
 
 
 @Registry.add
-class MaterialSetupSelected(b_t.Operator):
+class MaterialSetupSelected(blt.Operator):
     """Setup utils in the selected materials."""
 
     bl_idname = "pawsbkr.material_setup_selected"
     bl_label = "Setup Selected Materials"
     bl_options = {"REGISTER", "UNDO"}
 
-    settings_id: b_p.StringProperty(  # type: ignore[valid-type]
+    settings_id: blp.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if len(self.settings_id) < 1:
             raise ValueError("settings_id not set")
         cfg = get_bake_settings(context, self.settings_id)
@@ -546,37 +546,37 @@ class MaterialSetupSelected(b_t.Operator):
 
 
 @Registry.add
-class MaterialSetup(b_t.Operator):
+class MaterialSetup(blt.Operator):
     """Setup utils in the material."""
 
     bl_idname = "pawsbkr.material_setup"
     bl_label = "Setup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    cleanup: b_p.BoolProperty(  # type: ignore[valid-type]
+    cleanup: blp.BoolProperty(  # type: ignore[valid-type]
         default=False,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    target_material_name: b_p.StringProperty(  # type: ignore[valid-type]
+    target_material_name: blp.StringProperty(  # type: ignore[valid-type]
         name="Material Name",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    target_image_name: b_p.StringProperty(  # type: ignore[valid-type]
+    target_image_name: blp.StringProperty(  # type: ignore[valid-type]
         name="Bake Image Name",
         description="Name of the image to bake textures into",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    mat_id_color: b_p.FloatVectorProperty()  # type: ignore[valid-type]
+    mat_id_color: blp.FloatVectorProperty()  # type: ignore[valid-type]
 
-    settings_id: b_p.StringProperty(  # type: ignore[valid-type]
+    settings_id: blp.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    def _cleanup(self, _context: b_t.Context) -> None:
+    def _cleanup(self, _context: blt.Context) -> None:
         mat = bpy.data.materials[self.target_material_name]
         material_cleanup(mat)
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if self.cleanup:
             self._cleanup(context)
             return {BlenderOperatorReturnType.FINISHED}

@@ -1,6 +1,6 @@
 """Texture set mesh controls."""
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..enums import BlenderOperatorReturnType
 from ..props import get_props
@@ -8,14 +8,14 @@ from ..utils import Registry
 
 
 @Registry.add
-class TextureSetMeshAdd(b_t.Operator):
+class TextureSetMeshAdd(blt.Operator):
     """Add Object to Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_mesh_add"
     bl_label = "Add Object"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         assert texture_set
@@ -36,14 +36,14 @@ class TextureSetMeshAdd(b_t.Operator):
 
 
 @Registry.add
-class TextureSetMeshRemove(b_t.Operator):
+class TextureSetMeshRemove(blt.Operator):
     """Remove Object from Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_mesh_remove"
     bl_label = "Remove Object"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 
@@ -54,14 +54,14 @@ class TextureSetMeshRemove(b_t.Operator):
 
 
 @Registry.add
-class TextureSetMeshClear(b_t.Operator):
+class TextureSetMeshClear(blt.Operator):
     """Remove all Objects from Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_mesh_clear"
     bl_label = "Remove All Object"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 

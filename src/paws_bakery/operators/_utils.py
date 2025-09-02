@@ -6,7 +6,7 @@ from itertools import chain
 from typing import cast
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..enums import BlenderImageType, BlenderSpaceType
 from ..props import get_props
@@ -21,9 +21,9 @@ def generate_color_set(number_of_colors: int) -> list[tuple[float, float, float]
     return [colorsys.hsv_to_rgb(*color) for color in hsv_colors]
 
 
-def get_objects_materials(objects: Sequence[b_t.Object]) -> set[b_t.Material]:
+def get_objects_materials(objects: Sequence[blt.Object]) -> set[blt.Material]:
     """Return the set of unique materials assigned to objects."""
-    materials: set[b_t.Material] = set()
+    materials: set[blt.Material] = set()
     for obj in objects:
         for slot in obj.material_slots:
             if slot.material is not None:
@@ -32,7 +32,7 @@ def get_objects_materials(objects: Sequence[b_t.Object]) -> set[b_t.Material]:
     return materials
 
 
-def get_selected_materials(ctx: b_t.Context | None = None) -> set[b_t.Material]:
+def get_selected_materials(ctx: blt.Context | None = None) -> set[blt.Material]:
     """Return the set of unique materials assigned to selected objects."""
     if ctx is None:
         ctx = bpy.context
@@ -42,7 +42,7 @@ def get_selected_materials(ctx: b_t.Context | None = None) -> set[b_t.Material]:
     return materials
 
 
-def show_image_in_editor(context: b_t.Context, image: b_t.Image) -> None:
+def show_image_in_editor(context: blt.Context, image: blt.Image) -> None:
     """Show Image in Image Editor area."""
     if not get_props(context).utils_settings.show_image_in_editor:
         return
@@ -52,7 +52,7 @@ def show_image_in_editor(context: b_t.Context, image: b_t.Image) -> None:
             if area.type != BlenderSpaceType.IMAGE_EDITOR:
                 continue
 
-            img_space = cast(b_t.SpaceImageEditor, area.spaces.active)
+            img_space = cast(blt.SpaceImageEditor, area.spaces.active)
             if img_space.use_image_pin or (
                 img_space.image
                 and img_space.image.type

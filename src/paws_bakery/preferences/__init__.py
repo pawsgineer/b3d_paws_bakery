@@ -4,8 +4,8 @@
 from typing import Any, cast
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from .._helpers import log_warn
 from ..enums import BlenderOperatorReturnType, BlenderOperatorType
@@ -17,14 +17,14 @@ ROOT_PACKAGE_NAME = __package__.rsplit(".", 1)[0]
 
 
 @Registry.add
-class TextureImportRuleAdd(b_t.Operator):
+class TextureImportRuleAdd(blt.Operator):
     """Add Texture Import Rule."""
 
     bl_idname = "pawsbkr.prefs_texture_import_rule_add"
     bl_label = "Add Texture Import Rule"
     bl_options = {BlenderOperatorType.INTERNAL}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         prop = get_preferences().texture_import_rules.add()
         prop.name = ""
 
@@ -32,33 +32,33 @@ class TextureImportRuleAdd(b_t.Operator):
 
 
 @Registry.add
-class TextureImportRuleRemove(b_t.Operator):
+class TextureImportRuleRemove(blt.Operator):
     """Remove Texture Import Rule."""
 
     bl_idname = "pawsbkr.prefs_texture_import_rule_remove"
     bl_label = "Remove Texture Import Rule"
     bl_options = {BlenderOperatorType.INTERNAL}
 
-    idx: b_p.IntProperty(  # type: ignore[valid-type]
+    idx: blp.IntProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         get_preferences().texture_import_rules.remove(self.idx)
 
         return {BlenderOperatorReturnType.FINISHED}
 
 
 @Registry.add
-class TextureImportRuleUIList(b_t.UIList):
+class TextureImportRuleUIList(blt.UIList):
     """UI List - Texture Import Rules."""
 
     bl_idname = "PAWSBKR_UL_prefs_texture_import_rules"
 
     def draw_item(  # noqa: D102
         self,
-        context: b_t.Context | None,
-        layout: b_t.UILayout,
+        context: blt.Context | None,
+        layout: blt.UILayout,
         _data: Any | None,
         item: TextureImportRuleProps | None,
         _icon: int | None,
@@ -125,12 +125,12 @@ class TextureImportRuleUIList(b_t.UIList):
 
 
 @Registry.add
-class AddonPreferences(b_t.AddonPreferences):
+class AddonPreferences(blt.AddonPreferences):
     """UI Panel - Preferences."""
 
     bl_idname = ROOT_PACKAGE_NAME
 
-    output_directory: b_p.StringProperty(  # type: ignore[valid-type]
+    output_directory: blp.StringProperty(  # type: ignore[valid-type]
         name="Output Directory",
         description="Directory to save baked images",
         default="//pawsbkr_textures",
@@ -138,7 +138,7 @@ class AddonPreferences(b_t.AddonPreferences):
         options=set() if bpy.app.version < (4, 5) else {"PATH_SUPPORTS_BLEND_RELATIVE"},
     )
 
-    enable_debug_tools: b_p.BoolProperty(  # type: ignore[valid-type]
+    enable_debug_tools: blp.BoolProperty(  # type: ignore[valid-type]
         name="Enable Debug Tools",
         description=(
             "Enable development utils. Use only if you know what you're doing."
@@ -146,7 +146,7 @@ class AddonPreferences(b_t.AddonPreferences):
         default=False,
     )
 
-    tabs: b_p.EnumProperty(  # type: ignore[valid-type]
+    tabs: blp.EnumProperty(  # type: ignore[valid-type]
         items=[
             ("GENERAL", "GENERAL", ""),
             ("TEXTUREIMPORT", "Texture Import Rules", ""),
@@ -155,10 +155,10 @@ class AddonPreferences(b_t.AddonPreferences):
         default="GENERAL",
     )
 
-    texture_import_rules: b_p.CollectionProperty(  # type: ignore[valid-type]
+    texture_import_rules: blp.CollectionProperty(  # type: ignore[valid-type]
         type=TextureImportRuleProps
     )
-    texture_import_rules_active_index: b_p.IntProperty()  # type: ignore[valid-type]
+    texture_import_rules_active_index: blp.IntProperty()  # type: ignore[valid-type]
 
     def get_enabled_import_rules(self) -> list[TextureImportRuleProps]:
         """Get enabled texture import rules."""
@@ -173,7 +173,7 @@ class AddonPreferences(b_t.AddonPreferences):
 
         return None
 
-    def draw(self, _context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, _context: blt.Context) -> None:  # noqa: D102
         lyt = self.layout
 
         column = lyt.column(align=True)
@@ -187,11 +187,11 @@ class AddonPreferences(b_t.AddonPreferences):
         elif self.tabs == "TEXTUREIMPORT":
             self._draw_texture_import(box)
 
-    def _draw_general(self, lyt: b_t.UILayout) -> None:
+    def _draw_general(self, lyt: blt.UILayout) -> None:
         lyt.prop(self, "output_directory")
         lyt.prop(self, "enable_debug_tools")
 
-    def _draw_texture_import(self, lyt: b_t.UILayout) -> None:
+    def _draw_texture_import(self, lyt: blt.UILayout) -> None:
         row = lyt
         row.template_list(
             TextureImportRuleUIList.bl_idname,

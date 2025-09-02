@@ -4,8 +4,8 @@ import datetime
 from itertools import chain
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from .._helpers import log, log_err
 from ..common import match_low_to_high
@@ -33,16 +33,16 @@ from .texture_set_material_create import create_materials
 
 
 @Registry.add
-class TextureSetBake(b_t.Operator):
+class TextureSetBake(blt.Operator):
     """Bake texture set textures."""
 
     bl_idname = "pawsbkr.texture_set_bake"
     bl_label = "Bake Texture Set Textures"
 
-    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+    texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    texture_id: b_p.StringProperty(  # type: ignore[valid-type]
+    texture_id: blp.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
@@ -57,7 +57,7 @@ class TextureSetBake(b_t.Operator):
     __bake_job: BakeJob | None = None
 
     def execute(  # noqa: D102
-        self, context: b_t.Context
+        self, context: blt.Context
     ) -> set[BlenderOperatorReturnType]:
         can_run, msg = self.__can_run()
         if not can_run:
@@ -87,7 +87,7 @@ class TextureSetBake(b_t.Operator):
         return {BlenderOperatorReturnType.RUNNING_MODAL}
 
     def modal(  # noqa: D102
-        self, context: b_t.Context, event: b_t.Event
+        self, context: blt.Context, event: blt.Event
     ) -> set[BlenderOperatorReturnType]:
         if event.type in {BlenderEventType.ESC}:
             self._cancel(context)
@@ -123,7 +123,7 @@ class TextureSetBake(b_t.Operator):
         return False, msg
 
     def __prepare_bake_objects(
-        self, context: b_t.Context, texture: TextureProps
+        self, context: blt.Context, texture: TextureProps
     ) -> None:
         bake_settings = get_bake_settings(context, texture.prop_id)
 
@@ -160,11 +160,11 @@ class TextureSetBake(b_t.Operator):
         for mesh in meshes_enabled:
             mesh.state = BakeState.QUEUED.name
 
-    def __ensure_bake_job(self, context: b_t.Context) -> BakeJob:
+    def __ensure_bake_job(self, context: blt.Context) -> BakeJob:
         return self.__bake_job or self.__bake_next(context)
 
     def __handle_job_state(
-        self, context: b_t.Context, state: BakeJobState
+        self, context: blt.Context, state: BakeJobState
     ) -> set[BlenderOperatorReturnType]:
         if state is BakeJobState.RUNNING:
             return {BlenderOperatorReturnType.PASS_THROUGH}
@@ -182,7 +182,7 @@ class TextureSetBake(b_t.Operator):
         return {BlenderOperatorReturnType.CANCELLED}
 
     def __handle_job_state_finished(
-        self, context: b_t.Context
+        self, context: blt.Context
     ) -> set[BlenderOperatorReturnType]:
         pawsbkr = get_props(context)
 
@@ -213,7 +213,7 @@ class TextureSetBake(b_t.Operator):
 
         return {BlenderOperatorReturnType.PASS_THROUGH}
 
-    def __bake_next(self, context: b_t.Context) -> BakeJob:
+    def __bake_next(self, context: blt.Context) -> BakeJob:
         self._bake_textures[0].state = BakeState.RUNNING.name
 
         bake_objects = self._bake_objects_list[0]
@@ -243,7 +243,7 @@ class TextureSetBake(b_t.Operator):
         self.__bake_job.on_execute()
         return self.__bake_job
 
-    def _cancel(self, _context: b_t.Context) -> None:
+    def _cancel(self, _context: blt.Context) -> None:
         TimerManager.release()
 
         if self.__bake_job is not None:
@@ -256,7 +256,7 @@ class TextureSetBake(b_t.Operator):
             for mesh in chain([bake_objects.active], bake_objects.selected):
                 self._texture_set.meshes[mesh.name].state = BakeState.CANCELLED.name
 
-    def _finish_texture(self, _context: b_t.Context) -> None:
+    def _finish_texture(self, _context: blt.Context) -> None:
         delta: datetime.timedelta = datetime.datetime.now() - self._time_start
         minutes, seconds = divmod(delta.seconds, 60)
 
@@ -267,7 +267,7 @@ class TextureSetBake(b_t.Operator):
         self._clear_image = True
         self._time_start = datetime.datetime.now()
 
-    def _finish(self, context: b_t.Context) -> None:
+    def _finish(self, context: blt.Context) -> None:
         TimerManager.release()
 
         if self._texture_set.create_materials:

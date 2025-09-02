@@ -6,18 +6,18 @@ from collections.abc import Callable
 from typing import cast
 from uuid import uuid4
 
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from ..utils import Registry
 
 
-def _set_force_non_empty_name(self: b_t.ID, value: str) -> None:
+def _set_force_non_empty_name(self: blt.ID, value: str) -> None:
     self["name"] = value if value != "" else str(uuid4())
 
 
-def _string_getter_factory(name: str) -> Callable[[b_t.StringProperty], str]:
-    def cb(self: b_t.StringProperty) -> str:
+def _string_getter_factory(name: str) -> Callable[[blt.StringProperty], str]:
+    def cb(self: blt.StringProperty) -> str:
         try:
             value = self[name]
         except KeyError:
@@ -30,8 +30,8 @@ def _string_getter_factory(name: str) -> Callable[[b_t.StringProperty], str]:
 
 def _string_setter_factory(
     name: str, pattern: re.Pattern[str]
-) -> Callable[[b_t.StringProperty, str], None]:
-    def cb(self: b_t.StringProperty, value: str) -> None:
+) -> Callable[[blt.StringProperty, str], None]:
+    def cb(self: blt.StringProperty, value: str) -> None:
         if re.search(pattern, value):
             return
         self[name] = value.lower()
@@ -40,24 +40,24 @@ def _string_setter_factory(
 
 
 @Registry.add
-class TextureImportRuleProps(b_t.PropertyGroup):
+class TextureImportRuleProps(blt.PropertyGroup):
     """Node and texture name matching for texture import."""
 
-    name: b_p.StringProperty(  # type: ignore[valid-type]
+    name: blp.StringProperty(  # type: ignore[valid-type]
         get=_string_getter_factory("name"),
         set=_set_force_non_empty_name,
     )
 
-    is_enabled: b_p.BoolProperty(default=True)  # type: ignore[valid-type]
-    is_builtin: b_p.BoolProperty(default=False)  # type: ignore[valid-type]
+    is_enabled: blp.BoolProperty(default=True)  # type: ignore[valid-type]
+    is_builtin: blp.BoolProperty(default=False)  # type: ignore[valid-type]
 
-    is_non_color: b_p.BoolProperty(  # type: ignore[valid-type]
+    is_non_color: blp.BoolProperty(  # type: ignore[valid-type]
         name="Non-Color",
         description="Use non-color space for image",
         default=False,
     )
 
-    node_name_prefix: b_p.StringProperty(  # type: ignore[valid-type]
+    node_name_prefix: blp.StringProperty(  # type: ignore[valid-type]
         name="Node Name Prefix",
         description=(
             "The texture node name prefix used to determine where to assign the image"
@@ -67,7 +67,7 @@ class TextureImportRuleProps(b_t.PropertyGroup):
         set=_string_setter_factory("node_name_prefix", r"[^\w\s_]+"),
         options={"TEXTEDIT_UPDATE"},
     )
-    aliases: b_p.StringProperty(  # type: ignore[valid-type]
+    aliases: blp.StringProperty(  # type: ignore[valid-type]
         name="Aliases",
         description=(
             "A comma separated list of aliases to search for in filenames "

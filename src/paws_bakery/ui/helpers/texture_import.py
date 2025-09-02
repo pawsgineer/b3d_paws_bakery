@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import cast
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ... import operators as ops
 from ...operators.texture_import import get_prefix_to_nodes_map
@@ -14,13 +14,13 @@ from .main import Main
 
 
 @register_and_duplicate_to_node_editor
-class TextureImportSpecialsMenu(b_t.Menu):
+class TextureImportSpecialsMenu(blt.Menu):
     """Texture Import specials menu."""
 
     bl_idname = "PAWSBKR_MT_texture_import_specials"
     bl_label = "Texture Import Specials"
 
-    def draw(self, _context: b_t.Context | None) -> None:  # noqa: D102
+    def draw(self, _context: blt.Context | None) -> None:  # noqa: D102
         layout = self.layout
 
         subl = layout.column(align=True)
@@ -38,7 +38,7 @@ class TextureImport(SidePanelMixin):
     bl_order = 2
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: C901 D102
+    def draw(self, context: blt.Context) -> None:  # noqa: C901 D102
         lyt = self.layout
 
         if not context.selected_objects:
@@ -46,7 +46,7 @@ class TextureImport(SidePanelMixin):
             lyt.label(text="No objects selected", icon="ERROR")
             return
 
-        materials: set[b_t.Material] = set()
+        materials: set[blt.Material] = set()
 
         for obj in context.selected_objects:
             for slot in obj.material_slots:

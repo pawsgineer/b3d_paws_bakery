@@ -3,7 +3,7 @@
 import datetime
 from pprint import pformat
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..operators.bake_manager import BakeManager
 from ..operators.debug import DebugResetState
@@ -41,10 +41,10 @@ class Debug(SidePanelMixin):
     bl_order = 9999
 
     @classmethod
-    def poll(cls, _context: b_t.Context) -> bool:  # noqa: D102
+    def poll(cls, _context: blt.Context) -> bool:  # noqa: D102
         return get_preferences().enable_debug_tools
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
 
         layout = self.layout
@@ -80,7 +80,7 @@ class Debug(SidePanelMixin):
         if panel:
             self._draw_texture_sets_storage(panel, get_props(context))
 
-    def _draw_settings_storage(self, layout: b_t.UILayout, props: SceneProps) -> None:
+    def _draw_settings_storage(self, layout: blt.UILayout, props: SceneProps) -> None:
         col = layout.column(align=True)
         for settings in props.bake_settings_store:
             subl = col.row()
@@ -89,7 +89,7 @@ class Debug(SidePanelMixin):
             subl.label(text=settings.name_template)
 
     def _draw_texture_sets_storage(
-        self, layout: b_t.UILayout, props: SceneProps
+        self, layout: blt.UILayout, props: SceneProps
     ) -> None:
         col = layout.column(align=True)
         for texture_set in props.texture_sets:
@@ -100,7 +100,7 @@ class Debug(SidePanelMixin):
             subl.label(text=f"{pformat(texture_set.meshes.items())}")
             subl.label(text=f"{pformat(texture_set.textures.items())}")
 
-    def _draw_state(self, _context: b_t.Context) -> None:
+    def _draw_state(self, _context: blt.Context) -> None:
         layout = self.layout
 
         col = layout.column(align=True)

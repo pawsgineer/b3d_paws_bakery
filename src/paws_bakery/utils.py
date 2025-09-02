@@ -3,7 +3,7 @@
 import re
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ._helpers import ASSETS_DIR, log
 
@@ -111,7 +111,7 @@ class AssetLibraryManager:
         link: bool = False,
         use_existing: bool = False,
         replace_existing: bool = True,
-    ) -> b_t.Material:
+    ) -> blt.Material:
         """Load material from add-on asset library.
 
         :param str name: Material name
@@ -120,7 +120,7 @@ class AssetLibraryManager:
         :param bool replace_existing: Re-import the material and replace references from
             the old one, defaults to True
         :raises AddonException: If material not found in the library
-        :return b_t.Material: Imported material
+        :return blt.Material: Imported material
         """
         mat = bpy.data.materials.get(name)
 

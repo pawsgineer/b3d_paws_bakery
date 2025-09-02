@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from .._helpers import log, log_err
 from ..enums import BlenderJobType, BlenderOperatorReturnType
@@ -49,15 +49,15 @@ def call_bake_op(
     )
 
 
-def _materials_cleanup(materials: Sequence[b_t.Material]) -> None:
+def _materials_cleanup(materials: Sequence[blt.Material]) -> None:
     for mat in materials:
         material_cleanup(mat)
 
 
 def _materials_setup(
-    materials: Sequence[b_t.Material],
+    materials: Sequence[blt.Material],
     settings: BakeSettings,
-    image: b_t.Image,
+    image: blt.Image,
 ) -> None:
     for mat in materials:
         colors = generate_color_set(len(materials))
@@ -80,16 +80,16 @@ def _materials_setup(
 class BakeManager:
     """Manages scene, materials setup and Blender's bake operator."""
 
-    context: b_t.Context
+    context: blt.Context
     objects: BakeObjects
     settings: BakeSettings
-    image: b_t.Image
+    image: blt.Image
     clear_image: bool
     keep_scene: bool
 
     __running: bool = field(init=False, default=False)
-    __og_scene: b_t.Scene = field(init=False)
-    __materials: Sequence[b_t.Material] = field(init=False)
+    __og_scene: blt.Scene = field(init=False)
+    __materials: Sequence[blt.Material] = field(init=False)
 
     @classmethod
     def is_running(cls) -> bool:
@@ -225,7 +225,7 @@ class _BakingScene:
         bpy.data.collections.remove(bake_coll)
 
     @classmethod
-    def create(cls, *, settings: BakeSettings) -> b_t.Scene:
+    def create(cls, *, settings: BakeSettings) -> blt.Scene:
         """Create and setup new baking scene."""
         log("Creating new scene")
         sc = bpy.data.scenes.new(TMP_SCENE_NAME)
@@ -250,7 +250,7 @@ class _BakingScene:
         cls,
         *,
         bake_settings: BakeSettings,
-    ) -> b_t.Scene:
+    ) -> blt.Scene:
         """Prepare and fill up scene.
 
         Creates scene, collection and fills it with selected objects.
@@ -266,6 +266,6 @@ class _BakingScene:
         return scene
 
     @staticmethod
-    def get_bake_collection() -> b_t.Collection:
+    def get_bake_collection() -> blt.Collection:
         """Return a Collection dedicated to baked meshes."""
         return bpy.data.collections.get(BAKE_COLLECTION_NAME)

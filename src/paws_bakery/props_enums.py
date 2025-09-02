@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Self
 
-from bpy import props as b_p
+from bpy import props as blp
 
 from . import icons
 from .enums import Colorspace, CyclesBakeType
@@ -44,7 +44,7 @@ class BlenderPropertyEnum(Enum):
             return cls.__bl_prop_cache__
 
         items = tuple((i.name, i.value.ui_name, i.value.description) for i in cls)
-        cls.__bl_prop_cache__ = b_p.EnumProperty(
+        cls.__bl_prop_cache__ = blp.EnumProperty(
             name=cls.__bl_prop_name__,
             description=cls.__bl_prop_description__,
             items=items,

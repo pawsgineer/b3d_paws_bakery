@@ -3,7 +3,7 @@
 from typing import Any, cast
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ...enums import BlenderJobType
 from ...operators import TextureSetAdd, TextureSetRemove
@@ -16,13 +16,13 @@ from .._utils import LayoutPanel, SidePanelMixin, register_and_duplicate_to_node
 
 
 @register_and_duplicate_to_node_editor
-class TextureSetSpecialsMenu(b_t.Menu):
+class TextureSetSpecialsMenu(blt.Menu):
     """Texture specials menu."""
 
     bl_idname = "PAWSBKR_MT_texture_set_specials"
     bl_label = "Texture Set Specials"
 
-    def draw(self, context: b_t.Context | None) -> None:  # noqa: D102
+    def draw(self, context: blt.Context | None) -> None:  # noqa: D102
         assert context
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
@@ -38,15 +38,15 @@ class TextureSetSpecialsMenu(b_t.Menu):
 
 
 @register_and_duplicate_to_node_editor
-class SetUIList(b_t.UIList):
+class SetUIList(blt.UIList):
     """UI List - Texture Set."""
 
     bl_idname = "PAWSBKR_UL_texture_set"
 
     def draw_item(  # noqa: D102
         self,
-        context: b_t.Context | None,
-        layout: b_t.UILayout,
+        context: blt.Context | None,
+        layout: blt.UILayout,
         _data: Any | None,
         item: TextureSetProps | None,
         _icon: int | None,
@@ -100,7 +100,7 @@ class Main(SidePanelMixin):
     bl_label = "Texture Set Bake"
     bl_order = 2
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         active_set = pawsbkr.active_texture_set
 
@@ -153,7 +153,7 @@ class Main(SidePanelMixin):
         col.menu(TextureSetSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 
     def _draw_material_creation(
-        self, _context: b_t.Context, active_set: TextureSetProps
+        self, _context: blt.Context, active_set: TextureSetProps
     ) -> None:
         header, panel = cast(
             LayoutPanel, self.layout.panel("mat_creation", default_closed=False)
