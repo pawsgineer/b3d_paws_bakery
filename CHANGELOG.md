@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.5.0 (2025-09-02)
+
+### Features
+
+- **ui**: Add lists sorting and indent high meshes
+  ([`68c75a6`](https://github.com/pawsgineer/b3d_paws_bakery/commit/68c75a61b0b40841eb0ddd7ea89c334d413885f9))
+
+
 ## v0.4.1 (2025-08-31)
 
 ### Bug Fixes
