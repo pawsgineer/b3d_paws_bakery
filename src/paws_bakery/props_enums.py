@@ -218,7 +218,7 @@ class BakeTextureType(BlenderPropertyEnum):
         is_native=True,
     )
 
-    DEFAULT = EMIT_COLOR
+    DEFAULT = EMIT_COLOR  # type: ignore[misc]
 
     def __init__(self, info: BakeTextureTypeInfo) -> None:
         """Initialize short names."""
@@ -257,7 +257,7 @@ class BakeMode(BlenderPropertyEnum):
         description="Bake the materials using a separate texture for each object",
     )
 
-    DEFAULT = SINGLE
+    DEFAULT = SINGLE  # type: ignore[misc]
 
     # PER_MATERIAL = EnumItemInfo(
     #     ui_name="Per Material",
@@ -292,4 +292,4 @@ class BakeState(BlenderPropertyEnum):
         description="Bake finished",
     )
 
-    DEFAULT = CANCELLED
+    DEFAULT = CANCELLED  # type: ignore[misc]

@@ -119,7 +119,7 @@ class BakeJob:
             return BakeJobState.CANCELED
 
         if self.__handlers_state == BakeHandlerState.COMPLETE:
-            if all(img.is_dirty for img in [self.__image]):
+            if self.__image.is_dirty:
                 self.__image_finalize()
                 self.__cleanup()
                 return BakeJobState.FINISHED

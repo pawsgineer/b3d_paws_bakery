@@ -9,11 +9,12 @@ from bpy import types as blt
 from ... import operators as ops
 from ...operators.texture_import import get_prefix_to_nodes_map
 from ...preferences import get_preferences
+from ...utils import Registry
 from .._utils import LayoutPanel, SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class TextureImportSpecialsMenu(blt.Menu):
     """Texture Import specials menu."""
 

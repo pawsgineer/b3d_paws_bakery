@@ -1,3 +1,4 @@
+# flake8: noqa: F821
 """Bake textures."""
 
 import bpy
@@ -25,12 +26,12 @@ class BakeSelected(blt.Operator):
     clear_image: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
         description="Create new image instead of adding to existing",
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     scale_image: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
         description="Scale image if AA enabled",
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     settings_id = SIMPLE_BAKE_SETTINGS_ID
@@ -104,6 +105,5 @@ class BakeSelected(blt.Operator):
         TimerManager.release()
         self.__bake_job.cancel()
 
-    # pylint: disable-next=no-self-use
     def __finish(self, _context: blt.Context) -> None:
         TimerManager.release()

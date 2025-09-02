@@ -1,3 +1,4 @@
+# flake8: noqa: F821
 """Bake texture set."""
 
 import datetime
@@ -37,10 +38,10 @@ class TextureSetBake(blt.Operator):
     bl_label = "Bake Texture Set Textures"
 
     texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     texture_id: blp.StringProperty(  # type: ignore[valid-type]
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     _clear_image: bool = True

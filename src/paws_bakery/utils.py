@@ -24,16 +24,17 @@ class AddonException(Exception):
     """Addon specific exception."""
 
 
+_StructType = type[blt.bpy_struct]  # type: ignore[type-arg]
+
+
 class Registry:
     """Registry of Blender classes."""
 
-    CLASSES: list[type[bpy.types.bpy_struct]] = []  # type: ignore[type-arg]
-    KEYMAPS: list[tuple[bpy.types.KeyMap, bpy.types.KeyMapItem]] = []
+    CLASSES: list[_StructType] = []
+    KEYMAPS: list[tuple[blt.KeyMap, blt.KeyMapItem]] = []
 
     @staticmethod
-    def add(
-        target_class: type[bpy.types.bpy_struct],  # type: ignore[type-arg]
-    ) -> type[bpy.types.bpy_struct]:  # type: ignore[type-arg]
+    def add(target_class: _StructType) -> _StructType:
         """Add class to registry."""
         Registry.CLASSES.append(target_class)
         return target_class
@@ -77,7 +78,7 @@ class TimerManager:
         cls.__timer = None
 
     @classmethod
-    def acquire(cls) -> bpy.types.Timer:
+    def acquire(cls) -> blt.Timer:
         """Create the timer if it doesn't exist."""
         cls.__ref_count += 1
 

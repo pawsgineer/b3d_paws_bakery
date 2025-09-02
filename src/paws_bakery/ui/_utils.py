@@ -1,7 +1,8 @@
 """Various UI helpers."""
 
 import textwrap
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import cast
 
 from bpy import types as blt
 
@@ -10,23 +11,29 @@ from ..utils import Registry
 LayoutPanel = tuple[blt.UILayout, blt.UILayout | None]
 
 
-def register_and_duplicate_to_node_editor(cls: type) -> type:
+_PanelType = type[blt.Panel]
+
+
+def register_and_duplicate_to_node_editor(cls: _PanelType) -> _PanelType:
     """Register panel and duplicate to Node Editor."""
-    target_cls = Registry.add(cls)
-    node_panel_add(target_cls)
-    return target_cls
+    Registry.add(cls)
+    node_panel_add(cls)
+    return cls
 
 
-def node_panel_add(cls: type) -> type:
+def node_panel_add(cls: _PanelType) -> _PanelType:
     """Add existing panel to Node Editor."""
 
-    def node_panel_rewrite(cls: type) -> type:
+    def node_panel_rewrite(cls: _PanelType) -> _PanelType:
         """Adapt properties editor panel to display in node editor.
 
         We have to copy the class rather than inherit due to the way bpy
         registration works.
         """
-        node_cls = type("NodeEditor" + cls.__name__, cls.__bases__, dict(cls.__dict__))
+        node_cls = cast(
+            _PanelType,
+            type("NodeEditor" + cls.__name__, cls.__bases__, dict(cls.__dict__)),
+        )
 
         node_cls.bl_space_type = "NODE_EDITOR"
 
@@ -41,13 +48,10 @@ def node_panel_add(cls: type) -> type:
     return cls
 
 
-_T = TypeVar("_T", bound=type)
-
-
-def generate_info_popover_idname(prefix: str) -> Callable[[_T], _T]:
+def generate_info_popover_idname(prefix: str) -> Callable[[_PanelType], _PanelType]:
     """Generate `bl_idname` from prefix and class name."""
 
-    def wrapper(cls: _T) -> _T:
+    def wrapper(cls: _PanelType) -> _PanelType:
         cls.bl_idname = f"PAWSBKR_PT_{prefix}_{cls.__name__.lower()}"
         return cls
 

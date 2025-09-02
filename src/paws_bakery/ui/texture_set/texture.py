@@ -15,12 +15,13 @@ from ...operators import (
 )
 from ...operators.texture_set_texture import TextureSetTextureSort
 from ...props import TextureProps, get_bake_settings, get_props
+from ...utils import Registry
 from .._draw_bake_settings import draw_bake_settings
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class TextureSpecialsMenu(blt.Menu):
     """Texture specials menu."""
 
@@ -67,7 +68,7 @@ class TextureSpecialsMenu(blt.Menu):
         )
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class TextureUIList(blt.UIList):
     """UI List - Texture Set textures."""
 

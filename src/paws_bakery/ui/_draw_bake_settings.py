@@ -4,7 +4,7 @@ from typing import cast
 
 from bpy import types as blt
 
-from ..props import BakeSettings, BakeTextureType
+from ..props import BakeSettings, BakeTextureType  # type: ignore[attr-defined]
 from ._utils import LayoutPanel
 
 

@@ -1,3 +1,4 @@
+# flake8: noqa: F821
 """Randomize objects color."""
 
 from collections.abc import Sequence
@@ -24,7 +25,7 @@ class RandomizeColor(blt.Operator):
         name="Target Object",
         description="Object to randomize color. If empty, applies to all selected",
         default="",
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
