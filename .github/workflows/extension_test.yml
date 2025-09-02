@@ -1,0 +1,120 @@
+name: Integration Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+  workflow_dispatch:
+    # inputs:
+    #   blender_version:
+    #     description: Blender version
+    #     default: '4.5.2'
+    #     type: choice
+    #     options:
+    #       - '4.5.2'
+    #       - '4.4.3'
+    #       - '4.3.2'
+    #       - '4.2.3'
+
+permissions:
+  contents: read
+
+env:
+  BL_VERSION: 4.5.2
+  EXTENSION_NAME: paws_bakery
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    outputs:
+      extension_version: ${{ steps.build.outputs.extension_version }}
+      artifact_name: ${{ steps.build.outputs.artifact_name }}
+      artifact_filename: ${{ steps.build.outputs.artifact_filename }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: Build Extension
+        id: build
+        uses: ./.github/actions/blender-extension-build
+        with:
+          blender_version: ${{ env.BL_VERSION }}
+          extension_name: ${{ env.EXTENSION_NAME }}
+
+  test:
+    needs: build
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref_name }}-${{ matrix.blender_version }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        blender_version:
+          - '4.5.2'
+          - '4.4.3'
+          # - '4.3.2' # No xvfb-run available in current image
+          # - '4.2.3' # No xvfb-run available in current image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        id: artifact-download
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+
+      - name: Install Extension and Run Test
+        id: install
+        env:
+          BL_VERSION: ${{ matrix.blender_version }}
+        shell: bash
+        run: |
+          docker run \
+            --name blender-${BL_VERSION} \
+            -v "$(pwd):/repo" \
+            --entrypoint bash \
+            lscr.io/linuxserver/blender:${BL_VERSION} \
+            -c "\
+              cd /repo;
+              blender \
+                --factory-startup \
+                --command extension install-file \
+                -e ${{ needs.build.outputs.artifact_filename }} \
+                -r user_default \
+                2>&1 \
+              && \
+              xvfb-run blender \
+                ./tests/test_bl/test_01.blend \
+                --python-exit-code 1 \
+                --debug-python \
+                --python ./tests/test_bl/bl_script.py \
+                -p 0 0 10 10 \
+                --no-window-focus \
+                2>&1
+            "
+
+      - name: Upload Textures Artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ steps.install.outcome == 'success' }}
+        with:
+          name: pawsbkr_textures-${{ matrix.blender_version }}
+          path: ./tests/test_bl/pawsbkr_textures
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Install Hatch
+        uses: pypa/hatch@install
+      - run: |
+          hatch run pip install -e .[dev]
+      - name: Run Test
+        run: |
+          hatch run -- pytest ./tests/test_bl/test_regression.py
