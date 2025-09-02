@@ -2,6 +2,7 @@
 
 import datetime
 from pprint import pformat
+from typing import cast
 
 from bpy import types as blt
 
@@ -42,7 +43,7 @@ class Debug(SidePanelMixin):
 
     @classmethod
     def poll(cls, _context: blt.Context) -> bool:  # noqa: D102
-        return get_preferences().enable_debug_tools
+        return cast(bool, get_preferences().enable_debug_tools)
 
     def draw(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)

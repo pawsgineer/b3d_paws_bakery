@@ -8,11 +8,12 @@ from bpy import types as blt
 from ..enums import BlenderJobType
 from ..operators import BakeSelected, MaterialCleanupSelected, MaterialSetupSelected
 from ..props import SIMPLE_BAKE_SETTINGS_ID, get_bake_settings
+from ..utils import Registry
 from ._draw_bake_settings import draw_bake_settings
 from ._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class SimpleBakeSpecialsMenu(blt.Menu):
     """Simple bake specials menu."""
 
@@ -58,7 +59,11 @@ class SimpleBake(SidePanelMixin):
             lyt.label(text="No objects selected", icon="ERROR")
             return
 
-        if context.space_data.local_view:
+        # TODO: won't work in shader editor
+        if (
+            isinstance(context.space_data, blt.SpaceView3D)
+            and context.space_data.local_view
+        ):
             col = lyt.column()
             col.alert = True
             col.label(text="Local View is active!", icon="VIS_SEL_01")

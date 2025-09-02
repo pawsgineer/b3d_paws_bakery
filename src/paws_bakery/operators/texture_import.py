@@ -1,3 +1,4 @@
+# flake8: noqa: F821
 """Import and assign textures to a material."""
 
 import re
@@ -13,9 +14,9 @@ from bpy import types as blt
 from bpy_extras.io_utils import ImportHelper
 
 from .._helpers import log
-from ..enums import BlenderOperatorReturnType, Colorspace
 from ..enums import BlenderOperatorReturnType as BORT
 from ..enums import BlenderOperatorType as BOT
+from ..enums import Colorspace
 from ..preferences import get_preferences
 from ..utils import AddonException, AssetLibraryManager, Registry
 from ._utils import get_selected_materials
@@ -31,7 +32,7 @@ class TextureImportLoadSampleMaterial(blt.Operator):
     bl_label = "Load Sample Material"
     bl_options = {BOT.REGISTER, BOT.UNDO}
 
-    def execute(self, _context: blt.Context) -> set[BlenderOperatorReturnType]:
+    def execute(self, _context: blt.Context) -> set[BORT]:
         """Load Sample Material."""
         AssetLibraryManager.material_load(UTIL_MATS_IMPORT_SAMPLE_NAME)
 
@@ -47,26 +48,26 @@ class TextureImport(blt.Operator, ImportHelper):
     bl_options = {BOT.REGISTER, BOT.UNDO}
 
     directory: blp.StringProperty(  # type: ignore[valid-type]
-        subtype="DIR_PATH",  # noqa: F821
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        subtype="DIR_PATH",
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     files: blp.CollectionProperty(  # type: ignore[valid-type]
         type=blt.OperatorFileListElement,
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     filter_folder: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     filter_image: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     target_material_name: blp.StringProperty(  # type: ignore[valid-type]
         name="Material Name",
         description="Material to set textures. All selected if empty",
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     unlink_existing_textures: blp.BoolProperty(  # type: ignore[valid-type]
@@ -75,7 +76,7 @@ class TextureImport(blt.Operator, ImportHelper):
         default=True,
     )
 
-    def execute(self, _context: blt.Context) -> set[BlenderOperatorReturnType]:
+    def execute(self, _context: blt.Context) -> set[BORT]:
         """Update material textures."""
         selected_mats = tuple(get_selected_materials())
 

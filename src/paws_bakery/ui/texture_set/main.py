@@ -12,10 +12,11 @@ from ...operators.texture_set_bake import TextureSetBake
 from ...operators.texture_set_material_create import TextureSetMaterialCreate
 from ...preferences import get_preferences
 from ...props import TextureSetProps, get_props
+from ...utils import Registry
 from .._utils import LayoutPanel, SidePanelMixin, register_and_duplicate_to_node_editor
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class TextureSetSpecialsMenu(blt.Menu):
     """Texture specials menu."""
 
@@ -37,7 +38,7 @@ class TextureSetSpecialsMenu(blt.Menu):
         )
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class SetUIList(blt.UIList):
     """UI List - Texture Set."""
 

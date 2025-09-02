@@ -23,17 +23,24 @@ def register() -> None:
 
     prefs = get_preferences()
 
-    bpy.app.timers.register(
-        prefs.init_texture_import_rules, first_interval=1.0, persistent=True
+    # pylint: disable-next=unexpected-keyword-arg
+    bpy.app.timers.register(  # type: ignore[call-arg]
+        prefs.init_texture_import_rules,  # type: ignore[arg-type]
+        first_interval=1.0,
+        persistent=True,
     )
 
-    bpy.types.Scene.pawsbkr = PointerProperty(type=SceneProps)
-    bpy.types.WindowManager.pawsbkr = PointerProperty(type=WMProps)
+    bpy.types.Scene.pawsbkr = PointerProperty(  # type: ignore[attr-defined]
+        type=SceneProps
+    )
+    bpy.types.WindowManager.pawsbkr = PointerProperty(  # type: ignore[attr-defined]
+        type=WMProps
+    )
 
 
 def unregister() -> None:
     """Unregister addon."""
     Registry.unregister()
 
-    del bpy.types.Scene.pawsbkr
-    del bpy.types.WindowManager.pawsbkr
+    del bpy.types.Scene.pawsbkr  # type: ignore[attr-defined]
+    del bpy.types.WindowManager.pawsbkr  # type: ignore[attr-defined]

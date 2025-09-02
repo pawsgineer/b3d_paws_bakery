@@ -1,8 +1,8 @@
+# flake8: noqa: F821
 """Setup material utils."""
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any, TypeVar, cast
@@ -15,7 +15,11 @@ from mathutils import Vector
 from .._helpers import log
 from ..enums import BlenderOperatorReturnType as BORT
 from ..enums import BlenderOperatorType as BOT
-from ..props import BakeSettings, BakeTextureType, get_bake_settings
+from ..props import (  # type: ignore[attr-defined]
+    BakeSettings,
+    BakeTextureType,
+    get_bake_settings,
+)
 from ..utils import (
     UTIL_NODES_GROUP_AORM,
     UTIL_NODES_GROUP_COLOR,
@@ -195,6 +199,7 @@ class BakeMaterialManager:
     def _add_color_node_group(self) -> blt.ShaderNodeGroup:
         group = self._add_node(blt.ShaderNodeGroup, UTIL_NODES_GROUP_COLOR)
         group.node_tree = bpy.data.node_groups.get(UTIL_NODES_GROUP_COLOR)
+        assert isinstance(group.inputs["color"], blt.NodeSocketColor)
         group.inputs["color"].default_value = tuple(self.mat_id_color) + (1.0,)
         return group
 
@@ -237,7 +242,7 @@ class BakeMaterialManager:
         self,
         input_socket: BakeConnectionSocket,
         output_socket: BakeConnectionSocket | blt.NodeSocketShader,
-        default_value: float | Sequence[float] | None = None,
+        default_value: blt.bpy_prop_array[float] | float | None = None,
         default_input_socket: BakeConnectionSocket | None = None,
         default_output_socket: BakeConnectionSocket | None = None,
     ) -> None:
@@ -413,15 +418,11 @@ class BakeMaterialManager:
         self.bake_settings = bake_settings
         self.mat_id_color = mat_id_color
 
-        self.output_node = self.tree.get_output_node("CYCLES")
+        self.output_node = cast(
+            blt.ShaderNodeOutputMaterial, self.tree.get_output_node("CYCLES")
+        )
         # TODO: we shouldn't care about existing material outputs when baking matid?
-        if self.tree.get_output_node("CYCLES") is None:
-            # TODO: only modify node group once
-            # node_groups: list[blt.ShaderNodeGroup] = []
-            # for node in tree.nodes:
-            #     if isinstance(node, blt.ShaderNodeGroup):
-            #         node_groups.append(node)
-
+        if self.output_node is None:
             raise AddonException("Can't bake material without material outputs")
 
         self.frame = self._get_node_frame()
@@ -524,7 +525,7 @@ class MaterialSetupSelected(blt.Operator):
     bl_options = {BOT.REGISTER, BOT.UNDO}
 
     settings_id: blp.StringProperty(  # type: ignore[valid-type]
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
@@ -556,21 +557,21 @@ class MaterialSetup(blt.Operator):
 
     cleanup: blp.BoolProperty(  # type: ignore[valid-type]
         default=False,
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     target_material_name: blp.StringProperty(  # type: ignore[valid-type]
         name="Material Name",
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     target_image_name: blp.StringProperty(  # type: ignore[valid-type]
         name="Bake Image Name",
         description="Name of the image to bake textures into",
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
     mat_id_color: blp.FloatVectorProperty()  # type: ignore[valid-type]
 
     settings_id: blp.StringProperty(  # type: ignore[valid-type]
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     def _cleanup(self, _context: blt.Context) -> None:

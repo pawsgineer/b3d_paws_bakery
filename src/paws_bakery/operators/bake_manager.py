@@ -9,7 +9,11 @@ from bpy import types as blt
 from .._helpers import log, log_err
 from ..enums import BlenderJobType
 from ..enums import BlenderOperatorReturnType as BORT
-from ..props import BakeSettings, BakeTextureType, get_props_wm
+from ..props import (  # type: ignore[attr-defined]
+    BakeSettings,
+    BakeTextureType,
+    get_props_wm,
+)
 from ..utils import AddonException
 from ._utils import generate_color_set, get_objects_materials
 from .bake_common import BakeObjects

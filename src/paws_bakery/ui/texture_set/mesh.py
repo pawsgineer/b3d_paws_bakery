@@ -9,11 +9,12 @@ from ...common import is_name_low
 from ...enums import BlenderJobType
 from ...operators import TextureSetMeshAdd, TextureSetMeshClear, TextureSetMeshRemove
 from ...props import MeshProps, get_props
+from ...utils import Registry
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class MeshSpecialsMenu(blt.Menu):
     """Mesh specials menu."""
 
@@ -26,7 +27,7 @@ class MeshSpecialsMenu(blt.Menu):
         subl.operator(TextureSetMeshClear.bl_idname, icon="CANCEL")
 
 
-@register_and_duplicate_to_node_editor
+@Registry.add
 class MeshUIList(blt.UIList):
     """UI List - Texture Set meshes."""
 
@@ -58,6 +59,10 @@ class MeshUIList(blt.UIList):
         if obj is None:
             row.alert = True
             row.label(text=f"{item.name}(Object with this name doesn't exist)")
+            return
+        if not isinstance(obj.data, blt.Mesh):
+            row.alert = True
+            row.label(text=f"{item.name}(Object is not a Mesh)")
             return
 
         row = row.split(factor=0.65)

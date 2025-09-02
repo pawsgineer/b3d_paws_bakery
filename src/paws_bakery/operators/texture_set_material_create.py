@@ -1,3 +1,4 @@
+# flake8: noqa: F821
 """Create Materials for Texture Set."""
 
 from collections.abc import Sequence
@@ -28,7 +29,7 @@ class TextureSetMaterialCreate(blt.Operator):
     bl_label = "Create Materials from Baked Textures"
 
     texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
-        options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
+        options={"HIDDEN", "SKIP_SAVE"},
     )
 
     _texture_set: TextureSetProps
