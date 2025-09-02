@@ -9,12 +9,9 @@ from bpy import types as blt
 
 from .._helpers import log, log_err
 from ..common import match_low_to_high
-from ..enums import (
-    BlenderEventType,
-    BlenderJobType,
-    BlenderOperatorReturnType,
-    BlenderWMReportType,
-)
+from ..enums import BlenderEventType, BlenderJobType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderWMReportType as BWMRT
 from ..props import (
     TextureProps,
     TextureSetProps,
@@ -58,11 +55,11 @@ class TextureSetBake(blt.Operator):
 
     def execute(  # noqa: D102
         self, context: blt.Context
-    ) -> set[BlenderOperatorReturnType]:
+    ) -> set[BORT]:
         can_run, msg = self.__can_run()
         if not can_run:
             log(msg)
-            return {BlenderOperatorReturnType.CANCELLED}
+            return {BORT.CANCELLED}
 
         self._texture_set = get_props(context).texture_sets[self.texture_set_id]
 
@@ -84,19 +81,19 @@ class TextureSetBake(blt.Operator):
         TimerManager.acquire()
         context.window_manager.modal_handler_add(self)
 
-        return {BlenderOperatorReturnType.RUNNING_MODAL}
+        return {BORT.RUNNING_MODAL}
 
     def modal(  # noqa: D102
         self, context: blt.Context, event: blt.Event
-    ) -> set[BlenderOperatorReturnType]:
+    ) -> set[BORT]:
         if event.type in {BlenderEventType.ESC}:
             self._cancel(context)
-            return {BlenderOperatorReturnType.CANCELLED}
+            return {BORT.CANCELLED}
 
         if event.type != BlenderEventType.TIMER or bpy.app.is_job_running(
             BlenderJobType.OBJECT_BAKE
         ):
-            return {BlenderOperatorReturnType.PASS_THROUGH}
+            return {BORT.PASS_THROUGH}
 
         bake_job = self.__ensure_bake_job(context)
         job_state = bake_job.on_modal()
@@ -115,7 +112,7 @@ class TextureSetBake(blt.Operator):
             msg = f"{self.bl_idname}: execute() failed: Already running"
         elif bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE):
             msg = "OBJECT_BAKE job is already running"
-            self.report({"ERROR"}, "PAWSBKR: Baking already running")
+            self.report({BWMRT.ERROR}, "PAWSBKR: Baking already running")
             # TODO: wait instead of canceling?
         else:
             return True, msg
@@ -165,25 +162,23 @@ class TextureSetBake(blt.Operator):
 
     def __handle_job_state(
         self, context: blt.Context, state: BakeJobState
-    ) -> set[BlenderOperatorReturnType]:
+    ) -> set[BORT]:
         if state is BakeJobState.RUNNING:
-            return {BlenderOperatorReturnType.PASS_THROUGH}
+            return {BORT.PASS_THROUGH}
 
         if state is BakeJobState.CANCELED:
             log("Canceling: reason BakeJobState.CANCELED")
             self._cancel(context)
-            return {BlenderOperatorReturnType.CANCELLED}
+            return {BORT.CANCELLED}
 
         if state is BakeJobState.FINISHED:
             return self.__handle_job_state_finished(context)
 
-        self.report({"ERROR"}, "Baking went wrong")
+        self.report({BWMRT.ERROR}, "Baking went wrong")
         self._cancel(context)
-        return {BlenderOperatorReturnType.CANCELLED}
+        return {BORT.CANCELLED}
 
-    def __handle_job_state_finished(
-        self, context: blt.Context
-    ) -> set[BlenderOperatorReturnType]:
+    def __handle_job_state_finished(self, context: blt.Context) -> set[BORT]:
         pawsbkr = get_props(context)
 
         bake_objects = self._bake_objects_list[0]
@@ -195,7 +190,7 @@ class TextureSetBake(blt.Operator):
                 pawsbkr.utils_settings.debug_pause_continue = False
             else:
                 log("debug_pause is active. skipping next bake...")
-                return {BlenderOperatorReturnType.PASS_THROUGH}
+                return {BORT.PASS_THROUGH}
 
         if BakeMode[self._texture_set.mode] is BakeMode.SINGLE:
             self._clear_image = False
@@ -205,13 +200,13 @@ class TextureSetBake(blt.Operator):
             self._finish_texture(context)
             if not self._bake_textures:
                 self._finish(context)
-                return {BlenderOperatorReturnType.FINISHED}
+                return {BORT.FINISHED}
 
             self.__prepare_bake_objects(context, self._bake_textures[0])
 
         self.__bake_next(context)
 
-        return {BlenderOperatorReturnType.PASS_THROUGH}
+        return {BORT.PASS_THROUGH}
 
     def __bake_next(self, context: blt.Context) -> BakeJob:
         self._bake_textures[0].state = BakeState.RUNNING.name
@@ -277,4 +272,4 @@ class TextureSetBake(blt.Operator):
             except Exception as ex:
                 msg = f"Failed to create materials: {ex}"
                 log_err(msg, with_tb=True)
-                self.report({BlenderWMReportType.ERROR}, msg)
+                self.report({BWMRT.ERROR}, msg)

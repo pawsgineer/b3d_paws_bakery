@@ -7,7 +7,8 @@ import bpy
 from bpy import types as blt
 
 from .._helpers import log, log_err
-from ..enums import BlenderJobType, BlenderOperatorReturnType
+from ..enums import BlenderJobType
+from ..enums import BlenderOperatorReturnType as BORT
 from ..props import BakeSettings, BakeTextureType, get_props_wm
 from ..utils import AddonException
 from ._utils import generate_color_set, get_objects_materials
@@ -27,7 +28,7 @@ _RENDER_ENGINE = "CYCLES"
 
 def call_bake_op(
     settings: BakeSettings, *, use_clear: bool = False, uv_layer: str = ""
-) -> set[BlenderOperatorReturnType]:
+) -> set[BORT]:
     """Call bpy.ops.object.bake using provided BakeSettings."""
     return bpy.ops.object.bake(  # type: ignore[no-any-return]
         "INVOKE_DEFAULT",  # type: ignore[arg-type]
@@ -122,14 +123,14 @@ class BakeManager:
             self.cleanup()
             raise
 
-        if bake_result != {BlenderOperatorReturnType.RUNNING_MODAL}:
+        if bake_result != {BORT.RUNNING_MODAL}:
             self.cleanup()
             raise AddonException(
                 "Failed to start baking. Wrong return type from object.bake operator.",
                 bake_result,
             )
 
-    def _unsafe_execute(self) -> set[BlenderOperatorReturnType]:
+    def _unsafe_execute(self) -> set[BORT]:
         self.__set_running(True)
 
         self.context.window.cursor_set("WAIT")

@@ -2,7 +2,8 @@
 
 from bpy import types as blt
 
-from ..enums import BlenderOperatorReturnType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
 from ..utils import Registry, TimerManager
 
 
@@ -12,7 +13,7 @@ class DebugResetState(blt.Operator):
 
     bl_idname = "pawsbkr.debug_reset_state"
     bl_label = "Reset Addon State"
-    bl_options = {"REGISTER"}
+    bl_options = {BOT.REGISTER}
 
     def execute(self, _context: blt.Context) -> set[str]:  # noqa: D102
         # pylint: disable=protected-access
@@ -22,4 +23,4 @@ class DebugResetState(blt.Operator):
         # TextureSetBake._TextureSetTextureBake__is_running = False
         # pylint: enable=protected-access
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}

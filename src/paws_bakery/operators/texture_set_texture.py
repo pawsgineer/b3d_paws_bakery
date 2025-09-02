@@ -4,7 +4,9 @@ import bpy
 from bpy import props as blp
 from bpy import types as blt
 
-from ..enums import BlenderOperatorReturnType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
+from ..enums import BlenderWMReportType as BWMRT
 from ..props import get_bake_settings, get_props
 from ..utils import AddonException, Registry
 from ._utils import generate_color_set
@@ -17,7 +19,7 @@ class TextureSetTextureAdd(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_texture_add"
     bl_label = "Add Texture"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
@@ -31,7 +33,7 @@ class TextureSetTextureAdd(blt.Operator):
         settings = settings_store.add()
         settings.name = texture.prop_id
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -40,7 +42,7 @@ class TextureSetTextureRemove(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_texture_remove"
     bl_label = "Remove Texture"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
@@ -53,7 +55,7 @@ class TextureSetTextureRemove(blt.Operator):
         settings_store.remove(settings_store.find(texture.prop_id))
         texture_set.textures.remove(texture_set.textures_active_index)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -62,7 +64,7 @@ class TextureSetTextureSort(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_texture_sort"
     bl_label = "Sort Textures"
-    bl_options = {"UNDO", "INTERNAL"}
+    bl_options = {BOT.UNDO, BOT.INTERNAL}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
@@ -70,7 +72,7 @@ class TextureSetTextureSort(blt.Operator):
         assert texture_set
         texture_set.sort_textures()
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 def _get_materials(context: blt.Context, texture_set_id: str) -> set[blt.Material]:
@@ -94,7 +96,7 @@ class TextureSetTextureSetupMaterial(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_texture_setup_material"
     bl_label = "Setup Material"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
         name="Target texture set name", default=""
@@ -122,7 +124,7 @@ class TextureSetTextureSetupMaterial(blt.Operator):
         cfg = get_bake_settings(context, texture.prop_id)
         colors = generate_color_set(len(materials))
         for mat in materials:
-            self.report({"INFO"}, f"Initializing material {mat.name!r}")
+            self.report({BWMRT.INFO}, f"Initializing material {mat.name!r}")
             material_cleanup(mat)
             BakeMaterialManager(
                 mat=mat,
@@ -131,7 +133,7 @@ class TextureSetTextureSetupMaterial(blt.Operator):
                 mat_id_color=colors[list(materials).index(mat)],
             )
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -140,7 +142,7 @@ class TextureSetTextureCleanupMaterial(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_texture_cleanup_material"
     bl_label = "Cleanup Material"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
         name="Target texture set name", default=""
@@ -158,4 +160,4 @@ class TextureSetTextureCleanupMaterial(blt.Operator):
         for mat in materials:
             material_cleanup(mat)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}

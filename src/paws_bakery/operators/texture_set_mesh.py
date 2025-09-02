@@ -2,7 +2,9 @@
 
 from bpy import types as blt
 
-from ..enums import BlenderOperatorReturnType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
+from ..enums import BlenderWMReportType as BWMRT
 from ..props import get_props
 from ..utils import Registry
 
@@ -13,7 +15,7 @@ class TextureSetMeshAdd(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_mesh_add"
     bl_label = "Add Object"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
@@ -22,7 +24,9 @@ class TextureSetMeshAdd(blt.Operator):
 
         for obj in context.selected_objects:
             if obj.type != "MESH":
-                self.report({"WARNING"}, f"PAWSBKR: Object {obj.name!r} is not a mesh")
+                self.report(
+                    {BWMRT.WARNING}, f"PAWSBKR: Object {obj.name!r} is not a mesh"
+                )
                 continue
 
             if obj.name not in texture_set.meshes:
@@ -30,9 +34,11 @@ class TextureSetMeshAdd(blt.Operator):
                 mesh_props.name = obj.name
                 texture_set.sort_meshes()
             else:
-                self.report({"INFO"}, f"PAWSBKR: Object {obj.name!r} already in set")
+                self.report(
+                    {BWMRT.INFO}, f"PAWSBKR: Object {obj.name!r} already in set"
+                )
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -41,7 +47,7 @@ class TextureSetMeshRemove(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_mesh_remove"
     bl_label = "Remove Object"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
@@ -50,7 +56,7 @@ class TextureSetMeshRemove(blt.Operator):
         assert texture_set
         texture_set.meshes.remove(texture_set.meshes_active_index)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -59,7 +65,7 @@ class TextureSetMeshClear(blt.Operator):
 
     bl_idname = "pawsbkr.texture_set_mesh_clear"
     bl_label = "Remove All Object"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
@@ -68,4 +74,4 @@ class TextureSetMeshClear(blt.Operator):
         assert texture_set
         texture_set.meshes.clear()
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
