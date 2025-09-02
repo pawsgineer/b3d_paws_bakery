@@ -38,3 +38,18 @@ class TextureSetRemove(b_t.Operator):
         texture_sets.remove(pawsbkr.texture_sets_active_index)
 
         return {BlenderOperatorReturnType.FINISHED}
+
+
+@Registry.add
+class TextureSetSort(b_t.Operator):
+    """Sort Texture Sets."""
+
+    bl_idname = "pawsbkr.texture_set_sort"
+    bl_label = "Sort Texture Sets"
+    bl_options = {"UNDO", "INTERNAL"}
+
+    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+        pawsbkr = get_props(context)
+        pawsbkr.sort_texture_sets()
+
+        return {BlenderOperatorReturnType.FINISHED}

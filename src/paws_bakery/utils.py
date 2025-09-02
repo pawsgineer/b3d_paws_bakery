@@ -1,5 +1,7 @@
 """Various addon utils."""
 
+import re
+
 import bpy
 from bpy import types as b_t
 
@@ -25,11 +27,13 @@ class AddonException(Exception):
 class Registry:
     """Registry of Blender classes."""
 
-    CLASSES: list[type[bpy.types.bpy_struct]] = []
+    CLASSES: list[type[bpy.types.bpy_struct]] = []  # type: ignore[type-arg]
     KEYMAPS: list[tuple[bpy.types.KeyMap, bpy.types.KeyMapItem]] = []
 
     @staticmethod
-    def add(target_class: type[bpy.types.bpy_struct]) -> type[bpy.types.bpy_struct]:
+    def add(
+        target_class: type[bpy.types.bpy_struct],  # type: ignore[type-arg]
+    ) -> type[bpy.types.bpy_struct]:  # type: ignore[type-arg]
         """Add class to registry."""
         Registry.CLASSES.append(target_class)
         return target_class
@@ -187,3 +191,13 @@ class AssetLibraryManager:
             ng.use_fake_user = False
 
         cls._is_nodes_imported = True
+
+
+def naturalize_key(
+    key: str, _nsre: re.Pattern[str] = re.compile(r"(\d+)")
+) -> list[str | int]:
+    """Return key suitable for natural sorting."""
+    res = [
+        int(text) if text.isdigit() else text.casefold() for text in _nsre.split(key)
+    ]
+    return res

@@ -3,6 +3,8 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from .utils import naturalize_key
+
 SUFFIX_HIGH = "_high"
 SUFFIX_LOW = "_low"
 
@@ -44,3 +46,15 @@ def match_low_to_high(names: Sequence[str]) -> list[LowHighObjectNames]:
         )
 
     return matching
+
+
+def sort_mesh_names(names: Sequence[str]) -> list[str]:
+    """Sort mesh names considering low to high suffixes."""
+    low_to_high_names = match_low_to_high(names)
+    low_to_high_names.sort(key=lambda x: naturalize_key(x.low))
+    sorted_names = []
+    for lh in low_to_high_names:
+        sorted_names.append(lh.low)
+        lh.high.sort(key=naturalize_key)
+        sorted_names.extend(lh.high)
+    return sorted_names

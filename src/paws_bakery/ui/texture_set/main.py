@@ -7,11 +7,34 @@ from bpy import types as b_t
 
 from ...enums import BlenderJobType
 from ...operators import TextureSetAdd, TextureSetRemove
+from ...operators.texture_set import TextureSetSort
 from ...operators.texture_set_bake import TextureSetBake
 from ...operators.texture_set_material_create import TextureSetMaterialCreate
 from ...preferences import get_preferences
 from ...props import TextureSetProps, get_props
 from .._utils import LayoutPanel, SidePanelMixin, register_and_duplicate_to_node_editor
+
+
+@register_and_duplicate_to_node_editor
+class TextureSetSpecialsMenu(b_t.Menu):
+    """Texture specials menu."""
+
+    bl_idname = "PAWSBKR_MT_texture_set_specials"
+    bl_label = "Texture Set Specials"
+
+    def draw(self, context: b_t.Context | None) -> None:  # noqa: D102
+        assert context
+        pawsbkr = get_props(context)
+        texture_set = pawsbkr.active_texture_set
+        assert texture_set
+
+        layout = self.layout
+
+        subl = layout.column(align=True)
+
+        subl.operator(
+            TextureSetSort.bl_idname, icon="NODE_MATERIAL", text="Sort Texture Sets"
+        )
 
 
 @register_and_duplicate_to_node_editor
@@ -122,6 +145,12 @@ class Main(SidePanelMixin):
         col = row.column(align=True)
         col.operator(TextureSetAdd.bl_idname, icon="ADD", text="")
         col.operator(TextureSetRemove.bl_idname, icon="REMOVE", text="")
+
+        if active_set is None:
+            return
+
+        col.separator()
+        col.menu(TextureSetSpecialsMenu.bl_idname, icon="DOWNARROW_HLT", text="")
 
     def _draw_material_creation(
         self, _context: b_t.Context, active_set: TextureSetProps
