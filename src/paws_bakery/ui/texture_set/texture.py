@@ -3,7 +3,7 @@
 from typing import Any, cast
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ...enums import BlenderJobType
 from ...operators import (
@@ -21,13 +21,13 @@ from .main import Main
 
 
 @register_and_duplicate_to_node_editor
-class TextureSpecialsMenu(b_t.Menu):
+class TextureSpecialsMenu(blt.Menu):
     """Texture specials menu."""
 
     bl_idname = "PAWSBKR_MT_texture_set_textures_specials"
     bl_label = "Texture Specials"
 
-    def draw(self, context: b_t.Context | None) -> None:  # noqa: D102
+    def draw(self, context: blt.Context | None) -> None:  # noqa: D102
         assert context
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
@@ -68,15 +68,15 @@ class TextureSpecialsMenu(b_t.Menu):
 
 
 @register_and_duplicate_to_node_editor
-class TextureUIList(b_t.UIList):
+class TextureUIList(blt.UIList):
     """UI List - Texture Set textures."""
 
     bl_idname = "PAWSBKR_UL_texture_set_textures"
 
     def draw_item(  # noqa: D102
         self,
-        context: b_t.Context | None,
-        layout: b_t.UILayout,
+        context: blt.Context | None,
+        layout: blt.UILayout,
         _data: Any | None,
         item: TextureProps | None,
         _icon: int | None,
@@ -122,19 +122,19 @@ class Texture(SidePanelMixin):
     bl_label = "Textures"
 
     @classmethod
-    def poll(cls, context: b_t.Context) -> bool:  # noqa: D102
+    def poll(cls, context: blt.Context) -> bool:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
-    def draw_header(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw_header(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         assert pawsbkr.active_texture_set
         if len(pawsbkr.active_texture_set.textures) < 1:
             self.layout.alert = True
             self.layout.label(text="", icon="ERROR")
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         assert texture_set

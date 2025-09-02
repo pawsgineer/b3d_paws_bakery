@@ -8,8 +8,8 @@ from itertools import chain
 from pathlib import Path
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 from bpy_extras.io_utils import ImportHelper
 
 from .._helpers import log
@@ -22,14 +22,14 @@ UTIL_MATS_IMPORT_SAMPLE_NAME = "pawsbkr_texture_import_sample"
 
 
 @Registry.add
-class TextureImportLoadSampleMaterial(b_t.Operator):
+class TextureImportLoadSampleMaterial(blt.Operator):
     """Load sample material with node names setup."""
 
     bl_idname = "pawsbkr.texture_import_load_sample_material"
     bl_label = "Load Sample Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, _context: b_t.Context) -> set[BlenderOperatorReturnType]:
+    def execute(self, _context: blt.Context) -> set[BlenderOperatorReturnType]:
         """Load Sample Material."""
         AssetLibraryManager.material_load(UTIL_MATS_IMPORT_SAMPLE_NAME)
 
@@ -37,47 +37,47 @@ class TextureImportLoadSampleMaterial(b_t.Operator):
 
 
 @Registry.add
-class TextureImport(b_t.Operator, ImportHelper):
+class TextureImport(blt.Operator, ImportHelper):
     """Import and assign textures to a material."""
 
     bl_idname = "pawsbkr.texture_import"
     bl_label = "Import Textures"
     bl_options = {"REGISTER", "UNDO"}
 
-    directory: b_p.StringProperty(  # type: ignore[valid-type]
+    directory: blp.StringProperty(  # type: ignore[valid-type]
         subtype="DIR_PATH",  # noqa: F821
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    files: b_p.CollectionProperty(  # type: ignore[valid-type]
-        type=b_t.OperatorFileListElement,
+    files: blp.CollectionProperty(  # type: ignore[valid-type]
+        type=blt.OperatorFileListElement,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    filter_folder: b_p.BoolProperty(  # type: ignore[valid-type]
+    filter_folder: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
-    filter_image: b_p.BoolProperty(  # type: ignore[valid-type]
+    filter_image: blp.BoolProperty(  # type: ignore[valid-type]
         default=True,
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    target_material_name: b_p.StringProperty(  # type: ignore[valid-type]
+    target_material_name: blp.StringProperty(  # type: ignore[valid-type]
         name="Material Name",
         description="Material to set textures. All selected if empty",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    unlink_existing_textures: b_p.BoolProperty(  # type: ignore[valid-type]
+    unlink_existing_textures: blp.BoolProperty(  # type: ignore[valid-type]
         name="Unlink Existing Textures",
         description="Unlink existing textures from managed nodes",
         default=True,
     )
 
-    def execute(self, _context: b_t.Context) -> set[BlenderOperatorReturnType]:
+    def execute(self, _context: blt.Context) -> set[BlenderOperatorReturnType]:
         """Update material textures."""
         selected_mats = tuple(get_selected_materials())
 
-        mats: Iterable[b_t.Material]
+        mats: Iterable[blt.Material]
 
         if self.target_material_name:
             mats = [bpy.data.materials[self.target_material_name]]
@@ -90,7 +90,7 @@ class TextureImport(b_t.Operator, ImportHelper):
 
         return {BlenderOperatorReturnType.FINISHED}
 
-    def _update_material(self, mat: b_t.Material) -> None:
+    def _update_material(self, mat: blt.Material) -> None:
         pref_to_nodes = get_prefix_to_nodes_map(mat)
         if len(tuple(pref_to_nodes.nodes)) < 1:
             raise AddonException(
@@ -101,8 +101,8 @@ class TextureImport(b_t.Operator, ImportHelper):
             mat, self._load_images(mat), self.unlink_existing_textures
         )
 
-    def _load_images(self, mat: b_t.Material) -> list[b_t.Image]:
-        images: list[b_t.Image] = []
+    def _load_images(self, mat: blt.Material) -> list[blt.Image]:
+        images: list[blt.Image] = []
 
         prefs = get_preferences()
 
@@ -137,15 +137,15 @@ NodeNamePrefix = str
 class PrefixNodesMapping:
     """Container for map of low to high Object names."""
 
-    by_prefix: dict[NodeNamePrefix, list[b_t.ShaderNodeTexImage]]
+    by_prefix: dict[NodeNamePrefix, list[blt.ShaderNodeTexImage]]
 
     @property
-    def nodes(self) -> Iterable[b_t.ShaderNodeTexImage]:
+    def nodes(self) -> Iterable[blt.ShaderNodeTexImage]:
         """Returns list of all nodes."""
         return chain.from_iterable(self.by_prefix.values())
 
 
-def get_prefix_to_nodes_map(mat: b_t.Material) -> PrefixNodesMapping:
+def get_prefix_to_nodes_map(mat: blt.Material) -> PrefixNodesMapping:
     """Return map of node name prefixes to nodes."""
     prefs = get_preferences()
     pref_nodes_map = PrefixNodesMapping(defaultdict(list))
@@ -156,10 +156,10 @@ def get_prefix_to_nodes_map(mat: b_t.Material) -> PrefixNodesMapping:
             if not re.match(rf"^{prefix}([_.\-]|$)", node.name):
                 continue
 
-            if not isinstance(node, b_t.ShaderNodeTexImage):
+            if not isinstance(node, blt.ShaderNodeTexImage):
                 raise AddonException(
                     f"Node with name {node.name!r} has wrong type: "
-                    f"{type(node)}. Expected: {b_t.ShaderNodeTexImage}"
+                    f"{type(node)}. Expected: {blt.ShaderNodeTexImage}"
                 )
 
             pref_nodes_map.by_prefix[prefix].append(node)
@@ -176,8 +176,8 @@ def get_prefix_to_nodes_map(mat: b_t.Material) -> PrefixNodesMapping:
 
 
 def assign_images_to_material(
-    mat: b_t.Material,
-    images: Sequence[b_t.Image],
+    mat: blt.Material,
+    images: Sequence[blt.Image],
     unlink_existing: bool,
 ) -> None:
     """Assign images to material texture nodes."""

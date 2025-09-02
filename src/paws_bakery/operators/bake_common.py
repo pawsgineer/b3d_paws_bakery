@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..preferences import get_preferences
 from ..props import get_bake_settings
@@ -10,7 +10,7 @@ from ..props import get_bake_settings
 
 def generate_image_name_and_path(
     *,
-    context: b_t.Context,
+    context: blt.Context,
     settings_id: str,
     texture_set_name: str,
     object_prefix: str = "",
@@ -43,8 +43,8 @@ class BakeObjects:
     maintain similarity with the Blender API.
     """
 
-    active: b_t.Object
-    selected: list[b_t.Object]
+    active: blt.Object
+    selected: list[blt.Object]
 
     def __post_init__(self) -> None:
         """Validate state after initialization."""

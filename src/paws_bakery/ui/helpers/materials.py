@@ -1,6 +1,6 @@
 """UI Panel - Materials."""
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 from .main import Main
@@ -16,7 +16,7 @@ class Materials(SidePanelMixin):
     bl_order = 3
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         layout = self.layout
 
         if not context.selected_objects:
@@ -33,7 +33,7 @@ class Materials(SidePanelMixin):
         )
         col = flow.column(align=True)
 
-        materials: set[b_t.Material] = set()
+        materials: set[blt.Material] = set()
 
         for obj in context.selected_objects:
             row = col.row()

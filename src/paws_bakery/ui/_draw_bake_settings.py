@@ -2,14 +2,14 @@
 
 from typing import cast
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..props import BakeSettings, BakeTextureType
 from ._utils import LayoutPanel
 
 
 def draw_bake_settings(
-    layout: b_t.UILayout,
+    layout: blt.UILayout,
     settings: BakeSettings,
     texture_set_display_name: str = "",
 ) -> None:

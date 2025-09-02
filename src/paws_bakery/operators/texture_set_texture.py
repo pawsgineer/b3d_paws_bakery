@@ -1,8 +1,8 @@
 """Texture set texture controls."""
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from ..enums import BlenderOperatorReturnType
 from ..props import get_bake_settings, get_props
@@ -12,14 +12,14 @@ from .material_setup import BakeMaterialManager, material_cleanup
 
 
 @Registry.add
-class TextureSetTextureAdd(b_t.Operator):
+class TextureSetTextureAdd(blt.Operator):
     """Add new Texture to Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_texture_add"
     bl_label = "Add Texture"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         assert texture_set
@@ -35,14 +35,14 @@ class TextureSetTextureAdd(b_t.Operator):
 
 
 @Registry.add
-class TextureSetTextureRemove(b_t.Operator):
+class TextureSetTextureRemove(blt.Operator):
     """Remove selected Texture from Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_texture_remove"
     bl_label = "Remove Texture"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         settings_store = pawsbkr.bake_settings_store
         texture_set = pawsbkr.active_texture_set
@@ -57,14 +57,14 @@ class TextureSetTextureRemove(b_t.Operator):
 
 
 @Registry.add
-class TextureSetTextureSort(b_t.Operator):
+class TextureSetTextureSort(blt.Operator):
     """Sort Textures."""
 
     bl_idname = "pawsbkr.texture_set_texture_sort"
     bl_label = "Sort Textures"
     bl_options = {"UNDO", "INTERNAL"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         assert texture_set
@@ -73,12 +73,12 @@ class TextureSetTextureSort(b_t.Operator):
         return {BlenderOperatorReturnType.FINISHED}
 
 
-def _get_materials(context: b_t.Context, texture_set_id: str) -> set[b_t.Material]:
+def _get_materials(context: blt.Context, texture_set_id: str) -> set[blt.Material]:
     pawsbkr = get_props(context)
     texture_set = pawsbkr.texture_sets[texture_set_id]
     meshes = texture_set.meshes
 
-    materials: set[b_t.Material] = set()
+    materials: set[blt.Material] = set()
 
     for mesh in meshes:
         for slot in bpy.data.objects[mesh.name].material_slots:
@@ -89,21 +89,21 @@ def _get_materials(context: b_t.Context, texture_set_id: str) -> set[b_t.Materia
 
 
 @Registry.add
-class TextureSetTextureSetupMaterial(b_t.Operator):
+class TextureSetTextureSetupMaterial(blt.Operator):
     """Setup material for texture baking."""
 
     bl_idname = "pawsbkr.texture_set_texture_setup_material"
     bl_label = "Setup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+    texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
         name="Target texture set name", default=""
     )
-    texture_id: b_p.StringProperty(  # type: ignore[valid-type]
+    texture_id: blp.StringProperty(  # type: ignore[valid-type]
         name="Target texture name", default=""
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if not self.texture_set_id:
             raise NotImplementedError("Baking without texture_set_id not implemented")
         if not self.texture_id:
@@ -135,18 +135,18 @@ class TextureSetTextureSetupMaterial(b_t.Operator):
 
 
 @Registry.add
-class TextureSetTextureCleanupMaterial(b_t.Operator):
+class TextureSetTextureCleanupMaterial(blt.Operator):
     """Cleanup material after texture baking."""
 
     bl_idname = "pawsbkr.texture_set_texture_cleanup_material"
     bl_label = "Cleanup Material"
     bl_options = {"REGISTER", "UNDO"}
 
-    texture_set_id: b_p.StringProperty(  # type: ignore[valid-type]
+    texture_set_id: blp.StringProperty(  # type: ignore[valid-type]
         name="Target texture set name", default=""
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if not self.texture_set_id:
             raise NotImplementedError("Baking without texture_set_id not implemented")
 

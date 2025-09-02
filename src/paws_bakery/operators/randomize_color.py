@@ -3,8 +3,8 @@
 from collections.abc import Sequence
 
 import bpy
-from bpy import props as b_p
-from bpy import types as b_t
+from bpy import props as blp
+from bpy import types as blt
 
 from ..enums import BlenderOperatorReturnType
 from ..utils import Registry
@@ -12,21 +12,21 @@ from ._utils import generate_color_set
 
 
 @Registry.add
-class RandomizeColor(b_t.Operator):
+class RandomizeColor(blt.Operator):
     """Randomize objects color."""
 
     bl_idname = "pawsbkr.randomize_color"
     bl_label = "Randomize Color"
     bl_options = {"REGISTER", "UNDO"}
 
-    target_object: b_p.StringProperty(  # type: ignore[valid-type]
+    target_object: blp.StringProperty(  # type: ignore[valid-type]
         name="Target Object",
         description="Object to randomize color. If empty, applies to all selected",
         default="",
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
     )
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if self.target_object:
             targets: Sequence[bpy.types.Object] = [bpy.data.objects[self.target_object]]
         else:

@@ -2,7 +2,7 @@
 import importlib
 import inspect
 
-from bpy import types as b_t
+from bpy import types as blt
 
 PACKAGES_TO_CHECK = ["paws_bakery"]
 
@@ -17,7 +17,7 @@ def test_unique_bl_idname() -> None:  # noqa: C901
 
         classes = inspect.getmembers(module, inspect.isclass)
         for _, cls in classes:
-            if issubclass(cls, b_t.bpy_struct):
+            if issubclass(cls, blt.bpy_struct):
                 classes_to_check.add(cls)
 
         submodules = inspect.getmembers(module, inspect.ismodule)
@@ -26,7 +26,7 @@ def test_unique_bl_idname() -> None:  # noqa: C901
                 print(f"Checking module: {smodule}")
                 classes = inspect.getmembers(smodule, inspect.isclass)
                 for _, cls in classes:
-                    if issubclass(cls, b_t.bpy_struct):
+                    if issubclass(cls, blt.bpy_struct):
                         classes_to_check.add(cls)
             else:
                 print(f"Skipping module: {smodule}, package: {smodule.__package__}")

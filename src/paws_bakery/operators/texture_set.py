@@ -1,6 +1,6 @@
 """Texture set controls."""
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..enums import BlenderOperatorReturnType
 from ..props import get_props
@@ -8,14 +8,14 @@ from ..utils import Registry
 
 
 @Registry.add
-class TextureSetAdd(b_t.Operator):
+class TextureSetAdd(blt.Operator):
     """Add a new Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_add"
     bl_label = "Add Texture Set"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_sets = pawsbkr.texture_sets
         t_set = texture_sets.add()
@@ -25,14 +25,14 @@ class TextureSetAdd(b_t.Operator):
 
 
 @Registry.add
-class TextureSetRemove(b_t.Operator):
+class TextureSetRemove(blt.Operator):
     """Remove selected Texture Set."""
 
     bl_idname = "pawsbkr.texture_set_remove"
     bl_label = "Remove Texture Set"
     bl_options = {"REGISTER", "UNDO"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         texture_sets = pawsbkr.texture_sets
         texture_sets.remove(pawsbkr.texture_sets_active_index)
@@ -41,14 +41,14 @@ class TextureSetRemove(b_t.Operator):
 
 
 @Registry.add
-class TextureSetSort(b_t.Operator):
+class TextureSetSort(blt.Operator):
     """Sort Texture Sets."""
 
     bl_idname = "pawsbkr.texture_set_sort"
     bl_label = "Sort Texture Sets"
     bl_options = {"UNDO", "INTERNAL"}
 
-    def execute(self, context: b_t.Context) -> set[str]:  # noqa: D102
+    def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         pawsbkr = get_props(context)
         pawsbkr.sort_texture_sets()
 

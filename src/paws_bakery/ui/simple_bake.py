@@ -3,7 +3,7 @@
 from typing import cast
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..enums import BlenderJobType
 from ..operators import BakeSelected, MaterialCleanupSelected, MaterialSetupSelected
@@ -13,13 +13,13 @@ from ._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
 
 @register_and_duplicate_to_node_editor
-class SimpleBakeSpecialsMenu(b_t.Menu):
+class SimpleBakeSpecialsMenu(blt.Menu):
     """Simple bake specials menu."""
 
     bl_idname = "PAWSBKR_MT_simple_bake_specials"
     bl_label = "Simple Bake Specials"
 
-    def draw(self, _context: b_t.Context | None) -> None:  # noqa: D102
+    def draw(self, _context: blt.Context | None) -> None:  # noqa: D102
         layout = self.layout
 
         subl = layout.column(align=True)
@@ -50,7 +50,7 @@ class SimpleBake(SidePanelMixin):
     bl_order = 1
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         lyt = self.layout
 
         if not context.selected_objects:

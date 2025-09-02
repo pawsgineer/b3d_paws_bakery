@@ -2,7 +2,7 @@
 
 from typing import cast
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from ..props import get_props
 from ._utils import LayoutPanel, SidePanelMixin, register_and_duplicate_to_node_editor
@@ -17,7 +17,7 @@ class Settings(SidePanelMixin):
     bl_order = 0
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         layout = self.layout
 
@@ -27,7 +27,7 @@ class Settings(SidePanelMixin):
 
         self._draw_material_creation(context)
 
-    def _draw_material_creation(self, context: b_t.Context) -> None:
+    def _draw_material_creation(self, context: blt.Context) -> None:
         header, panel = cast(
             LayoutPanel, self.layout.panel("mat_creation", default_closed=False)
         )

@@ -3,7 +3,7 @@
 from typing import Any
 
 import bpy
-from bpy import types as b_t
+from bpy import types as blt
 
 from ...common import is_name_low
 from ...enums import BlenderJobType
@@ -14,28 +14,28 @@ from .main import Main
 
 
 @register_and_duplicate_to_node_editor
-class MeshSpecialsMenu(b_t.Menu):
+class MeshSpecialsMenu(blt.Menu):
     """Mesh specials menu."""
 
     bl_idname = "PAWSBKR_MT_texture_set_mesh_specials"
     bl_label = "Mesh Specials"
 
-    def draw(self, _context: b_t.Context | None) -> None:  # noqa: D102
+    def draw(self, _context: blt.Context | None) -> None:  # noqa: D102
         layout = self.layout
         subl = layout.column(align=True)
         subl.operator(TextureSetMeshClear.bl_idname, icon="CANCEL")
 
 
 @register_and_duplicate_to_node_editor
-class MeshUIList(b_t.UIList):
+class MeshUIList(blt.UIList):
     """UI List - Texture Set meshes."""
 
     bl_idname = "PAWSBKR_UL_texture_set_meshes"
 
     def draw_item(  # noqa: D102
         self,
-        _context: b_t.Context | None,
-        layout: b_t.UILayout,
+        _context: blt.Context | None,
+        layout: blt.UILayout,
         _data: Any | None,
         item: MeshProps | None,
         _icon: int | None,
@@ -86,12 +86,12 @@ class Meshes(SidePanelMixin):
     bl_label = "Objects"
 
     @classmethod
-    def poll(cls, context: b_t.Context) -> bool:  # noqa: D102
+    def poll(cls, context: blt.Context) -> bool:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         return texture_set is not None
 
-    def draw_header(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw_header(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
         assert texture_set
@@ -99,7 +99,7 @@ class Meshes(SidePanelMixin):
             self.layout.alert = True
             self.layout.label(text="", icon="ERROR")
 
-    def draw(self, context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, context: blt.Context) -> None:  # noqa: D102
         pawsbkr = get_props(context)
         texture_set = pawsbkr.active_texture_set
 

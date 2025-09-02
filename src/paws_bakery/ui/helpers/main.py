@@ -1,6 +1,6 @@
 """Helpers UI Panel."""
 
-from bpy import types as b_t
+from bpy import types as blt
 
 from .._utils import SidePanelMixin, register_and_duplicate_to_node_editor
 
@@ -14,5 +14,5 @@ class Main(SidePanelMixin):
     bl_order = 10
     bl_options = {"DEFAULT_CLOSED"}
 
-    def draw(self, _context: b_t.Context) -> None:  # noqa: D102
+    def draw(self, _context: blt.Context) -> None:  # noqa: D102
         pass
