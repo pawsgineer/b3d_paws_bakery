@@ -5,7 +5,9 @@ from bpy import props as blp
 from bpy import types as blt
 
 from .._helpers import log
-from ..enums import BlenderEventType, BlenderJobType, BlenderOperatorReturnType
+from ..enums import BlenderEventType, BlenderJobType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderWMReportType as BWMRT
 from ..props import SIMPLE_BAKE_SETTINGS_ID, get_bake_settings
 from ..utils import Registry, TimerManager
 from .bake_common import BakeObjects, generate_image_name_and_path
@@ -38,12 +40,12 @@ class BakeSelected(blt.Operator):
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if BakeManager.is_running():
             log(f"{self.bl_idname}: execute() failed: Already running")
-            return {BlenderOperatorReturnType.CANCELLED}
+            return {BORT.CANCELLED}
 
         if bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE):
             log("`OBJECT_BAKE` job is already running")
-            self.report({"ERROR"}, "PAWSBKR: Baking already running")
-            return {BlenderOperatorReturnType.CANCELLED}
+            self.report({BWMRT.ERROR}, "PAWSBKR: Baking already running")
+            return {BORT.CANCELLED}
 
         img_name, img_path = generate_image_name_and_path(
             context=context,
@@ -52,8 +54,8 @@ class BakeSelected(blt.Operator):
         )
 
         if context.active_object is None:
-            self.report({"ERROR"}, "PAWSBKR: No active Object")
-            return {BlenderOperatorReturnType.CANCELLED}
+            self.report({BWMRT.ERROR}, "PAWSBKR: No active Object")
+            return {BORT.CANCELLED}
 
         objects = BakeObjects(
             active=context.active_object, selected=context.selected_objects
@@ -73,30 +75,30 @@ class BakeSelected(blt.Operator):
         TimerManager.acquire()
         context.window_manager.modal_handler_add(self)
 
-        return {BlenderOperatorReturnType.RUNNING_MODAL}
+        return {BORT.RUNNING_MODAL}
 
     def modal(self, context: blt.Context, event: blt.Event) -> set[str]:  # noqa: D102
         if event.type in {BlenderEventType.ESC}:
             self.__cancel(context)
-            return {BlenderOperatorReturnType.CANCELLED}
+            return {BORT.CANCELLED}
 
         if event.type != BlenderEventType.TIMER:
-            return {BlenderOperatorReturnType.PASS_THROUGH}
+            return {BORT.PASS_THROUGH}
 
         if bpy.app.is_job_running(BlenderJobType.OBJECT_BAKE):
-            return {BlenderOperatorReturnType.PASS_THROUGH}
+            return {BORT.PASS_THROUGH}
 
         result = self.__bake_job.on_modal()
 
         if result is BakeJobState.RUNNING:
-            return {BlenderOperatorReturnType.PASS_THROUGH}
+            return {BORT.PASS_THROUGH}
         if result is BakeJobState.FINISHED:
             self.__finish(context)
-            return {BlenderOperatorReturnType.FINISHED}
+            return {BORT.FINISHED}
 
-        self.report({"ERROR"}, "Baking went wrong")
+        self.report({BWMRT.ERROR}, "Baking went wrong")
         self.__cancel(context)
-        return {BlenderOperatorReturnType.CANCELLED}
+        return {BORT.CANCELLED}
 
     def __cancel(self, _context: blt.Context) -> None:
         TimerManager.release()

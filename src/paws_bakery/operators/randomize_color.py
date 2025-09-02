@@ -6,7 +6,8 @@ import bpy
 from bpy import props as blp
 from bpy import types as blt
 
-from ..enums import BlenderOperatorReturnType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
 from ..utils import Registry
 from ._utils import generate_color_set
 
@@ -17,7 +18,7 @@ class RandomizeColor(blt.Operator):
 
     bl_idname = "pawsbkr.randomize_color"
     bl_label = "Randomize Color"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     target_object: blp.StringProperty(  # type: ignore[valid-type]
         name="Target Object",
@@ -38,4 +39,4 @@ class RandomizeColor(blt.Operator):
             new_color = colors[i]
             obj.color = new_color + (1.0,)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}

@@ -8,7 +8,8 @@ from bpy import props as blp
 from bpy import types as blt
 
 from .._helpers import log_warn
-from ..enums import BlenderOperatorReturnType, BlenderOperatorType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
 from ..utils import Registry
 from .defaults import DefaultTextureImportRule
 from .props import TextureImportRuleProps
@@ -22,13 +23,13 @@ class TextureImportRuleAdd(blt.Operator):
 
     bl_idname = "pawsbkr.prefs_texture_import_rule_add"
     bl_label = "Add Texture Import Rule"
-    bl_options = {BlenderOperatorType.INTERNAL}
+    bl_options = {BOT.INTERNAL}
 
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         prop = get_preferences().texture_import_rules.add()
         prop.name = ""
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -37,7 +38,7 @@ class TextureImportRuleRemove(blt.Operator):
 
     bl_idname = "pawsbkr.prefs_texture_import_rule_remove"
     bl_label = "Remove Texture Import Rule"
-    bl_options = {BlenderOperatorType.INTERNAL}
+    bl_options = {BOT.INTERNAL}
 
     idx: blp.IntProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},
@@ -46,7 +47,7 @@ class TextureImportRuleRemove(blt.Operator):
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         get_preferences().texture_import_rules.remove(self.idx)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add

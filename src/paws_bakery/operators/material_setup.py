@@ -13,7 +13,8 @@ from bpy import types as blt
 from mathutils import Vector
 
 from .._helpers import log
-from ..enums import BlenderOperatorReturnType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
 from ..props import BakeSettings, BakeTextureType, get_bake_settings
 from ..utils import (
     UTIL_NODES_GROUP_AORM,
@@ -504,14 +505,14 @@ class MaterialCleanupSelected(blt.Operator):
 
     bl_idname = "pawsbkr.material_cleanup_selected"
     bl_label = "Cleanup Selected Materials"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, _context: blt.Context) -> set[str]:  # noqa: D102
         selected_mats = tuple(get_selected_materials())
         for mat in selected_mats:
             material_cleanup(mat)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -520,7 +521,7 @@ class MaterialSetupSelected(blt.Operator):
 
     bl_idname = "pawsbkr.material_setup_selected"
     bl_label = "Setup Selected Materials"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     settings_id: blp.StringProperty(  # type: ignore[valid-type]
         options={"HIDDEN", "SKIP_SAVE"},  # noqa: F821
@@ -542,7 +543,7 @@ class MaterialSetupSelected(blt.Operator):
                 mat_id_color=colors[selected_mats.index(mat)],
             )
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -551,7 +552,7 @@ class MaterialSetup(blt.Operator):
 
     bl_idname = "pawsbkr.material_setup"
     bl_label = "Setup Material"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.UNDO, BOT.INTERNAL}
 
     cleanup: blp.BoolProperty(  # type: ignore[valid-type]
         default=False,
@@ -579,7 +580,7 @@ class MaterialSetup(blt.Operator):
     def execute(self, context: blt.Context) -> set[str]:  # noqa: D102
         if self.cleanup:
             self._cleanup(context)
-            return {BlenderOperatorReturnType.FINISHED}
+            return {BORT.FINISHED}
 
         if len(self.settings_id) < 1:
             raise ValueError("settings_id not set")
@@ -593,4 +594,4 @@ class MaterialSetup(blt.Operator):
             mat_id_color=self.mat_id_color,
         )
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}

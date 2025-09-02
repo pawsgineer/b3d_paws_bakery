@@ -11,7 +11,8 @@ from bpy import types as blt
 
 from .._helpers import log, log_err
 from ..common import match_low_to_high
-from ..enums import BlenderOperatorReturnType, BlenderWMReportType
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderWMReportType as BWMRT
 from ..props import MeshProps, TextureSetProps, get_bake_settings, get_props
 from ..props_enums import BakeMode
 from ..utils import AddonException, AssetLibraryManager, Registry
@@ -44,10 +45,10 @@ class TextureSetMaterialCreate(blt.Operator):
         except Exception as ex:
             msg = f"Failed to create materials: {ex}"
             log_err(msg, with_tb=True)
-            self.report({BlenderWMReportType.ERROR}, msg)
-            return {BlenderOperatorReturnType.CANCELLED}
+            self.report({BWMRT.ERROR}, msg)
+            return {BORT.CANCELLED}
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @dataclass(kw_only=True)

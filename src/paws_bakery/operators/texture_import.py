@@ -14,6 +14,8 @@ from bpy_extras.io_utils import ImportHelper
 
 from .._helpers import log
 from ..enums import BlenderOperatorReturnType, Colorspace
+from ..enums import BlenderOperatorReturnType as BORT
+from ..enums import BlenderOperatorType as BOT
 from ..preferences import get_preferences
 from ..utils import AddonException, AssetLibraryManager, Registry
 from ._utils import get_selected_materials
@@ -27,13 +29,13 @@ class TextureImportLoadSampleMaterial(blt.Operator):
 
     bl_idname = "pawsbkr.texture_import_load_sample_material"
     bl_label = "Load Sample Material"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     def execute(self, _context: blt.Context) -> set[BlenderOperatorReturnType]:
         """Load Sample Material."""
         AssetLibraryManager.material_load(UTIL_MATS_IMPORT_SAMPLE_NAME)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
 
 @Registry.add
@@ -42,7 +44,7 @@ class TextureImport(blt.Operator, ImportHelper):
 
     bl_idname = "pawsbkr.texture_import"
     bl_label = "Import Textures"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {BOT.REGISTER, BOT.UNDO}
 
     directory: blp.StringProperty(  # type: ignore[valid-type]
         subtype="DIR_PATH",  # noqa: F821
@@ -88,7 +90,7 @@ class TextureImport(blt.Operator, ImportHelper):
             log(f"Updating material {mat.name}")
             self._update_material(mat)
 
-        return {BlenderOperatorReturnType.FINISHED}
+        return {BORT.FINISHED}
 
     def _update_material(self, mat: blt.Material) -> None:
         pref_to_nodes = get_prefix_to_nodes_map(mat)
