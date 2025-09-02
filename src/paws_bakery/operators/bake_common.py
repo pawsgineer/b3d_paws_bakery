@@ -42,14 +42,6 @@ def match_low_to_high(names: list[str]) -> list[LowHighObjectNames]:
     return matching
 
 
-def ensure_mesh_ref(mesh_props: MeshProps) -> b_t.Object:
-    """Return Object or raise ValueError."""
-    mesh_ref: b_t.Object | None = mesh_props.get_ref()
-    if mesh_ref is None:
-        raise ValueError(f"Can not find Object with name {mesh_props.name!r}")
-    return mesh_ref
-
-
 def generate_image_name_and_path(
     *,
     context: b_t.Context,

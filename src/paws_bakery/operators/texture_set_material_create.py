@@ -15,7 +15,6 @@ from ..props import MeshProps, TextureSetProps, get_bake_settings, get_props
 from ..props_enums import BakeMode
 from ..utils import AddonException, AssetLibraryManager, Registry
 from .bake_common import (
-    ensure_mesh_ref,
     generate_image_name_and_path,
     match_low_to_high,
 )
@@ -142,14 +141,14 @@ def _get_meshes_to_update(
 ) -> list[b_t.Object]:
     meshes_enabled: list[MeshProps] = texture_set.get_enabled_meshes()
     bake_settings = get_bake_settings(context, texture_set.textures[0].prop_id)
-    if bake_settings.use_selected_to_active and bake_settings.match_active_by_suffix:
+    if bake_settings.bake_high_to_low:
         matching_names = match_low_to_high([m.name for m in meshes_enabled])
         meshes_to_update = [
-            ensure_mesh_ref(texture_set.meshes[low_high_map.low])
+            texture_set.meshes[low_high_map.low].ensure_mesh_ref()
             for low_high_map in matching_names
         ]
     else:
-        meshes_to_update = [ensure_mesh_ref(m) for m in meshes_enabled]
+        meshes_to_update = [m.ensure_mesh_ref() for m in meshes_enabled]
 
     return meshes_to_update
 

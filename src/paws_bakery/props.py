@@ -131,6 +131,11 @@ class BakeSettings(b_t.PropertyGroup):
         soft_min=0,
     )
 
+    @property
+    def bake_high_to_low(self) -> bool:
+        """Whether baking should run from high to low matched by name."""
+        return cast(bool, self.use_selected_to_active and self.match_active_by_suffix)
+
     def get_name(self, set_name: str = "") -> str:
         """Return compiled name."""
         placeholders: Mapping[str, str] = {
@@ -213,6 +218,17 @@ class MeshProps(b_t.PropertyGroup):
     def get_ref(self) -> b_t.Object | None:
         """Get a reference to the mesh."""
         return bpy.data.objects.get(self.name)
+
+    def ensure_mesh_ref(self) -> b_t.Object:
+        """Ensure Object exists.
+
+        :raises ValueError: When object doesn't exist.
+        :return: Blender Object
+        """
+        mesh_ref: b_t.Object | None = self.get_ref()
+        if mesh_ref is None:
+            raise ValueError(f"Can not find Object with name {self.name!r}")
+        return mesh_ref
 
     def is_exist(self) -> bool:
         """Check if the mesh exists in the Blender data."""
