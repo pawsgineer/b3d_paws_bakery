@@ -19,6 +19,12 @@ outputs:
   extension_version:
     description: Extension version
     value: ${{ steps.build.outputs.version }}
+  artifact_name:
+    description: Extension file artifact name
+    value: ${{ steps.build.outputs.artifact_name }}
+  artifact_filename:
+    description: Extension file name
+    value: ${{ steps.build.outputs.artifact_filename }}
 
 runs:
   using: composite
@@ -36,7 +42,7 @@ runs:
       uses: actions/upload-artifact@v4
       if: ${{ inputs.upload_artifact }}
       with:
-        name: ${{ inputs.extension_name }}-${{ steps.build.outputs.version }}
-        path: ${{ inputs.extension_name }}-${{ steps.build.outputs.version }}.zip
+        name: ${{ steps.build.outputs.artifact_name }}
+        path: ${{ steps.build.outputs.artifact_filename }}
         compression-level: 0
         if-no-files-found: error
