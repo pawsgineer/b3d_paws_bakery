@@ -5,41 +5,7 @@ from dataclasses import dataclass
 from bpy import types as b_t
 
 from ..preferences import get_preferences
-from ..props import MeshProps, get_bake_settings
-
-# TODO: move suffixes to preferences
-SUFFIX_HIGH = "_high"
-SUFFIX_LOW = "_low"
-BAKE_COLLECTION_NAME = "pawsbakery"
-
-
-@dataclass
-class LowHighObjectNames:
-    """Container for map of low to high Object names."""
-
-    low: str
-    high: list[str]
-
-
-def match_low_to_high(names: list[str]) -> list[LowHighObjectNames]:
-    """Match low Object names to high."""
-    names_norm = {n.lower(): n for n in names}
-    names_norm_low = [n for n in names_norm if SUFFIX_LOW in n]
-    matching = []
-
-    for n_norm_low in names_norm_low:
-        name_base = n_norm_low.rsplit(SUFFIX_LOW, 1)[0]
-        high_base = name_base + SUFFIX_HIGH
-
-        n_norm_high = [n for n in names_norm if high_base in n]
-        matching.append(
-            LowHighObjectNames(
-                names_norm[n_norm_low],
-                [names_norm[n] for n in n_norm_high],
-            )
-        )
-
-    return matching
+from ..props import get_bake_settings
 
 
 def generate_image_name_and_path(

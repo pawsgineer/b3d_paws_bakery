@@ -8,6 +8,7 @@ from bpy import props as b_p
 from bpy import types as b_t
 
 from .._helpers import log, log_err
+from ..common import match_low_to_high
 from ..enums import (
     BlenderEventType,
     BlenderJobType,
@@ -25,7 +26,6 @@ from ..utils import Registry, TimerManager
 from .bake_common import (
     BakeObjects,
     generate_image_name_and_path,
-    match_low_to_high,
 )
 from .bake_job import BakeJob, BakeJobState
 from .bake_manager import BakeManager

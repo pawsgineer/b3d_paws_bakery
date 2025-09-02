@@ -10,14 +10,12 @@ from bpy import props as b_p
 from bpy import types as b_t
 
 from .._helpers import log, log_err
+from ..common import match_low_to_high
 from ..enums import BlenderOperatorReturnType, BlenderWMReportType
 from ..props import MeshProps, TextureSetProps, get_bake_settings, get_props
 from ..props_enums import BakeMode
 from ..utils import AddonException, AssetLibraryManager, Registry
-from .bake_common import (
-    generate_image_name_and_path,
-    match_low_to_high,
-)
+from .bake_common import generate_image_name_and_path
 from .texture_import import UTIL_MATS_IMPORT_SAMPLE_NAME, assign_images_to_material
 
 
