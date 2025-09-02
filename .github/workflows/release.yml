@@ -103,6 +103,10 @@ jobs:
           fetch-depth: 0
           lfs: true
 
+      - name: Create tmp branch to avoid detached error in PSR
+        run: |
+          git switch -c ${{ needs.release.outputs.tag }}
+
       - name: Build Extension
         id: build
         uses: ./.github/actions/blender-extension-build
