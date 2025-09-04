@@ -66,7 +66,7 @@ cfg = Config(
 )
 
 
-TEST_CMD: list[str] = [
+VERSION_CMD: list[str] = [
     str(cfg.blender_path),
     "--version",
 ]
@@ -102,6 +102,20 @@ LAUNCH_CMD: list[str] = [
     "./.vscode/enable_faulthandler.py",
 ]
 
+LAUNCH_TEST_CMD: list[str] = [
+    str(cfg.blender_path),
+    "./tests/test_bl/test_01.blend",
+    "--python-exit-code",
+    "1",
+    "--debug-python",
+    "--python",
+    "./tests/test_bl/bl_script.py",
+    "-p",
+    "0 0 10 10",
+    "--no-window-focus",
+    "2>&1",
+]
+
 
 @invoke.tasks.task
 def available_versions(ctx: invoke.context.Context) -> None:
@@ -117,7 +131,7 @@ def version(ctx: invoke.context.Context) -> None:
     """Print Blender version."""
     cfg.ensure_blender_path_valid()
 
-    ctx.run(" ".join(TEST_CMD))
+    ctx.run(" ".join(VERSION_CMD))
 
 
 @invoke.tasks.task()
@@ -167,3 +181,11 @@ def open_blendfile(
         cmd.append(f" {file}")
 
     ctx.run(" ".join(cmd))
+
+
+@invoke.tasks.task()
+def launch_test(ctx: invoke.context.Context) -> None:
+    """Launch blender."""
+    cfg.ensure_blender_path_valid()
+
+    ctx.run(" ".join(LAUNCH_TEST_CMD))
