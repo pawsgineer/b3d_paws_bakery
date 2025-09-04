@@ -7,12 +7,12 @@ name = "paws-bakery"
 dynamic = ["version"]
 readme = "README.md"
 license = "gpl-3.0-or-later"
-dependencies = []
 requires-python = ">=3.11,<3.12"
+dependencies = ["bpy ~= 4.5.2"]
 
 [project.optional-dependencies]
 dev = [
-  "bpy ~= 4.5.2",
+  # "bpy ~= 4.5.2",
   # "fake-bpy-module-latest == 20250505", # uses python 3.12 syntax =(
   "fake-bpy-module-4.1 == 20240604",
   "flake8 >= 6.1.0",
