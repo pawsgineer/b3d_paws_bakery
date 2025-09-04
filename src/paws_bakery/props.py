@@ -28,6 +28,20 @@ def _set_force_uuid_name(self: blt.ID, _value: str) -> None:
         self["name"] = str(uuid4())
 
 
+class _UUIDNamePropertyGroup(blt.PropertyGroup):
+    name: blp.StringProperty(  # type: ignore[valid-type]
+        get=_get_name, set=_set_force_uuid_name
+    )
+
+    @property
+    def prop_id(self) -> str:
+        """Unique identifier for this item, used for lookups.
+
+        NOTE: Avoid using `name` directly - it's error prone.
+        """
+        return cast(str, self.name)
+
+
 @Registry.add
 class BakeSettings(blt.PropertyGroup):
     """Bake settings."""
@@ -239,12 +253,8 @@ class MeshProps(blt.PropertyGroup):
 
 
 @Registry.add
-class TextureProps(blt.PropertyGroup):
+class TextureProps(_UUIDNamePropertyGroup):
     """Texture properties."""
-
-    name: blp.StringProperty(  # type: ignore[valid-type]
-        get=_get_name, set=_set_force_uuid_name
-    )
 
     is_enabled: blp.BoolProperty(  # type: ignore[valid-type]
         name="Bake enabled", default=True
@@ -256,22 +266,10 @@ class TextureProps(blt.PropertyGroup):
         default="-",
     )
 
-    @property
-    def prop_id(self) -> str:
-        """Unique identifier for this item, used for lookups.
-
-        NOTE: Avoid using `name` directly - it's error prone.
-        """
-        return cast(str, self.name)
-
 
 @Registry.add
-class TextureSetProps(blt.PropertyGroup):
+class TextureSetProps(_UUIDNamePropertyGroup):
     """Texture set properties."""
-
-    name: blp.StringProperty(  # type: ignore[valid-type]
-        get=_get_name, set=_set_force_uuid_name
-    )
 
     create_materials: blp.BoolProperty(  # type: ignore[valid-type]
         name="Create Materials",
@@ -318,14 +316,6 @@ class TextureSetProps(blt.PropertyGroup):
     textures_active_index: blp.IntProperty()  # type: ignore[valid-type]
 
     mode: BakeMode.get_blender_enum_property()  # type: ignore[valid-type]
-
-    @property
-    def prop_id(self) -> str:
-        """Unique identifier for this item, used for lookups.
-
-        NOTE: Avoid using `name` directly - it's error prone.
-        """
-        return cast(str, self.name)
 
     @property
     def active_mesh(self) -> MeshProps | None:
