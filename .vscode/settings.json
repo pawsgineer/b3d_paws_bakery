@@ -24,7 +24,7 @@
     "reportInvalidTypeForm": "none"
   },
   // "python.testing.pytestArgs": ["--no-cov"]
-  "paws_blender_path": "/c/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe",
   "pylint.ignorePatterns": ["^tests/.*$,"],
-  "pylint.importStrategy": "fromEnvironment"
+  "pylint.importStrategy": "fromEnvironment",
+  "mypy-type-checker.cwd": "${nearestConfig}"
 }
