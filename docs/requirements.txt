@@ -7,6 +7,8 @@ sphinx==8.2.3
 # snowballstemmer==3.0.1
 # requests==2.32.4
 
+myst-parser==4.0.1
+
 furo==2025.7.19
 # sphinx-basic-ng==1.0.0b2
 
