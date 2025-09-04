@@ -5,6 +5,8 @@ on:
     types:
       - opened
       - synchronize
+    paths:
+      - src/**
   workflow_dispatch:
     # inputs:
     #   blender_version:
