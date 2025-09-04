@@ -117,6 +117,44 @@
         "showReuseMessage": false,
         "clear": true
       }
+    },
+    {
+      "label": "Blender: Test",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiMagenta"
+      },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
+      "type": "shell",
+      "command": "PBKR_BLENDER_VERSION=${input:bl_version} ${PY_INVOKE} launch-test && hatch -v run -- pytest ./tests/test_bl/test_regression.py",
+      "problemMatcher": [],
+      "presentation": {
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: Build And Test",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiMagenta"
+      },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
+      "dependsOn": [
+        "Blender: Extension Build",
+        "Blender: Extension Install",
+        "Blender: Test"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {
+        "showReuseMessage": false,
+        "clear": true
+      }
     }
   ]
 }
