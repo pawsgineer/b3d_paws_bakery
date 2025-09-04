@@ -49,8 +49,7 @@
         "color": "terminal.ansiGreen"
       },
       "type": "shell",
-      "command": "${PY_PYLINT} --rcfile=pyproject.toml",
-      "args": ["--rcfile=pyproject.toml", "./src"],
+      "command": "hatch -v run -- pylint --rcfile=pyproject.toml ./src",
       "problemMatcher": [],
       "presentation": {
         "showReuseMessage": false,
