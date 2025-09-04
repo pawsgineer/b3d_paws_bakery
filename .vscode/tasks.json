@@ -1,5 +1,43 @@
 {
   "version": "2.0.0",
+  "options": {
+    "cwd": "${workspaceFolder}",
+    "env": {
+      "PAWS_SRC_DIR": "${workspaceFolder}/src",
+      "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks",
+      "PY_INTR": "${command:python.interpreterPath}",
+      "PY_INVOKE": "${command:python.interpreterPath} -m invoke",
+      "PY_PYLINT": "${command:python.interpreterPath} -m pylint",
+      "PY_REPLACE": "${command:python.interpreterPath} ./.vscode/replace_path.py",
+      "INVOKE_RUN_ECHO": "true"
+    }
+  },
+  "inputs": [
+    {
+      "id": "bl_version",
+      "type": "pickString",
+      "default": "4.5",
+      "description": "Blender version",
+      "options": ["5.0", "4.5", "4.4", "4.3", "4.2"]
+    },
+    {
+      "id": "bl_factory_startup",
+      "type": "pickString",
+      "default": "",
+      "description": "Run Blender with --factory-startup flag",
+      "options": ["", "--factory-startup"]
+    },
+    {
+      "id": "bl_blend_path",
+      "type": "pickString",
+      "default": "./test_blend/test1.blend",
+      "description": ".blend file to open",
+      "options": [
+        "./test_blend/test1.blend",
+        "./src/paws_bakery/assets/materials.blend"
+      ]
+    }
+  ],
   "tasks": [
     {
       "label": "Pylint: lint whole folder",
@@ -10,16 +48,11 @@
         "id": "bracket-error",
         "color": "terminal.ansiGreen"
       },
-      "options": { "cwd": "${workspaceFolder}" },
       "type": "shell",
-      "command": "${command:python.interpreterPath}",
-      "args": ["-m", "pylint", "--rcfile=setup.cfg", "./src"],
+      "command": "${PY_PYLINT} --rcfile=pyproject.toml",
+      "args": ["--rcfile=pyproject.toml", "./src"],
       "problemMatcher": [],
       "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
         "showReuseMessage": false,
         "clear": true
       }
@@ -30,133 +63,58 @@
         "id": "archive",
         "color": "terminal.ansiRed"
       },
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "PAWS_SRC_DIR": "${workspaceFolder}/src",
-          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
-        }
-      },
       "type": "shell",
-      "command": "\"${config:paws_blender_path}\" --factory-startup --command extension build --verbose --source-dir ./src/paws_bakery 2>&1 | python ./.vscode/replace_path.py",
+      "command": "PBKR_BLENDER_VERSION=${input:bl_version} ${PY_INVOKE} build",
       "problemMatcher": [],
       "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
         "showReuseMessage": false,
         "clear": true
       }
     },
     {
-      "label": "Blender: open test1.blend",
+      "label": "Blender: Extension Install",
+      "icon": {
+        "id": "git-stash",
+        "color": "terminal.ansiYellow"
+      },
+      "type": "shell",
+      "command": "PBKR_BLENDER_VERSION=${input:bl_version} ${PY_INVOKE} install",
+      "problemMatcher": [],
+      "presentation": {
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Blender: Launch",
       "icon": {
         "id": "folder-opened",
         "color": "terminal.ansiCyan"
       },
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "PAWS_SRC_DIR": "${workspaceFolder}/src",
-          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
-        }
-      },
       "runOptions": {
         "instancePolicy": "terminateOldest"
       },
       "type": "shell",
-      "command": "\"${config:paws_blender_path}\" --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
+      "command": "PBKR_BLENDER_VERSION=${input:bl_version} ${PY_INVOKE} launch ${input:bl_factory_startup} 2>&1 | ${PY_REPLACE}",
       "problemMatcher": [],
       "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
         "showReuseMessage": false,
         "clear": true
       }
     },
     {
-      "label": "Blender: open test1.blend --factory-startup",
-      "icon": {
-        "id": "folder-opened",
-        "color": "terminal.ansiMagenta"
-      },
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "PAWS_SRC_DIR": "${workspaceFolder}/src",
-          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
-        }
-      },
-      "runOptions": {
-        "instancePolicy": "terminateOldest"
-      },
-      "type": "shell",
-      "command": "\"${config:paws_blender_path}\" --factory-startup --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": false,
-        "clear": true
-      }
-    },
-    {
-      "label": "Blender: debug-all open test1.blend",
+      "label": "Blender: Open",
       "icon": {
         "id": "folder-opened",
         "color": "terminal.ansiCyan"
       },
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "PAWS_SRC_DIR": "${workspaceFolder}/src",
-          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
-        }
-      },
       "runOptions": {
         "instancePolicy": "terminateOldest"
       },
       "type": "shell",
-      "command": "\"${config:paws_blender_path}\" --debug-all --debug-cycles --python ./.vscode/enable_faulthandler.py ./test_blend/test1.blend 2>&1 | python ./.vscode/replace_path.py",
+      "command": "PBKR_BLENDER_VERSION=${input:bl_version} ${PY_INVOKE} open ${input:bl_factory_startup} ${input:bl_blend_path} 2>&1 | ${PY_REPLACE}",
       "problemMatcher": [],
       "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": false,
-        "clear": true
-      }
-    },
-    {
-      "label": "Blender: open materials.blend --factory-startup",
-      "icon": {
-        "id": "folder-opened",
-        "color": "terminal.ansiMagenta"
-      },
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "PAWS_SRC_DIR": "${workspaceFolder}/src",
-          "PAWS_REPO_DIR": "${workspaceFolder}/../symlinks"
-        }
-      },
-      "runOptions": {
-        "instancePolicy": "terminateOldest"
-      },
-      "type": "shell",
-      "command": "\"${config:paws_blender_path}\" --factory-startup --python ./.vscode/enable_faulthandler.py ./src/paws_bakery/assets/materials.blend 2>&1 | python ./.vscode/replace_path.py",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
         "showReuseMessage": false,
         "clear": true
       }

@@ -20,7 +20,8 @@ extend-ignore =
   WPS602
 extend-select = B9
 per-file-ignores =
-  tests/*: T201,D100,D101,D103,D104
+  tests/*: T201,D1
+  tasks.py: T201,D1
 
 # WARN: require-plugins doesn't throw error in vscode
 # require-plugins =
