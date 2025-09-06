@@ -242,14 +242,14 @@ class BakeTextureType(BlenderPropertyEnum):
 class BakeMode(BlenderPropertyEnum):
     """Bake modes."""
 
-    __bl_prop_name__ = "Bake mode"
-    __bl_prop_description__ = "Bake mode"
+    __bl_prop_name__ = "Output Mode"
+    __bl_prop_description__ = "Output Mode"
 
     value: EnumItemInfo
 
     SINGLE = EnumItemInfo(
-        ui_name="Single Texture",
-        description="Bake all materials from all objects into a single texture",
+        ui_name="Single Texture (Atlas)",
+        description="Bake all materials from all objects into a single texture (Atlas)",
     )
 
     PER_OBJECT = EnumItemInfo(

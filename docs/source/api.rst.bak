@@ -1,0 +1,51 @@
+.. image:: ../../pawsbkr_sh.webp
+   :align: center
+   :height: 420px
+   :class: no-scaled-link
+
+
+Documentation
+=============
+
+PAWS: Bakery is Blender add-on that provides tools to improve your Texture Baking workflow.
+
+Features:
+---------
+
+- Automatic Material Setup for Baking
+- Batch Baking of High to Low Poly to Atlas Texture and Per-Object
+- Color, Roughness, Metalness, Normal, Ambient Oclussion, AORM, Material ID and other maps
+- Workflow Helpers
+- Optional Anti-Aliasing (Supersampling)
+- Missing a Feature? Check the GitHub Page to see what's planned or learn how you can make it happen!
+
+
+
+API
+===
+
+
+
+.. include:: _generated/enum_subs.rst
+
+The bake mode name is |BakeTextureType_EMIT_ui_name|.
+
+:py:enum:mem:`~paws_bakery.props_enums.BakeTextureType`
+
+:py:enum:mem:`~paws_bakery.props_enums.BakeTextureType.EMIT_COLOR`
+
+.. .. autoenum:: paws_bakery.props_enums.BakeTextureType
+..     :members:
+..
+.. .. automodule:: paws_bakery.props_enums
+..    :members:
+..    :undoc-members:
+
+
+
+.. .. autosummary::
+..    :toctree: _generated
+..    :recursive:
+..
+..    paws_bakery
+..    .. paws_bakery.operators

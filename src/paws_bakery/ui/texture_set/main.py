@@ -98,7 +98,7 @@ class Main(SidePanelMixin):
     """UI Panel - Texture Set."""
 
     bl_idname = "PAWSBKR_PT_texture_set"
-    bl_label = "Texture Set Bake"
+    bl_label = "Texture Set Mode"
     bl_order = 2
 
     def draw(self, context: blt.Context) -> None:  # noqa: D102

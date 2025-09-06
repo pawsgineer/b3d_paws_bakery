@@ -30,6 +30,8 @@ dev = [
   "syrupy >= 4.9.1",
   "python-dotenv >= 1.1.1",
   "invoke >= 2.2.0",
+  #
+  "sphinx == 8.2.3",
 ]
 
 [tool.setuptools.package-data]
@@ -44,6 +46,42 @@ path = "src/paws_bakery/blender_manifest.toml"
 [tool.hatch.build.targets.sdist]
 include = ["/src"]
 
+[tool.hatch.envs.docs]
+dependencies = [
+  #
+  "sphinx == 8.2.3",
+  "myst-parser == 4.0.1",
+  "furo == 2025.7.19",
+  "sphinx-autobuild",
+
+  "enum_tools[sphinx]",
+  "sphinx-jinja2-compat>=0.1.1",
+  "sphinx-toolbox>=2.16.0",
+]
+
+[tool.hatch.envs.docs.env-vars]
+# SOURCE_DATE_EPOCH = "1580601600"
+PYTHONUNBUFFERED = "1"
+SPHINX_AUTOBUILD_DEBUG = "1"
+# MKDOCS_CONFIG = "mkdocs.yml"
+
+DOCS_SRC = "docs/source/"
+DOCS_DIST = "docs/_build"
+
+[tool.hatch.envs.docs.scripts]
+clean = "rm -rf docs/_build docs/_generated docs/source/_generated"
+build = "sphinx-build {env:DOCS_SRC} {env:DOCS_DIST} {args}"
+serve = "sphinx-autobuild {env:DOCS_SRC} {env:DOCS_DIST} --ignore **/_generated/* {args}"
+
+
+# serve = "sphinx-autobuild --port=0 --open-browser {env:DOCS_SRC} {env:DOCS_DIST} {args}"
+
+# build = "mkdocs build --config-file {env:MKDOCS_CONFIG} --clean --strict {args}"
+# serve = "mkdocs serve --config-file {env:MKDOCS_CONFIG} --dev-addr localhost:8000 {args}"
+# ci-build = "mike deploy --config-file {env:MKDOCS_CONFIG} --update-aliases {args}"
+# validate = "linkchecker --config .linkcheckerrc site"
+# # https://github.com/linkchecker/linkchecker/issues/678
+# build-check = ["build --no-directory-urls", "validate"]
 
 [tool.ruff]
 fix = true

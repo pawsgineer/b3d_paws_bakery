@@ -1,6 +1,6 @@
 project = "PAWS: Bakery"
 copyright = "2025, Pawsgineer"
-# author = "Graziella"
+author = "Pawsgineer"
 version = "0.1.0"
 release = version
 
@@ -12,6 +12,9 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "myst_parser",
+    "enum_tools.autoenum",
+    # "sphinx.ext.napoleon",
+    # "sphinx_autodoc_typehints",
 ]
 
 intersphinx_mapping = {
@@ -22,11 +25,14 @@ intersphinx_disabled_domains = ["std"]
 
 templates_path = ["_templates"]
 
+myst_heading_anchors = 3
+myst_enable_extensions = ["colon_fence", "fieldlist", "deflist"]
+
 
 ANNOUNCEMENT_HTML = """
     <p>
         <strong>
-            This add-on is a passion project made and maintained by a single dev.
+            This add-on is a passion project created and maintained by a sole dev.
         </strong>
     </p>
     <p>
@@ -47,6 +53,8 @@ html_theme_options = {
         "color-announcement-text": "#e6ffa0",
         "color-announcement-background": "#67746357",
         # "color-admonition-background": "#ffa70040",
+        "color-inline-code-background": "#5b831c88",
+        "color-code-background": "#5b831c88",
     },
     "light_css_variables": {
         "color-brand-primary": "#3e8600",
@@ -57,10 +65,33 @@ html_theme_options = {
         "header-height": "8rem",
     },
     "announcement": ANNOUNCEMENT_HTML,
+    "footer_icons": [
+        {
+            "name": "Patreon",
+            "url": "https://www.patreon.com/pawsgineer",
+            "html": "",
+            "class": "fa-brands fa-solid fa-patreon fa-2x",
+        },
+        {
+            "name": "itch.io",
+            "url": "https://pawsgineer.itch.io/",
+            "html": "",
+            "class": "fa-brands fa-solid fa-itch-io fa-2x",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/pawsgineer/b3d_paws_bakery",
+            "html": "",
+            "class": "fa-brands fa-solid fa-github fa-2x",
+        },
+    ],
 }
 
 html_static_path = ["_static"]
 html_css_files = [
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/fontawesome.min.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/solid.min.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/brands.min.css",
     "custom.css",
 ]
 

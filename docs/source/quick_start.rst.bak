@@ -1,0 +1,93 @@
+===========
+Quick Start
+===========
+
+
+Supported Versions
+==================
+
+Add-on developed and tested with Blender versions 4.2+ in mind.
+
+
+.. _installation:
+
+Installation
+============
+
+Available on `Blender Extensions <https://extensions.blender.org/add-ons/paws-bakery>`_
+and `GitHub Releases <https://github.com/pawsgineer/b3d_paws_bakery/releases>`_
+
+Usage
+=====
+
+The add-on automates material setup for baking and allow to run batched baking.
+For better understanding of what you can achieve, I recommend to get familiar with
+vanila Blender baking process.
+
+Most of the add-on controls located in N-panel named `🍰PAWSBKR`.
+
+-----
+Modes
+-----
+
+Simple
+------
+
+Simple mode allows you bake currently selected objects to a single image.
+
+.. image:: ../images/ui_simple_mode.png
+   :align: center
+   :class: no-scaled-link
+
+Available `Bake Settings`_.
+
+Texture Set
+------
+
+Texture Set mode allows you to specify list of objects and texture types to bake.
+
+**Output Mode**
+
+:Single Texture: Bake all the objects to a single atlas texture
+:Per-Object: Create a separate image for every object in the list
+
+Create Materials: Described in `Automatic Material Creation`_
+
+.. image:: ../images/ui_texture_set_mode.png
+   :align: center
+   :class: no-scaled-link
+
+Available `Bake Settings`_.
+
+
+-----
+Bake Settings
+-----
+
+.. image:: ../images/ui_bake_settings.png
+   :align: center
+   :class: no-scaled-link
+
+:Name Template: blablabla
+:Name Preview: blablabla
+:Type: blablabla
+:Size: blablabla
+:AA: blablabla
+:Samples: blablabla
+:Denoise: blablabla
+:Margin: blablabla
+:Margin Type: blablabla
+:Selected To Active: blablabla
+:Match Active by Suffix: blablabla
+:Cage: blablabla
+:Cage Extrusion: blablabla
+:Ray Distance: blablabla
+
+
+-----
+Preferences
+-----
+
+-----
+Automatic Material Creation
+-----
