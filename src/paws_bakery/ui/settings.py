@@ -13,7 +13,7 @@ class Settings(SidePanelMixin):
     """UI Panel - Settings."""
 
     bl_idname = "PAWSBKR_PT_settings"
-    bl_label = "🍰PAWS Bakery Settings"
+    bl_label = "🍰PAWS: Bakery Settings"
     bl_order = 0
     bl_options = {"DEFAULT_CLOSED"}
 

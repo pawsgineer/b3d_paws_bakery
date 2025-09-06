@@ -1,6 +1,7 @@
-# PAWS Bakery
+# PAWS: Bakery
 
-PAWS Bakery is Blender add-on that provides tools to improve your Texture Baking workflow.
+**PAWS: Bakery** is Blender add-on that provides tools to improve your Texture Baking
+workflow.
 
 - [Features](#features)
   - [Planned](#planned)
