@@ -12,7 +12,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "myst_parser",
-    "enum_tools.autoenum",
+    # "enum_tools.autoenum",
     # "sphinx.ext.napoleon",
     # "sphinx_autodoc_typehints",
 ]
