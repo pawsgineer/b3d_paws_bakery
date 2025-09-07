@@ -21,6 +21,7 @@ extend-ignore =
 extend-select = B9
 per-file-ignores =
   tests/*: T201,D1
+  docs/*: T201,D1
   tasks.py: T201,D1
 
 # WARN: require-plugins doesn't throw error in vscode

@@ -1,27 +1,28 @@
-# PAWS Bakery
+# PAWS: Bakery
 
-PAWS Bakery is Blender add-on that provides tools to improve your Texture Baking workflow.
+**PAWS: Bakery** is Blender add-on that provides tools to improve your Texture Baking
+workflow.
 
 - [Features](#features)
   - [Planned](#planned)
+- [Docs](#docs)
 - [♥️ I love what you're doing](#️-i-love-what-youre-doing)
 - [I need Help](#i-need-help)
 - [I want to Request a Feature](#i-want-to-request-a-feature)
 - [I want to Contribute](#i-want-to-contribute)
-  - [I'm not a developer](#im-not-a-developer)
-  - [I'm a developer](#im-a-developer)
 
 ![UI showcase with high poly and baked low poly meshes comparison](/pawsbkr_sh.webp?raw=true)
 
 ## Features
 
 - Automatic Material Setup for Baking
-- Baking of multiple High poly meshes to a single Low poly mesh
-- Batch Baking of High to Low poly to Atlas Texture
+- Batch Baking of Atlas and Per-Object Textures
+- Baking many High poly meshes to a single Low poly mesh
+- Batch creation of materials
 - Color, Roughness, Metalness, Normal, Ambient Oclussion, AORM, Material ID and
   other maps
 - Workflow Helpers
-- Optional Anti-Aliasing (Supersampling)
+- Anti-Aliasing (Supersampling)
 - **Missing a Feature?** Check the rest of the README to see what's planned or
   learn how you can make it happen!
 
@@ -35,23 +36,26 @@ through the [Voting process](#i-want-to-request-a-feature)
 - [ ] Handling Shaders inside of Node Groups
 - [ ] Etc.
 
+## Docs
+
+The add-on [documentation][docs-home]
+
 ## ♥️ I love what you're doing
 
 I'm so excited you're enjoing the add-on!
 
 Here are a few ways you can show your support and help me to continue improving it:
 
-- 💌 **Support me** on my [Patreon](https://www.patreon.com/c/Pawsgineer) or
-[itch.io](https://pawsgineer.itch.io/)
-<!-- - ⬆️ **Leave a review** for add-on on [Blender Extensions](https://extensions.blender.org/), [itch.io](https://pawsgineer.itch.io/paws-bakery) and ⭐ **Star** the repo on GitHub -->
-- ⬆️ **Leave a review** for add-on on [itch.io](https://pawsgineer.itch.io/paws-bakery) and ⭐ **Star** the repo on GitHub
+- 💌 **Support me** on my [Patreon][patreon-paws] or [itch.io][itch-io-paws]
+- ⬆️ **Leave a review** for add-on on
+  [Blender Extensions][blender-extensions-addon],
+  [itch.io][itch-io-addon]
+  and ⭐ **Star** the repo on GitHub
 - 📢 **Spread the word** on socials:
 
   - Share a link or add-on name with your fellow artists
-  - Are you creating videos or tutorials?
-
+  - Are you creating videos or tutorials?\
     **"Baking a Game-Ready Assets in Blender For Free"** is a good topic anytime!
-
   - Ping me on socials; I'd love to see what you do with this add-on, or just
     hear if I've made your life a bit better
 
@@ -59,53 +63,23 @@ Here are a few ways you can show your support and help me to continue improving 
 
 ## I need Help
 
-1. Check the [Q&A](https://github.com/pawsgineer/b3d_paws_bakery/discussions/categories/q-a)
-   if there is an answer or similar question.
-2. If not, feel free to post your question!
-3. If you found the solution, please share it and close the question to help others.
+See [I need Help][docs-help]
 
 ## I want to Request a Feature
 
-1. **Check existing Ideas**
-
-   Browse the [Ideas](https://github.com/pawsgineer/b3d_paws_bakery/discussions/categories/ideas)
-   to see if someone has already suggested the feature.
-
-2. **Upvote & Add Context**
-
-   If you find a similar request, please upvote it and consider enriching it
-   with additional context:
-
-   - A detailed description
-   - Screenshots
-   - Link to relevant video (with timecode) or article
-
-3. **Make sure we're on the same page**
-
-   The developer may not be aware of the pipeline you're using or trying to
-   implement, no matter how obvious it seems to you.
-
-   To improve our communiction, provide context, use cases and examples.
+See [I want to Request a Feature][docs-fr]
 
 ## I want to Contribute
 
-### I'm not a developer
+See [Contributing][docs-contributing]
 
-You can still make a big difference:
+[docs-home]: https://paws-bakery.readthedocs.io/en/latest/
+[docs-contributing]: https://paws-bakery.readthedocs.io/en/latest/dev/contributing.html
+[docs-fr]: https://paws-bakery.readthedocs.io/en/latest/dev/feature_request.html
+[docs-help]: https://paws-bakery.readthedocs.io/en/latest/dev/help_me.html
 
-- Submit Bug Reports and Feature Requests
-- Review existing [Issues](https://github.com/pawsgineer/b3d_paws_bakery/issues)
-  and [Q&A](https://github.com/pawsgineer/b3d_paws_bakery/discussions/categories/q-a)
-  to help others
-- Wanna write the docs or article? 😢
-- A bunch of spelling errors hidden here and there. Fixing it could be as
-  simple as finding and editing it right here using GitHub interface!
+[patreon-paws]: https://www.patreon.com/c/Pawsgineer
+[itch-io-paws]: https://pawsgineer.itch.io/
 
-### I'm a developer
-
-I am open to discussion and PRs.
-
-- Please use [Black](https://black.readthedocs.io/en/stable/index.html) code formater
-- Follow the existing code style
-- Feel free to ask me a questions - here or on
-  [Bluesky](https://bsky.app/profile/pawsgineer.bsky.social).
+[blender-extensions-addon]: https://extensions.blender.org/add-ons/paws-bakery
+[itch-io-addon]: https://pawsgineer.itch.io/paws-bakery
