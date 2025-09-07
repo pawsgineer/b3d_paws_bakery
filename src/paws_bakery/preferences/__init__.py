@@ -4,6 +4,7 @@
 from typing import Any, cast
 
 import bpy
+from bl_operators.wm import WM_OT_url_open
 from bpy import props as blp
 from bpy import types as blt
 
@@ -15,6 +16,29 @@ from .defaults import DefaultTextureImportRule
 from .props import TextureImportRuleProps
 
 ROOT_PACKAGE_NAME = __package__.rsplit(".", 1)[0]
+
+ABOUT_LINKS = [
+    (
+        "https://paws-bakery.readthedocs.io/en/latest",
+        "Documentation",
+        "DOCUMENTS",
+    ),
+    (
+        "https://extensions.blender.org/add-ons/paws-bakery/reviews",
+        "Rate the Add-on",
+        "FUND",
+    ),
+    (
+        "https://github.com/pawsgineer/b3d_paws_bakery?tab=readme-ov-file#i-need-help",
+        "Feature Requests / Bugs",
+        "GHOST_DISABLED",
+    ),
+    (
+        "https://bsky.app/profile/pawsgineer.bsky.social",
+        "Author",
+        "USER",
+    ),
+]
 
 
 @Registry.add
@@ -151,7 +175,7 @@ class AddonPreferences(blt.AddonPreferences):
         items=[
             ("GENERAL", "GENERAL", ""),
             ("TEXTUREIMPORT", "Texture Import Rules", ""),
-            # ("ABOUT", "ABOUT", ""), # TODO:
+            ("ABOUT", "ABOUT", ""),
         ],
         default="GENERAL",
     )
@@ -183,10 +207,15 @@ class AddonPreferences(blt.AddonPreferences):
 
         box = lyt.box()
 
-        if self.tabs == "GENERAL":
-            self._draw_general(box)
-        elif self.tabs == "TEXTUREIMPORT":
-            self._draw_texture_import(box)
+        match self.tabs:
+            case "GENERAL":
+                self._draw_general(box)
+            case "TEXTUREIMPORT":
+                self._draw_texture_import(box)
+            case "ABOUT":
+                self._draw_about(box)
+            case _:
+                raise NotImplementedError()
 
     def _draw_general(self, lyt: blt.UILayout) -> None:
         lyt.prop(self, "output_directory")
@@ -205,6 +234,21 @@ class AddonPreferences(blt.AddonPreferences):
         )
         col = row.column(align=True)
         col.operator(TextureImportRuleAdd.bl_idname, icon="ADD", text="")
+
+    def _draw_about(self, lyt: blt.UILayout) -> None:
+        subl = lyt.row(align=True)
+        subl.alert = True
+        subl.scale_y = 2.0
+        subl.alignment = "CENTER"
+        subl.label(text="❤️ Support Free Open Source Software ❤️")
+
+        subl = lyt.column_flow()
+        subl.scale_y = 1.4
+        for url, label, icon in ABOUT_LINKS:
+            cast(  # type: ignore[attr-defined]
+                WM_OT_url_open,
+                subl.operator(WM_OT_url_open.bl_idname, text=label, icon=icon),
+            ).url = url
 
     def init_texture_import_rules(self) -> None:
         """Validate existing Texture Import Rules and update default data."""

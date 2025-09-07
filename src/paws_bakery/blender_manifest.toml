@@ -6,7 +6,7 @@ maintainer = "Steve Paws <Pawsgineer>"
 type = "add-on"
 
 license = ["SPDX:GPL-3.0-or-later"]
-website = "https://github.com/pawsgineer/b3d_paws_bakery"
+website = "https://paws-bakery.readthedocs.io/en/latest"
 copyright = [
     "2025 Steve Paws <Pawsgineer>",
 ]
