@@ -150,11 +150,24 @@
         "Blender: Test"
       ],
       "dependsOrder": "sequence",
-      "problemMatcher": [],
-      "presentation": {
-        "showReuseMessage": false,
-        "clear": true
-      }
+      "problemMatcher": []
+    },
+    {
+      "label": "Blender: Build And Open",
+      "icon": {
+        "id": "folder-opened",
+        "color": "terminal.ansiMagenta"
+      },
+      "runOptions": {
+        "instancePolicy": "terminateOldest"
+      },
+      "dependsOn": [
+        "Blender: Extension Build",
+        "Blender: Extension Install",
+        "Blender: Open"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }
