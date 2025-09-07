@@ -4,6 +4,11 @@ on:
     types:
       - opened
       - synchronize
+    paths:
+      - .github/**
+      - src/**
+      - pyproject.toml
+      - .flake8
 jobs:
   ruff:
     runs-on: ubuntu-latest
