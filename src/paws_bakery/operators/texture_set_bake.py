@@ -129,10 +129,7 @@ class TextureSetBake(blt.Operator):
 
         self._bake_objects_list = []
 
-        if (
-            bake_settings.use_selected_to_active
-            and bake_settings.match_active_by_suffix
-        ):
+        if bake_settings.use_selected_to_active:
             matching_names = match_low_to_high([m.name for m in meshes_enabled])
             for low_high_map in matching_names:
                 active = self._texture_set.meshes[low_high_map.low].ensure_mesh_ref()

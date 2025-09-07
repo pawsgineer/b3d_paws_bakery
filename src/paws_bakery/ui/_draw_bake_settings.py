@@ -4,7 +4,11 @@ from typing import cast
 
 from bpy import types as blt
 
-from ..props import BakeSettings, BakeTextureType  # type: ignore[attr-defined]
+from ..props import (  # type: ignore[attr-defined]
+    SIMPLE_BAKE_SETTINGS_ID,
+    BakeSettings,
+    BakeTextureType,
+)
 from ._utils import LayoutPanel
 
 
@@ -15,6 +19,7 @@ def draw_bake_settings(
 ) -> None:
     """Draws a bake settings layout."""
     assert isinstance(settings, BakeSettings)
+    is_simple_mode = texture_set_display_name == SIMPLE_BAKE_SETTINGS_ID
 
     row = layout.row()
     row.label(text="SETTINGS", icon="TOOL_SETTINGS")
@@ -49,10 +54,9 @@ def draw_bake_settings(
         layout.panel("use_selected_to_active", default_closed=True),
     )
     header.prop(settings, "use_selected_to_active", text="")
-    header.label(text="Selected To Active")
+    header.label(text="Selected To Active" if is_simple_mode else "High to Low")
     if panel:
         panel.active = settings.use_selected_to_active
-        panel.prop(settings, "match_active_by_suffix")
 
         row = panel.row()
         row.prop(settings, "use_cage")

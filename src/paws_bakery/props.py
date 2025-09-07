@@ -118,11 +118,6 @@ class BakeSettings(blt.PropertyGroup):
     )
 
     # NORMAL
-    match_active_by_suffix: blp.BoolProperty(  # type: ignore[valid-type]
-        name="Match Active by Suffix",
-        description="Mark mesh with '_low' suffix as active",
-        default=True,
-    )
     use_selected_to_active: blp.BoolProperty(  # type: ignore[valid-type]
         name="Selected To Active",
         description="Selected to active",
@@ -151,7 +146,7 @@ class BakeSettings(blt.PropertyGroup):
     @property
     def bake_high_to_low(self) -> bool:
         """Whether baking should run from high to low matched by name."""
-        return cast(bool, self.use_selected_to_active and self.match_active_by_suffix)
+        return cast(bool, self.use_selected_to_active)
 
     def get_name(self, set_name: str = "") -> str:
         """Return compiled name."""

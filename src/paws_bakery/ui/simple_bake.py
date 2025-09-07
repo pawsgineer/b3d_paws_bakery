@@ -46,8 +46,8 @@ class SimpleBakeSpecialsMenu(blt.Menu):
 class SimpleBake(SidePanelMixin):
     """UI Panel - Simple Bake."""
 
-    bl_idname = "PAWSBKR_PT_simple_bake"
-    bl_label = "Simple Bake"
+    bl_idname = "PAWSBKR_PT_simple_mode"
+    bl_label = "Simple Mode"
     bl_order = 1
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
