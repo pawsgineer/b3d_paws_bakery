@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.5.1 (2025-09-08)
+
+### Bug Fixes
+
+- Add docs link to add-on
+  ([`c1db355`](https://github.com/pawsgineer/b3d_paws_bakery/commit/c1db3554050c245e104f5f3cf03e5cd7a44ca30c))
+
+### Build System
+
+- Clean up local build setup
+  ([`657da5e`](https://github.com/pawsgineer/b3d_paws_bakery/commit/657da5e3eb1aeaa6f2312e1e5ce3cdfe52365a7a))
+
+### Documentation
+
+- Add sphinx docs deployment
+  ([`bbc25a9`](https://github.com/pawsgineer/b3d_paws_bakery/commit/bbc25a97855d7502a41147b814d0cbd9b89ef5d4))
+
+
 ## v0.5.0 (2025-09-02)
 
 ### Features
